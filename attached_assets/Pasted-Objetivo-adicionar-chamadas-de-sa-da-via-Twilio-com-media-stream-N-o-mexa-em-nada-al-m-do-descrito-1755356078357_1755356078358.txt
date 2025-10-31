@@ -1,0 +1,103 @@
+Objetivo: adicionar chamadas de saída via Twilio com media stream.
+Não mexa em nada além do descrito.
+
+Instale dependências (se faltarem): express ws twilio
+
+Use CommonJS. Se já existir app (Express) e server (HTTP), reutilize-os; caso contrário, crie-os.
+
+Adicione/garanta estas 3 rotas:
+
+POST /call → cria chamada de saída usando Twilio REST, com TwiML embutido (gravação + stream).
+
+POST /twilio/recording-status → responde 200 e loga callback.
+
+WebSocket em /media → aceita conexão do Twilio Media Streams e loga eventos start/media/stop.
+
+Código a inserir:
+
+// ==== base ====
+const http = require('http');
+const express = require('express');
+const { WebSocketServer } = require('ws');
+const app = global.app || express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ==== HTTP server (reuso se já houver) ====
+const server = (global.server && global.server.listening)
+  ? global.server
+  : http.createServer(app);
+global.app = app; global.server = server;
+
+// ==== rota de saúde (opcional) ====
+app.get('/', (req,res)=>res.status(200).send('OK'));
+
+// ==== Twilio: callback de gravação ====
+app.post('/twilio/recording-status', (req,res) => {
+  console.log('[recording-status]', req.body || {});
+  res.sendStatus(200);
+});
+
+// ==== WebSocket: Media Streams em /media ====
+const wss = new WebSocketServer({ noServer: true });
+server.on('upgrade', (req, socket, head) => {
+  if (req.url === '/media') {
+    wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws, req));
+  } else socket.destroy();
+});
+wss.on('connection', (ws) => {
+  console.log('[media] conectado');
+  ws.on('message', (msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      if (data.event === 'start')  console.log('[media] start', data.start?.callSid);
+      if (data.event === 'media')  {/* audio base64: data.media.payload */}
+      if (data.event === 'stop')   console.log('[media] stop');
+    } catch(e){ console.error('[media] parse', e.message); }
+  });
+  const ping = setInterval(() => { try { ws.ping(); } catch {} }, 15000);
+  ws.on('close', () => clearInterval(ping));
+});
+
+// ==== rota: criar chamada de saída ====
+const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+app.post('/call', async (req, res) => {
+  try {
+    const to = req.body?.to; // número destino em E.164 (+55119999...)
+    if (!to) return res.status(400).json({ error: 'missing to' });
+
+    const twiml =
+      `<?xml version="1.0" encoding="UTF-8"?><Response>
+         <Start>
+           <Recording trim="do-not-trim" playBeep="false" recordingTrack="both"
+                      recordingStatusCallback="https://${process.env.REPL_SLUG || 'disckmix'}.replit.app/twilio/recording-status"
+                      recordingStatusCallbackEvent="completed failed"/>
+         </Start>
+         <Connect><Stream url="wss://${process.env.REPL_SLUG || 'disckmix'}.replit.app/media"/></Connect>
+       </Response>`;
+
+    const call = await twilio.calls.create({
+      from: process.env.TWILIO_NUMBER, // seu número Twilio em E.164
+      to,
+      twiml
+    });
+    console.log('[call] created', call.sid, '->', to);
+    res.json({ sid: call.sid });
+  } catch (e) {
+    console.error('[call] error', e?.message);
+   res.status(500).json({ error: e?.message });
+  }
+});
+
+// ==== iniciar servidor ====
+if (!server.listening) {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => console.log('HTTP/WS on', PORT));
+}
+
+
+Não remova nada que já exista; apenas adicione.
+
+Rode o projeto. Garanta que https://<seu>.replit.app/ abre (200).
+
+Me retorne uma confirmação no console quando o WS conectar: [media] conectado.

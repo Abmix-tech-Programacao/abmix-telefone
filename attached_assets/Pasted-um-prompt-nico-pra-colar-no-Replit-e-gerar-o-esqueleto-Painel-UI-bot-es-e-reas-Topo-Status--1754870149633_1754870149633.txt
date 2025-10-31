@@ -1,0 +1,184 @@
+um prompt único pra colar no Replit e gerar o esqueleto.
+
+Painel (UI) — botões e áreas
+Topo: Status da chamada (Idle/Ringing/Conectado), latência, indicador de áudio.
+
+Discagem: campo número (E.164) + Discar, Atender, Encerrar.
+
+IA/Humano: IA ON/OFF, Assumir (mute IA), Retomar IA, Pausar/Retomar fala.
+
+Prompt ao vivo: textarea + Aplicar Prompt (injeta instruções na IA durante a ligação).
+
+Legendas: área com transcrição parcial/final (PT-BR), carimbo de tempo e speaker (IA/Humano/Remoto).
+
+Favoritos: lista com Ligar, Editar, Remover, Adicionar Favorito.
+
+Extras (opcionais): Gravar/Parar gravação, Transferir (outro número/ramal), Hold/Resume, DTMF (0–9,*,#), Avaliar chamada.
+
+Funções (o que cada botão faz)
+Discar/Atender/Encerrar: cria/aceita/fecha sessão PSTN/WebRTC.
+
+IA ON/OFF: habilita TTS/LLM; Assumir troca para microfone humano; Retomar IA volta a falar por TTS.
+
+Pausar fala: pausa TTS sem derrubar a sessão; Retomar fala continua a resposta.
+
+Aplicar Prompt: atualiza contexto do agente (tom, regras, objetivo) em tempo real.
+
+Legendas: recebe STT streaming (parcial/final) e exibe contínuo.
+
+Favoritos: CRUD local (JSON/DB simples) e discagem direta.
+
+Gravar: inicia/para gravação (quando permitido), salva link e metadata.
+
+Transferir/Hold/DTMF: envia comandos à sessão de voz.
+
+Integrações possíveis (por módulo)
+Telefonia/Agente (escolha 1):
+
+Rápido: Vapi ou Retell AI (discagem, barge-in, handoff, eventos).
+
+Granular: Twilio Voice + Media Streams (telefone/WebRTC + áudio raw).
+
+STT (Legendas PT-BR): Deepgram (streaming).
+
+TTS (Voz humana PT-BR masc/fem): ElevenLabs ou PlayHT (stream).
+
+WebRTC Front (se precisar sala/mídia local): LiveKit.
+
+Voice Conversion (opcional): RVC/OpenVoice (self-host) ou serviço comercial (atenção à latência/licenças).
+
+LLM: a definir (OpenAI, etc.) — recebe texto do STT, aplica prompt ao vivo, devolve resposta para TTS.
+
+Logs/Armazenamento: gravações/transcrições/prompts (SQLite/Firestore/Planilha/Sheets API).
+
+Estados & eventos (mínimo)
+Estados: CALL_IDLE | RINGING | CONNECTED | ENDED, AI_ACTIVE | HUMAN_ACTIVE.
+
+Eventos: onCallState, onTranscript(partial|final), onAgentReply, onBargeIn, onHandoff, onError, onLatency.
+
+Variáveis de ambiente (exemplo)
+makefile
+Copiar
+Editar
+PUBLIC_BASE_URL=
+VAPI_API_KEY=
+RETELL_API_KEY=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_TWIML_APP_SID=
+DEEPGRAM_API_KEY=
+ELEVENLABS_API_KEY=
+PLAYHT_API_KEY=
+LIVEKIT_URL=
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+PROMPT PARA COLAR NO REPLIT (gerar o esqueleto do projeto)
+Gere um monorepo Node (Express) + React (Vite) com TypeScript, estruturado assim:
+
+/apps/server (Express):
+
+Rotas:
+
+POST /api/call/start {provider, toNumber, voiceId?} → inicia chamada (stub para Vapi/Retell/Twilio).
+
+POST /api/call/hangup {callId} → encerra.
+
+POST /api/agent/pause {callId} → pausa IA (mantém sessão).
+
+POST /api/agent/resume {callId} → retoma IA.
+
+POST /api/agent/prompt {callId, prompt} → injeta prompt ao vivo.
+
+GET /api/favorites → lista.
+
+POST /api/favorites {name, number, tags?, notes?} → cria.
+
+PUT /api/favorites/:id → edita.
+
+DELETE /api/favorites/:id → remove.
+
+Webhooks:
+
+/webhooks/voice (um endpoint único que aceite eventos de Vapi/Retell/Twilio via provider=header/query e normalize para {type, callId, payload}).
+
+WebSocket /ws/transcripts para enviar ao front os eventos: transcript:partial, transcript:final, agent:reply, call:state, latency:update, error.
+
+Providers (interfaces + stubs em /providers):
+
+voiceProvider.ts (interface comum: startCall, hangup, pauseAI, resumeAI, injectPrompt, transfer, hold, dtmf).
+
+Implementações: vapiProvider.ts, retellProvider.ts, twilioProvider.ts (somente wire-up; deixe TODOs).
+
+sttProvider.ts (Deepgram streaming — TODO: conectar por WS e enviar transcript via /ws/transcripts).
+
+ttsProvider.ts (ElevenLabs/PlayHT — função speak(text, voiceId) devolve stream/URL; TODO integrar com o provider de voz).
+
+Persistência simples em /data:
+
+favorites.json, calls.json, transcripts.json, prompts.json (use um dataStore.ts com leitura/escrita segura).
+
+.env lendo as variáveis listadas; middleware CORS; logger; validação básica (zod).
+
+/apps/client (React + Vite + Tailwind):
+
+Layout clean (sem libs pesadas), componentes:
+
+Header: status da chamada, latência, indicador de áudio.
+
+DialerCard: input E.164 + botões Discar, Atender, Encerrar.
+
+AgentControls: IA ON/OFF, Assumir, Retomar IA, Pausar/Retomar fala, Transferir, Hold, DTMF (0–9,*,#).
+
+LivePrompt: textarea + botão Aplicar Prompt.
+
+Transcripts: lista com linhas {ts, speaker, text, final} (parcial em itálico).
+
+Favorites: CRUD + botão Ligar por item.
+
+Recordings (placeholder): Gravar/Parar + lista (URL/ID).
+
+Estado global (zustand ou contexto):
+
+callState, aiActive, latency, currentCallId, transcripts[], favorites[].
+
+Service Layer:
+
+api.ts (fetch para rotas REST).
+
+ws.ts (conecta em /ws/transcripts, registra handlers para eventos).
+
+Ações principais:
+
+startCall(provider, toNumber, voiceId?) → salva callId; muda callState.
+
+hangup(callId), pauseAI(callId), resumeAI(callId), injectPrompt(callId, prompt).
+
+sendDTMF(callId, tone), hold(callId), transfer(callId, target).
+
+Favoritos: load/add/update/remove.
+
+Acessibilidade: atalhos de teclado (ex.: Ctrl+D discar, Ctrl+P aplicar prompt).
+
+Funcional:
+
+Implementar mock local que simule eventos de chamada (CONNECTED após 1s, transcripts fake a cada 800ms, agent replies a cada 1.5s) para ver UI sem contas externas.
+
+Deixar feature flags por .env para escolher provider (VOICE_PROVIDER=vapi|retell|twilio) e habilitar mock (VOICE_MOCK=1).
+
+Qualidade:
+
+TypeScript estrito, ESLint/Prettier.
+
+Scripts: dev:server, dev:client, dev (concurrent), build, start.
+
+README com passos: 1) cp .env.example .env; 2) npm i; 3) npm run dev.
+
+TODOs comentados nos providers explicando onde plugar:
+
+Vapi/Retell: endpoints/SDK, mapear eventos para onTranscript/agentReply/callState.
+
+Twilio: TwiML app + Media Streams WS; STT Deepgram; TTS ElevenLabs/PlayHT; retorno de áudio para a call.
+
+Gravação: placeholder de rota (dependente do provider).
+
+Entregar com UI minimalista e responsiva, sem inventar estilo; priorizar clareza dos botões e estados.

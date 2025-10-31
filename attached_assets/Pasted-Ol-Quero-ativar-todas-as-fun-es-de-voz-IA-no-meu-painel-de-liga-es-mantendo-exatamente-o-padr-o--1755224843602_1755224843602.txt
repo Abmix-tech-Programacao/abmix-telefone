@@ -1,0 +1,160 @@
+Olá!
+Quero ativar todas as funções de voz/IA no meu painel de ligações mantendo exatamente o padrão visual atual (cores, botões, cards, tipografia). Não crie telas novas; apenas complete os módulos já visíveis e adicione controles dentro de “Configurações” quando necessário.
+
+1) Provedores (somente estes)
+
+Twilio Programmable Voice + Media Streams (já configurado: endpoint /twiml).
+
+ElevenLabs para tudo de áudio/IA:
+
+Realtime TTS (voz em tempo real).
+
+Speech-to-Text (legendas PT-BR).
+
+Voice Changer (modificador de voz).
+
+Voice Library/Design (lista de vozes).
+
+Não integrar nenhum outro serviço externo.
+
+2) Requisitos de UI (preservar visual)
+
+Discagem: manter botões atuais. Somente dois seletores: “Masculina” e “Feminina”.
+
+Esses seletores devem mapear para duas vozes configuráveis em Configurações (ex.: VOZ_MASC_ID, VOZ_FEM_ID).
+
+Legendas (PT-BR): card atual deve exibir transcrição ao vivo vinda do STT da ElevenLabs.
+
+Gravações: o card atual controla iniciar/pausar/retomar/parar.
+
+As gravações ficam listadas no menu lateral “Gravações” (com nome, duração, data, botão de download).
+
+Prompt Ao Vivo: aplicar instruções em tempo real na sessão de voz (ex.: ajustar tom/estilo ou passar frases prontas).
+
+Controle de IA:
+
+“IA Ativa”: liga/desliga o agente de resposta automática.
+
+“Assumir”: eu falo no microfone (pass-through) mantendo a mesma voz ElevenLabs via Voice Changer.
+
+“Retomar IA”: devolve a fala para a IA.
+
+“Pausar/Retomar”: pausa ou continua o streaming TTS/STT.
+
+Cabeçalho: mostrar Latência (ms) em tempo real (média dos últimos 5 RTT de áudio/WS).
+
+Cores e layout: idênticos aos do painel atual.
+
+3) Configurações (novo conteúdo dentro do card existente)
+
+Adicionar campos (sem mudar o estilo):
+
+Provedor de Voz: fixo em ElevenLabs (somente leitura).
+
+Modelo: Flash v2.5, Eleven V3 (Alpha) (dropdown).
+
+Lista de Vozes: buscar via API e exibir todas; permitir marcar múltiplas para uso futuro.
+
+Voz padrão (Masculina) → salva VOZ_MASC_ID.
+
+Voz padrão (Feminina) → salva VOZ_FEM_ID.
+
+Velocidade (slider 0.8–1.2) e Estilo/Tom (dropdown simples: neutro, simpático, formal).
+
+STT Idioma: fixo pt-BR.
+
+Salvar grava em storage local do app (ou .env se já existir mecanismo) e aplica na próxima chamada.
+
+4) Backend: endpoints e fluxos (Node/TS)
+
+Manter arquivos e padrões atuais. Acrescentar/ajustar:
+
+4.1 Twilio
+
+GET/POST /twiml → retornar TwiML:
+<Connect><Stream url="wss://{BASE_URL}/media" /></Connect>
+
+WS /media (Twilio ↔ backend):
+
+Recebe áudio 8kHz μ-law;
+
+Publica para ElevenLabs Realtime;
+
+Recebe áudio convertido (PCM) e retorna ao Twilio no formato esperado.
+
+Buffer ~20 ms, jitter mínimo.
+
+Métrica: calcule RTT/latência e disponibilize via SSE /metrics (para o cabeçalho).
+
+4.2 ElevenLabs (usar apenas esta API)
+
+Realtime TTS: abrir sessão WS com o modelo escolhido; definir voice_id conforme “Masculina/Feminina”.
+
+Prompt Ao Vivo: endpoint POST /api/ai/prompt
+
+{ "text": "instrução curta", "style": "formal|neutro|simpatico" }
+
+
+→ aplica na sessão ativa (ajustar stability, similarity_boost, style).
+
+Speech-to-Text (Legendas): criar WS/stream com STT ElevenLabs e publicar as parciais/finais em wss://{BASE_URL}/captions.
+
+Frontend do card Legendas consome e mostra linhas rolantes.
+
+Voice Changer (Assumir): quando “Assumir” estiver ON, roteie microfone local → ElevenLabs Voice Changer com o mesmo voice_id atual → volta para Twilio (mantém a mesma voz).
+
+Listar vozes: GET /api/voices → proxy para ElevenLabs → preencher Configurações.
+
+Gravações: gravar pós-ElevenLabs (saída já com voz IA) em .wav 44.1 kHz; salvar metadados (callSid, duração).
+
+Rotas: POST /api/recordings/start|pause|resume|stop, GET /api/recordings/list, GET /api/recordings/:id/download.
+
+5) Frontend (ligação com backend)
+
+Discagem
+
+POST /api/call/dial → { "to": "+5511...", "voiceType": "masc|fem" }
+
+POST /api/call/hangup → { "callSid": "..." }
+
+Prompt Ao Vivo
+
+POST /api/ai/prompt → corpo de texto curto.
+
+Legendas
+
+Conectar em wss://{BASE_URL}/captions e renderizar em tempo real.
+
+Gravações
+
+Botões chamam /api/recordings/*;
+
+Lateral “Gravações” lista via /api/recordings/list (com busca e download).
+
+Latência
+
+Consumir SSE /metrics e mostrar Latência: XX ms no cabeçalho.
+
+6) Qualidade, estados e erros
+
+Reconexão automática de WS (Twilio/ElevenLabs).
+
+Fallback: se a sessão ElevenLabs cair, pass-through momentâneo (sem modulação) e tentar reconectar.
+
+Logs claros: chamada iniciou/terminou, voz ativa, prompt aplicado, latência média, gravação ON/OFF.
+
+7) Restrições finais (obrigatórias)
+
+Não usar serviços de fora além de Twilio e ElevenLabs.
+
+Não alterar o layout/cores; respeitar o padrão visual atual.
+
+Discagem: manter apenas os dois botões Masculina/Feminina (as vozes reais são escolhidas em Configurações).
+
+Gravações: ficam no menu lateral “Gravações”.
+
+Cabeçalho: mostrar latência em tempo real.
+
+Use PT-BR para STT e mensagens.
+
+Entregar com tudo funcionando e integrado no painel atual.

@@ -1,0 +1,249 @@
+aqui vai o “mapa de fiação” do painel atual, dizendo o que cada caixa usa da API, o que falta criar e como ligar (com endpoints e mini-trechos de código). Sem mudar cores/estilo.
+
+1) Caixas que JÁ existem → com o que sincronizar
+A. Discagem
+
+Usa (Twilio): iniciar/encerrar chamada, DTMF, Media Streams.
+
+Ligar botões:
+
+Discar → POST /api/call/dial { to, voiceType } → retorna { callSid }
+
+Atender (se tiver inbound) → POST /api/call/answer { callSid }
+
+Encerrar → POST /api/call/hangup { callSid }
+
+Teclado numérico → POST /api/call/dtmf { callSid, digits }
+
+Backend (exemplo):
+
+// discar
+router.post('/api/call/dial', async (req,res) => {
+  const { to, voiceType } = req.body;
+  const call = await tw.calls.create({
+    to, from: process.env.TWILIO_NUMBER!,
+    url: `${process.env.BASE_URL}/twiml?voiceType=${voiceType}` // TwiML com <Stream>
+  });
+  res.json({ callSid: call.sid });
+});
+
+// DTMF
+router.post('/api/call/dtmf', async (req,res) => {
+  const { callSid, digits } = req.body;
+  await tw.calls(callSid).update({ sendDigits: digits });
+  res.json({ ok:true });
+});
+
+B. Prompt Ao Vivo
+
+Usa (IA/ElevenLabs + LLM): atualiza o “contexto” do agente para próximas falas.
+
+Ligar botão “Aplicar Prompt”:
+
+POST /api/agent/prompt { text }
+
+Backend:
+
+let AGENT_PROMPT = 'Você é um assistente de chamadas em pt-BR.';
+router.post('/api/agent/prompt', (req,res)=> { AGENT_PROMPT = req.body.text||AGENT_PROMPT; res.json({ok:true}); });
+
+
+Efeito: na resposta do LLM durante a chamada use AGENT_PROMPT como system prompt.
+
+C. Legendas (PT-BR)
+
+Usa (STT): WebSocket /captions — conectar só quando a chamada estiver ativa.
+
+Frontend:
+
+let ws: WebSocket|null=null;
+export function captionsConnect() {
+  if (ws) return;
+  const url = (location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/captions';
+  ws = new WebSocket(url);
+  ws.onmessage = ev => renderLegenda(JSON.parse(ev.data)); // {text,isFinal}
+}
+export function captionsDisconnect(){ ws?.close(); ws=null; }
+
+// ao iniciar/atender chamada
+captionsConnect();
+// ao encerrar
+captionsDisconnect();
+
+D. Favoritos
+
+Usa (interno/SQLite): salvar número + tipo de voz.
+
+Endpoints:
+
+GET /api/favorites
+
+POST /api/favorites { name, phone_e164, voiceType }
+
+DELETE /api/favorites/:id
+
+E. Controle de IA (Assumir/Retomar/Pausar/Retomar)
+
+Usa (pipeline de chamada): alterna quem fala: você (humano) vs agente IA.
+
+Ligar botões:
+
+Assumir (desliga IA) → POST /api/agent/disable { callSid }
+
+Retomar IA → POST /api/agent/enable { callSid }
+
+Pausar/Retomar → alterna geração de áudio do agente.
+
+Backend (estado):
+
+const agent = new Map<string, {enabled:boolean}>();
+router.post('/api/agent/enable', (req,res)=>{ agent.set(req.body.callSid,{enabled:true}); res.json({ok:true}); });
+router.post('/api/agent/disable',(req,res)=>{ agent.set(req.body.callSid,{enabled:false}); res.json({ok:true}); });
+
+
+Uso no loop de conversação: só gerar TTS quando agent.get(callSid)?.enabled === true.
+
+F. Gravações
+
+Usa (Twilio Recordings): start/pause/resume/stop + callback para salvar MP3 em ./recordings/.
+
+Endpoints (já de exemplo na msg anterior):
+
+POST /api/recordings/start|pause|resume|stop
+
+POST /twilio/recording-status (callback baixa .mp3)
+
+GET /api/recordings/list (listar na lateral “Gravações”)
+
+2) Itens do cabeçalho
+Latência (ms)
+
+Usa: SSE /metrics ou WS ping.
+
+Backend (SSE simples):
+
+router.get('/metrics', (req,res)=>{
+  res.setHeader('Content-Type','text/event-stream');
+  const id=setInterval(()=>res.write(`data: ${JSON.stringify({latencyMs: currentLatency()})}\n\n`),2000);
+  req.on('close',()=>clearInterval(id));
+});
+
+
+Frontend: new EventSource('/metrics').onmessage = e => setLatency(JSON.parse(e.data).latencyMs);
+
+Ícones microfone/alto-falante
+
+Usa: mute local (media element / WebAudio). Apenas ligar aos estados do player/stream sem mudar estilo.
+
+3) Caixas/botões que PRECISAM ser criados (sem quebrar visual)
+
+Configurar Vozes (já existe em Configurações)
+
+Dropdown Voz Masculina e Voz Feminina com GET /api/voices (ElevenLabs).
+
+Testar Masc/Fem → POST /api/tts { voiceId, text } com a frase:
+“Olá, bem-vindo à Disck Mix. Seu painel inteligente de ligações.”
+
+Ações em Gravações (menu por item)
+
+Dublar/Traduzir → POST /api/dubbing { fileId, targetLang }
+
+Isolar ruído → POST /api/audio/denoise { fileId }
+
+Aplicar efeito → POST /api/audio/effects { fileId, effect }
+
+Conversão/Clonagem de Voz (opcional)
+
+Card simples com upload → POST /api/voice/convert { targetVoiceId, file }
+
+4) Pipeline da IA controlada pelo Prompt (fluxo claro)
+
+Recebe áudio da chamada (Twilio → /media WS)
+
+STT PT-BR gera {text} → envia para LLM com:
+
+system: AGENT_PROMPT (de /api/agent/prompt)
+
+user: transcrição mais recente
+
+LLM resposta (pt-BR) → TTS ElevenLabs (Realtime) → envia áudio de volta ao /media → Twilio → callee.
+
+Interrupção em tempo real: botão Assumir põe enabled=false e pausa TTS; Retomar IA reativa.
+
+Pseudo-código do loop (backend):
+
+if (agent.get(callSid)?.enabled) {
+  const reply = await callLLM({ system: AGENT_PROMPT, user: sttText });
+  elevenLabsRealtime.speak(callSid, reply); // stream -> /media
+}
+
+5) Rotas de apoio (mínimo viável)
+// vozes
+GET  /api/voices
+POST /api/tts { voiceId, text }
+GET  /api/models
+
+// agente
+POST /api/agent/prompt { text }
+POST /api/agent/enable { callSid }
+POST /api/agent/disable { callSid }
+
+// chamada
+POST /api/call/dial { to, voiceType }
+POST /api/call/hangup { callSid }
+POST /api/call/dtmf { callSid, digits }
+
+// gravação
+POST /api/recordings/start|pause|resume|stop
+POST /twilio/recording-status
+GET  /api/recordings/list
+
+// favoritos & config
+GET/POST /api/favorites
+GET/POST /api/settings
+
+// tempo real
+WS   /media        (Twilio)
+WS   /captions     (Legendas)
+SSE  /metrics      (Latência ms)
+
+6) Micro-handlers de UI (exemplos)
+// Discagem
+async function discar() {
+  const r = await api.post('/api/call/dial', { to: numero, voiceType: sexo }); 
+  setCallSid(r.callSid); captionsConnect();
+}
+async function encerrar() { await api.post('/api/call/hangup', { callSid }); captionsDisconnect(); }
+
+// Teclado
+function sendDigit(d){ api.post('/api/call/dtmf', { callSid, digits: d }); }
+
+// Prompt ao vivo
+function aplicarPrompt(){ api.post('/api/agent/prompt', { text: textoPrompt }); }
+
+// IA
+function assumir(){ api.post('/api/agent/disable', { callSid }); }
+function retomarIA(){ api.post('/api/agent/enable', { callSid }); }
+
+// Testar voz
+function testarMasc(){ api.post('/api/tts',{ voiceId: vozMasc, text: TESTE }); }
+function testarFem(){ api.post('/api/tts',{ voiceId: vozFem, text: TESTE }); }
+
+
+TESTE: “Olá, bem-vindo à Disck Mix. Seu painel inteligente de ligações.”
+
+Resumo do que entregar agora:
+
+Ligar Discagem + DTMF aos endpoints.
+
+Legendas conectam só com chamada ativa.
+
+Controle de IA realmente liga/desliga a fala do agente.
+
+Prompt atualiza o system-prompt do agente em tempo real.
+
+Testar vozes funciona (frase PT-BR).
+
+Gravações funcionam + listagem/ações no menu lateral.
+
+Latência no cabeçalho por SSE.

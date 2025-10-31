@@ -1,0 +1,171 @@
+Olá!
+Quero que você primeiro solicite e valide as chaves e só depois finalize backend e UI. Não altere layout/cores do painel.
+
+0) Setup de chaves (bloqueante)
+
+Criar um modal de Setup (primeira execução) que bloqueia o painel até preencher:
+
+ELEVENLABS_API_KEY
+
+TWILIO_ACCOUNT_SID
+
+TWILIO_AUTH_TOKEN
+
+TWILIO_NUMBER (E.164)
+
+Botões no modal:
+
+“Validar chaves” → chama endpoints de teste:
+
+ElevenLabs: GET https://api.elevenlabs.io/v1/voices com header xi-api-key: ELEVENLABS_API_KEY
+
+Twilio: GET https://api.twilio.com/2010-04-01/Accounts/{SID}.json com Basic Auth
+
+Se OK, salvar em .env (server) e storage local (client) e fechar modal.
+
+Não prossiga com integração sem validação 200.
+
+UI (modal) – campos exatos
+
+Campos (placeholders):
+
+ELEVENLABS_API_KEY → xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+TWILIO_ACCOUNT_SID → ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+TWILIO_AUTH_TOKEN → xxxxxxxxxxxxxxxxxxxxxxxx
+
+TWILIO_NUMBER → +55XXXXXXXXXX
+
+Mensagens de erro claras (401/403/404) e dica “verifique a chave”.
+
+1) Backend (Node/TS) — completar somente o necessário
+
+Garantir/ajustar endpoints:
+
+ALL /twiml → retorna <Connect><Stream url="wss://{BASE_URL}/media"/></Connect>
+
+WS /media → bridge Twilio (8k μ-law) ↔ ElevenLabs Realtime (PCM). Buffer ~20ms.
+
+WS /captions → publicar transcrições (STT ElevenLabs) { text, isFinal }.
+
+GET /metrics (SSE) → enviar latência média (ms) calculada por RTT do WS.
+
+POST /api/call/dial { to, voiceType: "masc"|"fem" }
+
+POST /api/call/hangup { callSid }
+
+POST /api/ai/prompt { text, style? } → aplicar instrução na sessão ElevenLabs.
+
+POST /api/recordings/start|pause|resume|stop
+
+GET /api/recordings/list / GET /api/recordings/:id/download
+
+GET /api/voices → proxy p/ GET /v1/voices (ElevenLabs)
+
+GET /api/settings / POST /api/settings
+
+Armazenamento local:
+
+Pasta ./recordings/ (WAV 44.1kHz pós-IA).
+
+SQLite ./data/app.db com tabelas:
+
+recordings(id, call_sid, filename, duration_sec, started_at, ended_at, size_bytes)
+
+favorites(id, name, phone_e164, voice_type)
+
+settings(key, value)
+
+Remover dependências de serviços externos (Deepgram/Respeecher). Só ElevenLabs + Twilio.
+
+2) Frontend (manter padrão visual; apenas completar)
+2.1 Discagem (somente 2 opções)
+
+No card Discagem manter botões atuais e incluir selector:
+
+Voz: “Masculina” | “Feminina”
+
+O selector mapeia para IDs salvos em Configurações:
+
+VOZ_MASC_ID, VOZ_FEM_ID
+
+Botões Discar/Atender/Encerrar chamam /api/call/*.
+
+2.2 Legendas (PT-BR)
+
+Card Legendas conecta em wss://{BASE_URL}/captions e exibe transcrição em tempo real.
+
+Idioma fixo: pt-BR.
+
+2.3 Gravações
+
+Card Gravações controla start/pause/resume/stop.
+
+Menu lateral “Gravações” lista itens via /api/recordings/list com:
+
+nome (filename), duração, data/hora, botão Download.
+
+2.4 Prompt ao Vivo / Controle IA
+
+Campo de Prompt ao Vivo → POST /api/ai/prompt.
+
+IA Ativa / Assumir / Retomar IA:
+
+“IA Ativa”: alterna respostas automáticas da sessão ElevenLabs.
+
+“Assumir”: meu microfone → ElevenLabs Voice Changer (mesmo voice_id) → Twilio.
+
+“Retomar IA”: volta a resposta da IA.
+
+2.5 Cabeçalho (latência)
+
+Mostrar Latência: XX ms (média móvel) consumindo SSE /metrics.
+
+Não altere tipografia/cores; use o estilo atual.
+
+2.6 Configurações
+
+Dentro do card de Configurações (sem mudar visual):
+
+Modelo: Flash v2.5 | Eleven V3 (Alpha)
+
+Lista de vozes: preencher com /api/voices (checkbox múltiplo).
+
+Campos:
+
+Voz padrão (Masculina) → salva VOZ_MASC_ID
+
+Voz padrão (Feminina) → salva VOZ_FEM_ID
+
+Velocidade (0.8–1.2) e Estilo (neutro/simpático/formal)
+
+Salvar → POST /api/settings e usar nas próximas chamadas.
+
+3) Validação final (checklist automático)
+
+Mostrar toast: “Chaves válidas”.
+
+Testar:
+
+GET /twiml (200 + XML)
+
+WS /media (conecta)
+
+/api/voices (lista > 0)
+
+Discar demo (para número de teste) com voz Masculina, depois Feminina.
+
+Legendas aparecendo em PT-BR.
+
+Latência no cabeçalho.
+
+Gravação salva em ./recordings/ e listada no menu.
+
+Restrições finais
+
+Não criar serviços externos (Drive, S3, etc).
+
+Não mudar layout/cores.
+
+Somente ElevenLabs (voz/STT) e Twilio (chamada).

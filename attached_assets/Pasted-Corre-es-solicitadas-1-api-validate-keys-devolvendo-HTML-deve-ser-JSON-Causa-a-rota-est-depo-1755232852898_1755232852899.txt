@@ -1,0 +1,68 @@
+Correções solicitadas
+1) /api/validate-keys devolvendo HTML (deve ser JSON)
+
+Causa: a rota está depois do express.static(...)/catch-all e o frontend está respondendo no lugar da API.
+
+Ação (server): registre as rotas antes do static.
+
+// server/index.ts (ordem correta)
+import apiRouter from './telephony'; // suas rotas /api/* e /twiml
+
+app.use(express.json());
+app.use(apiRouter);                   // ✅ APIs primeiro
+app.use(express.static('client/dist'));// depois frontend
+app.get('*', (_req,res)=>res.sendFile(path.join(__dirname,'../client/dist/index.html')));
+
+
+Rota de validação (garantir JSON 200/500):
+
+// server/telephony.ts
+router.get('/api/validate-keys', async (_req, res) => {
+  try {
+    const el = await fetch('https://api.elevenlabs.io/v1/voices',{ headers:{'xi-api-key':process.env.ELEVENLABS_API_KEY!}});
+    const tw = await twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!)
+                    .api.accounts(process.env.TWILIO_ACCOUNT_SID!).fetch();
+    return res.json({ ok: el.ok && !!tw?.sid, elevenlabs: el.ok?'ok':'fail', twilio: tw?.sid?'ok':'fail' });
+  } catch (e:any) { return res.status(500).json({ ok:false, error:e.message }); }
+});
+
+2) WebSocket /captions em loop (conectando sem chamada ativa)
+
+Causa: o front conecta no WS sempre; ao fechar, tenta reconectar infinitamente.
+
+Ação (frontend): conectar apenas com chamada ativa; desconectar ao encerrar.
+
+// client/src/services/captions.ts
+let ws: WebSocket | null = null;
+export function connectCaptions() {
+  if (ws) return;
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/captions`);
+  ws.onopen = () => console.log('captions: open');
+  ws.onmessage = ev => {/* atualizar card com JSON {text,isFinal} */};
+  ws.onerror = () => ws?.close();
+  ws.onclose = () => { ws = null; if ((window as any).__CALL_ACTIVE__) setTimeout(connectCaptions, 2000); };
+}
+export function disconnectCaptions(){ try{ ws?.close(); } finally{ ws=null; } }
+
+// ao Discar/Atender:
+(window as any).__CALL_ACTIVE__ = true;
+connectCaptions();
+
+// ao Encerrar:
+(window as any).__CALL_ACTIVE__ = false;
+disconnectCaptions();
+
+
+Ação (server): manter WS vivo (Replit derruba sem ping).
+
+// server/telephony.ts (após criar wssCaptions)
+wssCaptions.on('connection', (sock:any)=>{ sock.isAlive=true; sock.on('pong',()=>sock.isAlive=true); });
+setInterval(()=>{ wssCaptions.clients.forEach((s:any)=>{ if(!s.isAlive) return s.terminate(); s.isAlive=false; try{s.ping();}catch{} }); }, 25000);
+
+
+Pronto:
+
+/api/validate-keys retorna JSON corretamente.
+
+/captions só conecta durante a chamada e não entra em loop.

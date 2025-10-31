@@ -1,0 +1,75 @@
+CORRIGIR WEBSOCKET EM LOOP (LEGENDAS) + MEDIA TWILIO
+
+Não alterar visual do painel. Apenas corrigir WS e garantir Twilio Media.
+
+1) Frontend – conectar WS só durante a chamada
+
+No store/controle da chamada, adicione:
+
+// client/src/services/captions.ts
+let ws: WebSocket | null = null;
+const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/captions`;
+
+export function connectCaptions() {
+  if (ws) return;
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => console.log('captions: open');
+  ws.onmessage = (ev) => {/* atualizar card de Legendas com JSON {text,isFinal} */};
+  ws.onerror = () => ws?.close();
+  ws.onclose = () => { ws = null; setTimeout(() => { /* reconectar só se a chamada estiver ativa */ if (window.__CALL_ACTIVE__) connectCaptions(); }, 2000); };
+}
+
+export function disconnectCaptions() {
+  try { ws?.close(); } finally { ws = null; }
+}
+
+
+No fluxo da chamada:
+
+Ao Discar/Atender: window.__CALL_ACTIVE__ = true; connectCaptions();
+
+Ao Encerrar: window.__CALL_ACTIVE__ = false; disconnectCaptions();
+
+2) Backend – heartbeat para manter WS vivo no Replit
+
+No servidor (onde cria o wss de /captions), incluir:
+
+// server/telephony.ts (após criar o WebSocketServer wssCaptions)
+wssCaptions.on('connection', (sock: any) => {
+  sock.isAlive = true;
+  sock.on('pong', () => (sock.isAlive = true));
+});
+
+setInterval(() => {
+  wssCaptions.clients.forEach((sock: any) => {
+    if (!sock.isAlive) return sock.terminate();
+    sock.isAlive = false;
+    try { sock.ping(); } catch {}
+  });
+}, 25000);
+
+3) TwiML + rota /media (verificação)
+
+/twiml deve responder exatamente:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Connect>
+    <Stream url="wss://{SEU_HOST}/media"/>
+  </Connect>
+</Response>
+
+
+No Twilio Console (Voice Configuration): “A call comes in” → Webhook → https://{SEU_HOST}/twiml (HTTP POST).
+
+Certifique que o servidor aceita upgrade em /media (Twilio Media Streams) e faz a ponte para ElevenLabs Realtime.
+
+4) Testes rápidos (obrigatórios)
+
+Navegador → new WebSocket('wss://' + location.host + '/captions') deve abrir 1 conexão estável (sem loop).
+
+GET https://{SEU_HOST}/twiml mostra o wss://.../media correto.
+
+Ligar pelo painel: logs devem mostrar “captions: open” e conexão /media ativa.
+
+Não mudar layout/cores. Apenas aplicar o fix acima e confirmar estabilidade do WS e do Media Stream.

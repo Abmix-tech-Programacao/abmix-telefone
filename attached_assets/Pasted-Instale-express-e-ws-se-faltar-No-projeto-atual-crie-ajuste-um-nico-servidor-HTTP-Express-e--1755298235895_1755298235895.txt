@@ -1,0 +1,95 @@
+Instale express e ws (se faltar).
+
+No projeto atual, crie/ajuste um único servidor HTTP + Express e adicione as rotas abaixo sem remover nada do resto.
+
+Use exatamente este código:
+
+// ---- base ----
+const http = require('http');
+const express = require('express');
+const { WebSocketServer } = require('ws');
+
+const app = global.app || express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// healthcheck (opcional)
+app.get('/', (req,res)=>res.status(200).send('OK'));
+
+// ---- Twilio: webhook /twiml (corrige 11200) ----
+// aceita GET e POST e responde XML imediatamente
+app.all('/twiml',(req,res)=>{
+  res.type('text/xml').send(
+    `<?xml version="1.0" encoding="UTF-8"?>
+     <Response>
+       <Start>
+         <Recording trim="do-not-trim"
+           recordingStatusCallback="https://disckmix.replit.app/twilio/recording-status"
+           recordingStatusCallbackEvent="completed failed"
+           recordingTrack="both"
+           playBeep="false"/>
+       </Start>
+       <Connect>
+         <Stream url="wss://disckmix.replit.app/media"/>
+       </Connect>
+     </Response>`
+  );
+});
+
+// callback de status (evita 4xx no status callback)
+app.post('/twilio/recording-status',(req,res)=>{
+  console.log('[recording-status]', req.body || {});
+  res.sendStatus(200);
+});
+
+// ---- HTTP server (reuse se já existir) ----
+const server = (global.server && global.server.listening)
+  ? global.server
+  : http.createServer(app);
+global.app = app; global.server = server;
+
+// ---- Media Streams WS em /media (corrige 31920) ----
+const wss = new WebSocketServer({ noServer: true });
+server.on('upgrade', (req, socket, head) => {
+  if (req.url === '/media') {
+    wss.handleUpgrade(req, socket, head, ws => wss.emit('connection', ws, req));
+  } else {
+    socket.destroy();
+  }
+});
+
+wss.on('connection', (ws) => {
+  console.log('[media] conectado');
+  ws.on('message', (msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      if (data.event === 'start') console.log('[media] start', data.start?.callSid);
+      if (data.event === 'media') {/* audio base64 em data.media.payload */}
+      if (data.event === 'stop')  console.log('[media] stop');
+    } catch(e){ console.error('[media] parse', e.message); }
+  });
+  const i = setInterval(()=>{ try{ ws.ping(); }catch{} },15000);
+  ws.on('close', ()=> clearInterval(i));
+});
+
+// ---- start ----
+if (!server.listening) {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, ()=> console.log('HTTP/WS on', PORT));
+}
+
+
+Rode o projeto e confirme que https://disckmix.replit.app/twiml abre com XML (200).
+
+No Twilio → Active Numbers → (seu número) → Configure:
+
+A call comes in (Webhook): https://disckmix.replit.app/twiml • HTTP POST
+
+Primary handler fails: mesmo link • HTTP POST
+
+Call status changes: https://disckmix.replit.app/twilio/call-status • HTTP POST
+
+Faça uma chamada de teste para o número. No console do Replit devem aparecer:
+[media] conectado → start → vários media → stop.
+
+Se der erro, pegue no Monitor → Debugger o código e horário e mantenha o app rodando.

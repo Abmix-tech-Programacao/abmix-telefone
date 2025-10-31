@@ -1,0 +1,70 @@
+ódigo pronto da rota /media (WebSocket do Twilio).
+Cole o prompt na IA do Replit.
+
+Prompt único para IA do Replit (adicionar /media)
+
+Instale a dependência ws.
+
+No servidor Node/Express existente, adicione suporte WebSocket em /media para Twilio Media Streams. Use o código abaixo sem mudar outras rotas. Se não existir server, crie-o a partir do app.
+
+Rode o projeto e confirme, ao receber ligação, que chegam eventos start, media e stop no console.
+
+Código a inserir (CommonJS):
+
+// --- deps ---
+const http = require('http');
+const { WebSocketServer } = require('ws');
+
+// app: sua instância do Express já existente
+// server: reutilize se já existir; senão, crie agora
+const srv = (typeof server !== 'undefined' && server?.on) 
+  ? server 
+  : http.createServer(app);
+
+// WS em /media (upgrade handshake)
+const wss = new WebSocketServer({ noServer: true });
+srv.on('upgrade', (req, socket, head) => {
+  if (req.url === '/media') {
+    wss.handleUpgrade(req, socket, head, (ws) => wss.emit('connection', ws, req));
+  } else {
+    socket.destroy();
+  }
+});
+
+// Lógica do Media Stream
+wss.on('connection', (ws) => {
+  console.log('[media] conectado');
+  ws.on('message', (msg) => {
+    try {
+      const data = JSON.parse(msg.toString());
+      const ev = data.event;
+      if (ev === 'start') {
+        console.log('[media] start', { callSid: data.start?.callSid });
+      } else if (ev === 'media') {
+        // Áudio base64 (mulaw 8kHz mono)
+        const pcmu = Buffer.from(data.media.payload, 'base64');
+        // (opcional) processar/encaminhar o áudio aqui
+      } else if (ev === 'mark') {
+        console.log('[media] mark', data.mark?.name);
+      } else if (ev === 'stop') {
+        console.log('[media] stop');
+      }
+    } catch (e) {
+      console.error('[media] parse error', e?.message);
+    }
+  });
+  ws.on('close', () => console.log('[media] desconectado'));
+  // keepalive simples
+  const ping = setInterval(() => { try { ws.ping(); } catch {} }, 15000);
+  ws.on('close', () => clearInterval(ping));
+});
+
+// Start server se for novo
+if (srv !== server) {
+  const PORT = process.env.PORT || 3000;
+  srv.listen(PORT, () => console.log('HTTP/WS on', PORT));
+  global.server = srv; // disponibiliza como server
+}
+
+
+Observação: minha rota /twiml já aponta para wss://disckmix.replit.app/media. Não altere isso.

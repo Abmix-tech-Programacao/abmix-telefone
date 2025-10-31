@@ -1,0 +1,117 @@
+Boa noite.
+Preciso implementar o backend do meu painel de ligações sem alterar o layout/UI. Concentre-se apenas nos cards Discagem, Legendas (PT-BR) e Gravações mostrados no preview.
+
+Objetivo
+
+Telefonia com Twilio Programmable Voice + Media Streams.
+
+Mudança de voz em tempo real via Respeecher (Streaming Speech-to-Speech) em PT-BR, alternando masculina/feminina.
+
+Legendas PT-BR (transcrição em tempo real) publicadas para o frontend.
+
+Gravações controladas por botões.
+
+Stack/Arquivos
+
+Crie Node.js/Express em index.js.
+
+Use ws para WebSockets.
+
+NÃO mude o HTML/CSS do painel. Só exponha endpoints/WS.
+
+.env com:
+
+TWILIO_ACCOUNT_SID=...
+TWILIO_AUTH_TOKEN=...
+TWILIO_NUMBER=+55XXXXXXXXXX
+PUBLIC_BASE_URL=https://SEU-REPL.replit.app
+
+RESPEECHER_API_KEY=...
+RESPEECHER_VOICE_ID=ptbr_masc  # padrão (permitir trocar p/ ptbr_fem)
+STT_PROVIDER=deepgram          # usar Deepgram por padrão
+DEEPGRAM_API_KEY=...           # se STT_PROVIDER=deepgram
+
+Rotas/Contratos (usar exatamente estes nomes)
+Discagem (card “Discagem”)
+
+POST /api/call/dial
+Body:
+
+{ "to": "+5511999999999", "voiceType": "masc" }  // "fem" opcional
+
+
+Ação: iniciar chamada via Twilio; setar voiceType na sessão.
+
+POST /api/call/hangup
+
+{ "callSid": "<CALL_SID>" }
+
+
+GET /twiml
+Query: voiceType=masc|fem
+Responder TwiML com <Connect><Stream url="wss://SEU-REPL.replit.app/media"/></Connect> e recording desabilitado (gravação será controlada via API).
+
+Media Stream (Twilio ↔ Respeecher)
+
+wss://SEU-REPL.replit.app/media
+Função: receber frames 8kHz μ-law do Twilio, enviar ao Respeecher via WS/API mantendo baixa latência, receber áudio convertido e devolver ao Twilio.
+
+Permitir alternar voz durante a chamada via var de sessão.
+
+Fallback: se Respeecher cair, fazer pass-through do áudio.
+
+Legendas (card “Legendas (PT-BR)”)
+
+Entrada: os mesmos frames do Media Streams.
+
+STT: use Deepgram (realtime PT-BR) se STT_PROVIDER=deepgram.
+
+Saída para o painel: wss://SEU-REPL.replit.app/captions enviando mensagens:
+
+{ "text": "frase transcrita em PT-BR", "isFinal": false }
+
+Gravações (card “Gravações”)
+
+POST /api/recordings/start
+
+{ "callSid": "<CALL_SID>" }
+
+
+Ação: iniciar gravação de chamada via Twilio Recordings; retornar recordingSid.
+
+POST /api/recordings/pause
+
+{ "recordingSid": "<RECORDING_SID>" }
+
+
+POST /api/recordings/resume
+
+{ "recordingSid": "<RECORDING_SID>" }
+
+
+POST /api/recordings/stop
+
+{ "recordingSid": "<RECORDING_SID>" }
+
+Requisitos de Qualidade
+
+Latência: buffers de ~20 ms, 8kHz, μ-law/PCM conforme Twilio.
+
+Logs claros por evento (call started, media frame in/out, stt partial/final, recording state).
+
+Tratar reconexão de WS de Twilio/Respeecher e não derrubar a chamada.
+
+Observações finais
+
+Não crie campos/botões novos no painel.
+
+Se for estritamente necessário adicionar controles, apenas sugira:
+
+(1) “Trocar Voz” (Masc/Fem) — já existe no card Discagem.
+
+(2) “Ativar Legendas” — o card já mostra o status; usar o WS /captions.
+
+Entregar funcionando com os endpoints/WS exatamente como definidos acima.
+
+Não é para criar necessidades em cima do painel.
+Se precisar de algo extra, liste explicitamente o motivo técnico e onde ficaria, mas não altere a UI.

@@ -1,0 +1,87 @@
+Masculinas: Roger, Clyde, Thomas, Charlie
+
+Femininas: Sarah, Rachel, Laura, Aria
+
+Se quiser, dá pra filtrar por esse mapa no front:
+male = ['Roger','Clyde','Thomas','Charlie']
+female = ['Sarah','Rachel','Laura','Aria']
+
+Botões “Testar Masc” / “Testar Fem” (frase PT-BR)
+
+Frase fixa: "Olá! Esta é uma demonstração em português do Brasil. Como posso ajudar?"
+
+1) Backend (Node/TS) – rota TTS simples
+
+Coloque em server/telephony.ts (ou arquivo de rotas do server):
+
+import fetch from 'node-fetch';
+import express from 'express';
+
+const ELEVEN = process.env.ELEVENLABS_API_KEY!;
+const router = express.Router();
+
+// POST /api/tts  { voiceId, text, model_id? }
+router.post('/api/tts', async (req, res) => {
+  try {
+    const { voiceId, text, model_id } = req.body || {};
+    if (!voiceId || !text) return res.status(400).json({ error: 'voiceId e text são obrigatórios' });
+
+    const resp = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVEN,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text,
+        model_id: model_id || 'eleven_turbo_v2', // ou 'eleven_multilingual_v2' / 'eleven_flash_v2_5'
+        voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+      })
+    });
+
+    if (!resp.ok) {
+      const msg = await resp.text();
+      return res.status(resp.status).send(msg);
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    resp.body.pipe(res); // stream do MP3
+  } catch (e:any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+export default router;
+
+2) Frontend (React/TS) – acionar os testes
+
+No componente das Configurações, conecte os botões “Testar Masc” e “Testar Fem”:
+
+async function playTts(voiceId: string) {
+  const text = "Olá! Esta é uma demonstração em português do Brasil. Como posso ajudar?";
+  const resp = await fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ voiceId, text, model_id: 'eleven_flash_v2_5' })
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    console.error('TTS erro:', err);
+    return;
+  }
+  const blob = await resp.blob();
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  audio.play();
+}
+
+// IDs salvos em Configurações (ex.: settings.VOZ_MASC_ID / VOZ_FEM_ID)
+<button onClick={() => playTts(settings.VOZ_MASC_ID)}>▶ Testar Masc</button>
+<button onClick={() => playTts(settings.VOZ_FEM_ID)}>▶ Testar Fem</button>
+
+3) (Opcional) Organizar a lista por gênero no UI
+const male = ['Roger','Clyde','Thomas','Charlie'];
+const female = ['Sarah','Rachel','Laura','Aria'];
+
+const maleVoices = allVoices.filter(v => male.includes(v.name));
+const femaleVoices = allVoices.filter(v => female.includes(v.name));

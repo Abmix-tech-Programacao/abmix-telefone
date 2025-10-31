@@ -1,0 +1,141 @@
+HABILITAR GRAVAÇÃO (Twilio) – SEM MEXER NO VISUAL
+
+Altere somente backend (Node/TS). Não mude UI.
+
+1) TwiML: iniciar gravação ao atender
+
+No endpoint /twiml, antes do <Connect>, adicione <Start><Recording .../></Start>:
+
+router.all('/twiml', (_req, res) => {
+  const host = new URL(process.env.BASE_URL!).host;
+  res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Start>
+    <Recording
+      trim="do-not-trim"
+      recordingStatusCallback="https://${host}/twilio/recording-status"
+      recordingStatusCallbackEvent="completed,failed"
+      recordingTrack="both"
+      playBeep="false"
+      />
+  </Start>
+  <Connect>
+    <Stream url="wss://${host}/media"/>
+  </Connect>
+</Response>`);
+});
+
+
+Isso liga a gravação automaticamente quando a chamada conecta e manda um callback quando terminar.
+
+2) Rotas para controlar pelos botões (start/pause/resume/stop)
+
+Instale o SDK Twilio se faltar: npm i twilio
+
+import twilio from 'twilio';
+const tw = twilio(process.env.TWILIO_ACCOUNT_SID!, process.env.TWILIO_AUTH_TOKEN!);
+
+// START (se quiser iniciar manualmente via botão)
+router.post('/api/recordings/start', async (req, res) => {
+  const { callSid } = req.body || {};
+  if (!callSid) return res.status(400).json({ error: 'callSid obrigatório' });
+  try {
+    const rec = await tw.calls(callSid).recordings.create({
+      recordingTrack: 'both',
+      trim: 'do-not-trim'
+    });
+    res.json({ recordingSid: rec.sid });
+  } catch (e:any) { res.status(500).json({ error: e.message }); }
+});
+
+// PAUSE
+router.post('/api/recordings/pause', async (req, res) => {
+  const { callSid, recordingSid } = req.body || {};
+  if (!callSid || !recordingSid) return res.status(400).json({ error: 'callSid e recordingSid obrigatórios' });
+  try {
+    const rec = await tw.calls(callSid).recordings(recordingSid).update({ status: 'paused' });
+    res.json({ ok: true, sid: rec.sid });
+  } catch (e:any) { res.status(500).json({ error: e.message }); }
+});
+
+// RESUME
+router.post('/api/recordings/resume', async (req, res) => {
+  const { callSid, recordingSid } = req.body || {};
+  if (!callSid || !recordingSid) return res.status(400).json({ error: 'callSid e recordingSid obrigatórios' });
+  try {
+    const rec = await tw.calls(callSid).recordings(recordingSid).update({ status: 'in-progress' });
+    res.json({ ok: true, sid: rec.sid });
+  } catch (e:any) { res.status(500).json({ error: e.message }); }
+});
+
+// STOP
+router.post('/api/recordings/stop', async (req, res) => {
+  const { callSid, recordingSid } = req.body || {};
+  if (!callSid || !recordingSid) return res.status(400).json({ error: 'callSid e recordingSid obrigatórios' });
+  try {
+    const rec = await tw.calls(callSid).recordings(recordingSid).update({ status: 'stopped' });
+    res.json({ ok: true, sid: rec.sid });
+  } catch (e:any) { res.status(500).json({ error: e.message }); }
+});
+
+3) Receber callback da Twilio e baixar o arquivo em ./recordings/
+
+Crie a pasta ./recordings/ (se não existir).
+
+import fs from 'fs';
+import path from 'path';
+import fetch from 'node-fetch';
+
+router.post('/twilio/recording-status', express.urlencoded({ extended: true }), async (req, res) => {
+  // Twilio envia form-urlencoded
+  const {
+    CallSid,
+    RecordingSid,
+    RecordingUrl,   // sem extensão
+    RecordingDuration,
+    RecordingStatus
+  } = req.body;
+
+  try {
+    if (RecordingStatus === 'completed') {
+      const urlMp3 = `${RecordingUrl}.mp3`; // ou .wav
+      const auth = Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64');
+      const r = await fetch(urlMp3, { headers: { Authorization: `Basic ${auth}` }});
+      if (!r.ok) throw new Error(`download fail ${r.status}`);
+      const file = path.join(process.cwd(), 'recordings', `${CallSid}-${RecordingSid}.mp3`);
+      await fs.promises.writeFile(file, Buffer.from(await r.arrayBuffer()));
+    }
+    res.status(200).end();
+  } catch (e:any) {
+    console.error('recording-status error', e.message);
+    res.status(200).end(); // responder 200 para Twilio não repetir eternamente
+  }
+});
+
+4) Botões do painel (o que enviar)
+
+Iniciar → POST /api/recordings/start { "callSid": "<CALL_SID>" }
+
+Pausar → POST /api/recordings/pause { "callSid": "<CALL_SID>", "recordingSid": "<REC_SID>" }
+
+Retomar → POST /api/recordings/resume { "callSid": "<CALL_SID>", "recordingSid": "<REC_SID>" }
+
+Parar → POST /api/recordings/stop { "callSid": "<CALL_SID>", "recordingSid": "<REC_SID>" }
+
+Dica: quando a rota start retornar, guarde o recordingSid no estado do frontend para usar em pause/resume/stop.
+
+5) Observações rápidas
+
+O callback (/twilio/recording-status) precisa estar público em HTTPS para a Twilio chamar.
+
+Se já estiver usando Start Recording no TwiML (passo 1), os botões start são opcionais (servem se quiser iniciar/pausar manualmente).
+
+Para listar no menu “Gravações”, leia os arquivos de ./recordings/ ou use sua tabela SQLite existente.
+
+Com isso:
+
+A gravação liga automaticamente ao atender (ou via botão Start).
+
+Você controla pause/resume/stop pelos botões.
+
+O arquivo final cai em ./recordings/ com nome <CallSid>-<RecordingSid>
