@@ -178,7 +178,21 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-between pt-4">
+                  <Button
+                    onClick={() => {
+                      localStorage.setItem('abmix_setup_skipped', 'true');
+                      toast({
+                        title: "Configuração Pulada",
+                        description: "Você pode configurar as chaves depois em Configurações",
+                      });
+                      onComplete();
+                    }}
+                    variant="outline"
+                    data-testid="button-skip-setup"
+                  >
+                    Pular por Enquanto
+                  </Button>
                   <Button
                     onClick={validateKeys}
                     disabled={!isFormValid || isValidating}
