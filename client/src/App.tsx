@@ -38,18 +38,19 @@ function Router() {
 }
 
 function App() {
-  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  // Temporariamente desabilitado - modal de configuração removido
+  const [isSetupComplete, setIsSetupComplete] = useState(true);
   const [showSetupModal, setShowSetupModal] = useState(false);
 
-  useEffect(() => {
-    // Check if setup is complete
-    const setupComplete = localStorage.getItem('abmix_setup_complete');
-    if (setupComplete === 'true') {
-      setIsSetupComplete(true);
-    } else {
-      setShowSetupModal(true);
-    }
-  }, []);
+  // useEffect(() => {
+  //   // Check if setup is complete
+  //   const setupComplete = localStorage.getItem('abmix_setup_complete');
+  //   if (setupComplete === 'true') {
+  //     setIsSetupComplete(true);
+  //   } else {
+  //     setShowSetupModal(true);
+  //   }
+  // }, []);
 
   const handleSetupComplete = () => {
     setIsSetupComplete(true);
@@ -61,12 +62,13 @@ function App() {
       <ThemeProvider>
         <TooltipProvider>
           <div>
-            <SetupModal 
+            {/* Modal de configuração temporariamente desabilitado */}
+            {/* <SetupModal 
               isOpen={showSetupModal} 
               onComplete={handleSetupComplete}
-            />
+            /> */}
             
-            {isSetupComplete && <Router />}
+            <Router />
             
             <Toaster />
           </div>
