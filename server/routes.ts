@@ -741,5 +741,35 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Voice recommendations endpoint
+  app.get('/api/voices/recommended', async (req, res) => {
+    try {
+      const recommended = {
+        masc: [
+          'pNInz6obpgDQGcFmaJgB', // Adam - voz masculina natural
+          'VR6AewLTigWG4xSOukaG', // Arnold - profundo e natural  
+          'ErXwobaYiN019PkySvjV', // Antoni - caloroso
+          'yoZ06aMxZJJ28mfd3POQ', // Sam - jovem e energético
+          'jsCqWAovK2LkecY7zXl4'  // Matheus - português brasileiro
+        ],
+        fem: [
+          'EXAVITQu4vr4xnSDxMaL', // Bella - feminina suave
+          'AZnzlk1XvdvUeBnXmlld', // Domi - expressiva
+          'TxGEqnHWrfWFTfGW9XjX', // Josh - versátil
+          'pFZP5JQG7iQjIQuC4Bku', // Lily - jovem e clara
+          'CwhRBWXzGAHq8TQ4Fs17'  // Serena - brasileira natural
+        ]
+      };
+      
+      res.json({
+        message: 'Vozes otimizadas para soar mais naturais',
+        voices: recommended
+      });
+    } catch (error) {
+      console.error('[VOICES] Error getting recommended voices:', error);
+      res.status(500).json({ message: "Failed to get recommended voices" });
+    }
+  });
+
   console.log('[ROUTES] API routes configured');
 }

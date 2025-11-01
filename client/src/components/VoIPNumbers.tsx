@@ -274,9 +274,9 @@ export function VoIPNumbers() {
 
               {formData.provider === 'sobreip' && (
                 <>
-                  <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
-                    <p className="text-sm text-blue-800 dark:text-blue-200">
-                      <strong>🔒 Segurança:</strong> A senha SobreIP deve ser configurada como variável de ambiente <code className="bg-blue-100 dark:bg-blue-900 px-1 rounded">SOBREIP_PASSWORD</code> nos secrets do Replit. Não armazenamos senhas no banco de dados.
+                  <div className="bg-card border border-border rounded-lg p-3 mb-4">
+                    <p className="text-sm text-muted-foreground">
+                      <strong>🔒 Segurança:</strong> A senha SobreIP deve ser configurada como variável de ambiente <code className="bg-muted px-1 rounded">SOBREIP_PASSWORD</code> nos secrets do Replit.
                     </p>
                   </div>
 
