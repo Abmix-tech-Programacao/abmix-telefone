@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import { queries } from './database';
+import fetch from 'node-fetch';
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_WS_URL = 'wss://api.elevenlabs.io/v1/text-to-speech';
