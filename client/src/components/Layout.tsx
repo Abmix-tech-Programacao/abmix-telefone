@@ -16,6 +16,7 @@ import { AudioEffects } from './AudioEffects';
 import { DubbingTranslation } from './DubbingTranslation';
 import { CallManager } from './CallManager';
 import { VoiceEnhancer } from './VoiceEnhancer';
+import { VoIPNumbers } from './VoIPNumbers';
 import { useCallStore } from '@/stores/useCallStore';
 
 export function Layout() {
@@ -95,6 +96,13 @@ export function Layout() {
         return (
           <div className="max-w-4xl mx-auto">
             <Settings />
+          </div>
+        );
+
+      case 'numeros':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <VoIPNumbers />
           </div>
         );
         

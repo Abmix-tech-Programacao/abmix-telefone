@@ -86,6 +86,19 @@ export function Sidebar() {
           <i className="fas fa-phone-volume w-4"></i>
           <span className={activeView === 'chamadas' ? 'font-medium' : ''}>Chamadas</span>
         </button>
+
+        <button 
+          onClick={() => handleNavClick('numeros')}
+          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+            activeView === 'numeros' 
+              ? 'bg-abmix-green/10 text-abmix-green' 
+              : 'hover:bg-muted text-muted-foreground'
+          }`}
+          data-testid="nav-numbers"
+        >
+          <i className="fas fa-phone w-4"></i>
+          <span className={activeView === 'numeros' ? 'font-medium' : ''}>Meus Números</span>
+        </button>
         
         <button 
           onClick={() => handleNavClick('favoritos')}

@@ -116,6 +116,41 @@ export const api = {
     return response.json();
   },
 
+  // === VOIP NUMBERS ENDPOINTS ===
+  
+  getVoipNumbers: async () => {
+    const response = await apiRequest('GET', '/api/voip-numbers');
+    return response.json();
+  },
+
+  getDefaultVoipNumber: async () => {
+    const response = await apiRequest('GET', '/api/voip-numbers/default');
+    return response.json();
+  },
+
+  addVoipNumber: async (data: { 
+    name: string; 
+    number: string; 
+    provider: string; 
+    sipUsername?: string; 
+    sipPassword?: string; 
+    sipServer?: string; 
+    isDefault?: boolean;
+  }) => {
+    const response = await apiRequest('POST', '/api/voip-numbers', data);
+    return response.json();
+  },
+
+  setDefaultVoipNumber: async (id: number) => {
+    const response = await apiRequest('PUT', `/api/voip-numbers/${id}/default`, {});
+    return response.json();
+  },
+
+  deleteVoipNumber: async (id: number) => {
+    const response = await apiRequest('DELETE', `/api/voip-numbers/${id}`);
+    return response.json();
+  },
+
   // === SETTINGS ENDPOINTS ===
   
   getSettings: async () => {
