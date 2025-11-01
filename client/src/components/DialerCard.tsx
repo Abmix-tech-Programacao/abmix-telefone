@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useCallStore } from '@/stores/useCallStore';
 import { api } from '@/services/api';
 import { connectCaptions, disconnectCaptions } from '@/services/captions';
 import { validateE164, formatPhoneNumber, isDTMFTone } from '@/utils/validation';
 import { VoiceConversionControl } from './VoiceConversionControl';
+
+interface VoIPNumber {
+  id: number;
+  name: string;
+  number: string;
+  provider: string;
+  is_default: boolean;
+  status: string;
+}
 
 export function DialerCard() {
   const { toast } = useToast();
@@ -28,6 +38,24 @@ export function DialerCard() {
   } = useCallStore();
 
   const [selectedVoice, setSelectedVoice] = useState<'masc' | 'fem'>(voiceType as 'masc' | 'fem');
+  const [selectedVoIPNumberId, setSelectedVoIPNumberId] = useState<string>('');
+
+  // Fetch VoIP numbers
+  const { data: voipNumbers = [], isLoading: isLoadingNumbers } = useQuery<VoIPNumber[]>({
+    queryKey: ['/api/voip-numbers'],
+  });
+
+  // Auto-select default number when numbers are loaded
+  useEffect(() => {
+    if (voipNumbers.length > 0 && !selectedVoIPNumberId) {
+      const defaultNumber = voipNumbers.find(n => n.is_default);
+      if (defaultNumber) {
+        setSelectedVoIPNumberId(defaultNumber.id.toString());
+      } else {
+        setSelectedVoIPNumberId(voipNumbers[0].id.toString());
+      }
+    }
+  }, [voipNumbers, selectedVoIPNumberId]);
 
   // Listen for favorite number selection
   useEffect(() => {
@@ -59,7 +87,22 @@ export function DialerCard() {
   }, [callState]);
 
   const startCallMutation = useMutation({
-    mutationFn: () => api.startCall(selectedProvider, phoneNumber, selectedVoice),
+    mutationFn: async () => {
+      const response = await fetch('/api/call/dial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber,
+          voiceType: selectedVoice,
+          voipNumberId: selectedVoIPNumberId ? parseInt(selectedVoIPNumberId) : undefined
+        }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Falha ao iniciar chamada');
+      }
+      return response.json();
+    },
     onSuccess: (data) => {
       setCurrentCallId(data.callSid);
       setCallState('RINGING');
@@ -69,9 +112,11 @@ export function DialerCard() {
       (window as any).__CALL_ACTIVE__ = true;
       connectCaptions();
       
+      const selectedNumber = voipNumbers.find(n => n.id.toString() === selectedVoIPNumberId);
+      
       toast({
         title: "Chamada iniciada",
-        description: `Discando para ${phoneNumber} (voz ${selectedVoice === 'masc' ? 'masculina' : 'feminina'})`,
+        description: `Discando para ${phoneNumber} via ${data.provider || selectedNumber?.provider || 'provedor padrão'}`,
       });
     },
     onError: (error) => {
@@ -213,10 +258,48 @@ export function DialerCard() {
     <div className="bg-card rounded-xl p-6 border border-border">
       <h3 className="text-lg font-semibold mb-4 text-foreground">Discagem</h3>
       
+      {/* VoIP Number Selection */}
+      <div className="mb-4">
+        <Label htmlFor="voip-select" className="block text-sm text-muted-foreground mb-2">
+          <i className="fas fa-phone-alt mr-1"></i> Meu Número
+        </Label>
+        {isLoadingNumbers ? (
+          <div className="w-full bg-background border border-border rounded-lg px-4 py-3 text-muted-foreground">
+            Carregando números...
+          </div>
+        ) : voipNumbers.length === 0 ? (
+          <div className="w-full bg-background border border-border rounded-lg px-4 py-3 text-destructive">
+            Nenhum número cadastrado. Configure em "Meus Números".
+          </div>
+        ) : (
+          <Select value={selectedVoIPNumberId} onValueChange={setSelectedVoIPNumberId}>
+            <SelectTrigger 
+              id="voip-select"
+              className="w-full bg-background border border-border"
+              data-testid="voip-number-select"
+            >
+              <SelectValue placeholder="Selecione um número" />
+            </SelectTrigger>
+            <SelectContent>
+              {voipNumbers.map((voipNum) => (
+                <SelectItem 
+                  key={voipNum.id} 
+                  value={voipNum.id.toString()}
+                  data-testid={`voip-option-${voipNum.id}`}
+                >
+                  {voipNum.name} ({voipNum.number}) - {voipNum.provider}
+                  {voipNum.is_default && ' ⭐'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+      
       {/* Number Input */}
       <div className="mb-4">
         <Label htmlFor="phone-input" className="block text-sm text-muted-foreground mb-2">
-          Número (E.164)
+          Número de Destino (E.164)
         </Label>
         <Input
           id="phone-input"
@@ -272,8 +355,8 @@ export function DialerCard() {
       <div className="grid grid-cols-3 gap-2">
         <Button
           onClick={handleDial}
-          disabled={callState !== 'IDLE' || startCallMutation.isPending}
-          className="bg-abmix-green text-black font-medium py-2 px-2 rounded-lg hover:bg-abmix-green/90 transition-colors flex flex-col items-center justify-center text-xs gap-1"
+          disabled={callState !== 'IDLE' || startCallMutation.isPending || voipNumbers.length === 0}
+          className="bg-abmix-green text-black font-medium py-2 px-2 rounded-lg hover:bg-abmix-green/90 transition-colors flex flex-col items-center justify-center text-xs gap-1 disabled:opacity-50"
           data-testid="dial-button"
         >
           <i className="fas fa-phone text-sm"></i>
