@@ -771,5 +771,38 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // SobreIP webhook endpoint for call events
+  app.post('/events', (req, res) => {
+    try {
+      const event = req.body;
+      console.log('[SOBREIP_EVENTS] Call event received:', JSON.stringify(event, null, 2));
+      
+      // Process call events from SobreIP
+      if (event.event) {
+        switch (event.event) {
+          case 'call.initiated':
+            console.log('[SOBREIP_EVENTS] Call initiated:', event.call_id);
+            break;
+          case 'call.ringing':
+            console.log('[SOBREIP_EVENTS] Call ringing:', event.call_id);
+            break;
+          case 'call.answered':
+            console.log('[SOBREIP_EVENTS] Call answered:', event.call_id);
+            break;
+          case 'call.ended':
+            console.log('[SOBREIP_EVENTS] Call ended:', event.call_id, 'Duration:', event.duration);
+            break;
+          default:
+            console.log('[SOBREIP_EVENTS] Unknown event:', event.event);
+        }
+      }
+      
+      res.status(200).json({ success: true, message: 'Event received' });
+    } catch (error) {
+      console.error('[SOBREIP_EVENTS] Error processing event:', error);
+      res.status(500).json({ success: false, message: 'Failed to process event' });
+    }
+  });
+
   console.log('[ROUTES] API routes configured');
 }
