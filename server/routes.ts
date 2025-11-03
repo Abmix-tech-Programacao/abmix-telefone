@@ -804,5 +804,65 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Voice test endpoint - generate audio sample
+  app.post('/api/voices/test', async (req, res) => {
+    try {
+      const { voiceId, text } = req.body;
+      
+      if (!voiceId || !text) {
+        return res.status(400).json({ error: 'voiceId and text are required' });
+      }
+
+      const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+      if (!ELEVENLABS_API_KEY) {
+        return res.status(500).json({ error: 'ElevenLabs API key not configured' });
+      }
+
+      console.log(`[VOICE_TEST] Generating audio for voice ${voiceId}`);
+
+      // Call ElevenLabs TTS API
+      const fetch = (await import('node-fetch')).default;
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': ELEVENLABS_API_KEY
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: 'eleven_multilingual_v2',
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[VOICE_TEST] ElevenLabs API error:', response.status, errorText);
+        return res.status(response.status).json({ error: 'Failed to generate audio' });
+      }
+
+      // Stream the audio response
+      const audioBuffer = await response.buffer();
+      
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.length.toString()
+      });
+      
+      res.send(audioBuffer);
+      console.log(`[VOICE_TEST] Audio generated successfully (${audioBuffer.length} bytes)`);
+
+    } catch (error) {
+      console.error('[VOICE_TEST] Error generating voice test:', error);
+      res.status(500).json({ error: 'Failed to generate voice test' });
+    }
+  });
+
   console.log('[ROUTES] API routes configured');
 }
