@@ -3,19 +3,30 @@ export class SobreIPProvider {
   private sipPassword: string;
   private sipServer: string;
   private fromNumber: string;
+  private providerType: string;
 
-  constructor(sipUsername: string, sipPassword: string, sipServer: string, fromNumber: string) {
+  constructor(sipUsername: string, sipPassword: string, sipServer: string, fromNumber: string, providerType: string = 'SOBREIP') {
     this.sipUsername = sipUsername;
+    this.providerType = providerType;
+    
     // Use environment variable for password security
-    this.sipPassword = process.env.SOBREIP_PASSWORD || sipPassword;
+    if (providerType === 'FALEVONO') {
+      this.sipPassword = process.env.FALEVONO_PASSWORD || sipPassword;
+    } else {
+      this.sipPassword = process.env.SOBREIP_PASSWORD || sipPassword;
+    }
+    
     this.sipServer = sipServer;
     this.fromNumber = fromNumber;
     
-    console.log('[SOBREIP_PROVIDER] Initialized');
+    console.log(`[${providerType}_PROVIDER] Initialized`);
     console.log(`  Server: ${sipServer}`);
     console.log(`  Username: ${sipUsername}`);
     console.log(`  From Number: ${fromNumber}`);
-    console.log(`  Password Source: ${process.env.SOBREIP_PASSWORD ? 'Environment Variable (Secure)' : 'Database (Not Recommended)'}`);
+    
+    const envVarName = providerType === 'FALEVONO' ? 'FALEVONO_PASSWORD' : 'SOBREIP_PASSWORD';
+    const hasEnvVar = providerType === 'FALEVONO' ? process.env.FALEVONO_PASSWORD : process.env.SOBREIP_PASSWORD;
+    console.log(`  Password Source: ${hasEnvVar ? `${envVarName} (Secure)` : 'Database (Not Recommended)'}`);
   }
 
   async startCall(toNumber: string, voiceId?: string): Promise<{ callId: string; status: string }> {

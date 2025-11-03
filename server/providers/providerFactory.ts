@@ -39,6 +39,24 @@ export class ProviderFactory {
           voipNumber.number
         );
         
+      case 'falevono':
+        if (!voipNumber.sip_username || !voipNumber.sip_server) {
+          throw new Error('Configuração SIP incompleta: faltam username ou servidor');
+        }
+        
+        // SECURITY: Password must come from environment variable
+        if (!process.env.FALEVONO_PASSWORD) {
+          throw new Error('FALEVONO_PASSWORD environment variable not configured');
+        }
+        
+        return new SobreIPProvider(
+          voipNumber.sip_username,
+          '', // Password will be read from env var inside provider
+          voipNumber.sip_server,
+          voipNumber.number,
+          'FALEVONO' // Specify which env var to use
+        );
+        
       default:
         throw new Error(`Provedor desconhecido: ${voipNumber.provider}`);
     }
