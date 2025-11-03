@@ -1,14 +1,31 @@
+// @ts-ignore - Module 'sip' has no type definitions
 import * as sip from 'sip';
+// @ts-ignore
+import * as digest from 'sip/digest';
 import { randomUUID } from 'crypto';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+interface SIPDialog {
+  local: any;
+  remote: any;
+  routeSet: any[];
+  cseq: number;
+  inviteRequest: any;
+  lastResponse: any;
+}
 
 interface SIPCall {
   callId: string;
   toNumber: string;
   fromNumber: string;
-  dialog?: any;
-  status: 'initiating' | 'ringing' | 'answered' | 'ended';
+  dialog?: SIPDialog;
+  status: 'initiating' | 'ringing' | 'answered' | 'ended' | 'failed';
   startTime: Date;
   endTime?: Date;
+  error?: string;
 }
 
 export class SIPService {
@@ -20,6 +37,8 @@ export class SIPService {
   private sipPort: number;
   private localIP: string;
   private fromNumber: string;
+  private authSession: any = {};
+  private registered: boolean = false;
 
   constructor(
     sipUsername: string,
@@ -33,7 +52,7 @@ export class SIPService {
     this.sipServer = sipServer;
     this.sipPort = sipPort;
     this.fromNumber = fromNumber;
-    this.localIP = '0.0.0.0'; // Will be set dynamically
+    this.localIP = '172.31.70.162'; // Replit server IP
   }
 
   async initialize(): Promise<void> {
@@ -43,21 +62,33 @@ export class SIPService {
     }
 
     try {
+      // Detect local IP if needed
+      try {
+        const { stdout } = await execAsync("hostname -I | awk '{print $1}'");
+        const detectedIP = stdout.trim();
+        if (detectedIP && detectedIP !== '127.0.0.1') {
+          this.localIP = detectedIP;
+        }
+      } catch (err) {
+        console.warn('[SIP_SERVICE] Could not detect IP, using default:', this.localIP);
+      }
+
       console.log('[SIP_SERVICE] Initializing SIP stack...');
+      console.log(`[SIP_SERVICE] Local IP: ${this.localIP}`);
       console.log(`[SIP_SERVICE] Server: ${this.sipServer}:${this.sipPort}`);
       console.log(`[SIP_SERVICE] Username: ${this.sipUsername}`);
       
       // Start SIP stack
       sip.start({
         publicAddress: this.localIP,
-        port: this.sipPort + 1000, // Use different port for client
+        port: 6060, // Use port 6060 for client
         tcp: false,
         logger: {
           send: (message: any) => {
-            console.log('[SIP_SERVICE] SENT:', message);
+            console.log('[SIP_SERVICE] >>> SENT:', JSON.stringify(message, null, 2).substring(0, 500));
           },
           recv: (message: any) => {
-            console.log('[SIP_SERVICE] RECEIVED:', message);
+            console.log('[SIP_SERVICE] <<< RECEIVED:', JSON.stringify(message, null, 2).substring(0, 500));
             this.handleIncomingMessage(message);
           }
         }
@@ -76,14 +107,20 @@ export class SIPService {
     }
   }
 
-  private async register(): Promise<void> {
-    console.log('[SIP_SERVICE] Registering with server...');
+  private async register(authChallenge?: any): Promise<void> {
+    const isReregister = !!authChallenge;
+    console.log(`[SIP_SERVICE] ${isReregister ? 'Re-registering with auth' : 'Registering'}...`);
     
-    const callId = randomUUID();
-    const tag = randomUUID();
+    const callId = this.authSession.callId || randomUUID();
+    const tag = this.authSession.tag || randomUUID();
+    const cseq = (this.authSession.cseq || 0) + 1;
+    
+    this.authSession.callId = callId;
+    this.authSession.tag = tag;
+    this.authSession.cseq = cseq;
     
     try {
-      sip.send({
+      const registerRequest: any = {
         method: 'REGISTER',
         uri: `sip:${this.sipServer}:${this.sipPort}`,
         headers: {
@@ -93,12 +130,25 @@ export class SIPService {
             params: { tag }
           },
           'call-id': callId,
-          cseq: { method: 'REGISTER', seq: 1 },
-          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:${this.sipPort + 1000}` }],
-          expires: 3600
+          cseq: { method: 'REGISTER', seq: cseq },
+          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:6060` }],
+          expires: 3600,
+          via: []
         }
-      });
+      };
+
+      // Add digest authentication if we have a challenge
+      if (authChallenge) {
+        const credentials = {
+          user: this.sipUsername,
+          password: this.sipPassword
+        };
+        
+        digest.signRequest(this.authSession, registerRequest, credentials);
+        console.log('[SIP_SERVICE] Added Authorization header for REGISTER');
+      }
       
+      sip.send(registerRequest);
       console.log('[SIP_SERVICE] ✅ REGISTER sent');
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Registration failed:', error);
@@ -108,6 +158,10 @@ export class SIPService {
   async makeCall(toNumber: string): Promise<string> {
     if (!this.initialized) {
       await this.initialize();
+    }
+
+    if (!this.registered) {
+      throw new Error('SIP not registered - wait for registration to complete');
     }
 
     const callId = randomUUID();
@@ -136,7 +190,7 @@ export class SIPService {
     const sdp = this.createSDP();
     
     try {
-      sip.send({
+      const inviteRequest: any = {
         method: 'INVITE',
         uri: `sip:${cleanNumber}@${this.sipServer}:${this.sipPort}`,
         headers: {
@@ -147,25 +201,40 @@ export class SIPService {
           },
           'call-id': callId,
           cseq: { method: 'INVITE', seq: 1 },
-          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:${this.sipPort + 1000}` }],
+          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:6060` }],
           'content-type': 'application/sdp',
           via: [{
             version: '2.0',
             protocol: 'UDP',
             host: this.localIP,
-            port: this.sipPort + 1000,
+            port: 6060,
             params: { branch }
           }]
         },
         content: sdp
-      });
+      };
+
+      // Store invite request for later use in ACK/CANCEL
+      if (!call.dialog) {
+        call.dialog = {
+          local: inviteRequest.headers.from,
+          remote: inviteRequest.headers.to,
+          routeSet: [],
+          cseq: 1,
+          inviteRequest: inviteRequest,
+          lastResponse: null
+        };
+      }
+      
+      sip.send(inviteRequest);
       
       call.status = 'ringing';
       console.log('[SIP_SERVICE] ✅ INVITE sent');
       return callId;
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to send INVITE:', error);
-      call.status = 'ended';
+      call.status = 'failed';
+      call.error = String(error);
       call.endTime = new Date();
       throw error;
     }
@@ -178,38 +247,50 @@ export class SIPService {
       return false;
     }
 
-    console.log(`[SIP_SERVICE] 📴 Hanging up call ${callId}`);
+    console.log(`[SIP_SERVICE] 📴 Hanging up call ${callId} (status: ${call.status})`);
     
     try {
-      if (call.dialog) {
-        // Send BYE if dialog established
-        sip.send({
+      if (call.status === 'answered' && call.dialog && call.dialog.lastResponse) {
+        // Send BYE for established calls
+        const contactUri = call.dialog.lastResponse.headers.contact?.[0]?.uri 
+          || call.dialog.remote.uri;
+
+        const byeRequest: any = {
           method: 'BYE',
-          uri: call.dialog.remote.uri,
+          uri: contactUri,
           headers: {
             to: call.dialog.remote,
             from: call.dialog.local,
             'call-id': callId,
-            cseq: { method: 'BYE', seq: (call.dialog.cseq || 1) + 1 }
+            cseq: { method: 'BYE', seq: call.dialog.cseq + 1 },
+            via: call.dialog.inviteRequest.headers.via
           }
-        });
-      } else {
-        // Send CANCEL if call not yet established
-        sip.send({
-          method: 'CANCEL',
-          uri: `sip:${call.toNumber}@${this.sipServer}:${this.sipPort}`,
-          headers: {
-            to: { uri: `sip:${call.toNumber}@${this.sipServer}` },
-            from: { uri: `sip:${this.sipUsername}@${this.sipServer}` },
-            'call-id': callId,
-            cseq: { method: 'CANCEL', seq: 1 }
-          }
-        });
+        };
+
+        sip.send(byeRequest);
+        console.log('[SIP_SERVICE] ✅ BYE sent');
+      } else if (call.status === 'ringing' || call.status === 'initiating') {
+        // Send CANCEL for ringing calls
+        if (call.dialog && call.dialog.inviteRequest) {
+          const cancelRequest: any = {
+            method: 'CANCEL',
+            uri: call.dialog.inviteRequest.uri,
+            headers: {
+              to: call.dialog.inviteRequest.headers.to,
+              from: call.dialog.inviteRequest.headers.from,
+              'call-id': callId,
+              cseq: { method: 'CANCEL', seq: call.dialog.inviteRequest.headers.cseq.seq },
+              via: call.dialog.inviteRequest.headers.via
+            }
+          };
+
+          sip.send(cancelRequest);
+          console.log('[SIP_SERVICE] ✅ CANCEL sent');
+        }
       }
       
       call.status = 'ended';
       call.endTime = new Date();
-      console.log('[SIP_SERVICE] ✅ BYE/CANCEL sent');
       return true;
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to hangup:', error);
@@ -219,26 +300,33 @@ export class SIPService {
 
   async sendDTMF(callId: string, digits: string): Promise<boolean> {
     const call = this.activeCalls.get(callId);
-    if (!call || !call.dialog) {
-      console.warn(`[SIP_SERVICE] Call ${callId} not active`);
+    if (!call || !call.dialog || call.status !== 'answered') {
+      console.warn(`[SIP_SERVICE] Call ${callId} not active for DTMF`);
       return false;
     }
 
     console.log(`[SIP_SERVICE] 🔢 Sending DTMF: ${digits}`);
     
     try {
-      sip.send({
+      const contactUri = call.dialog.lastResponse.headers.contact?.[0]?.uri 
+        || call.dialog.remote.uri;
+
+      const infoRequest: any = {
         method: 'INFO',
-        uri: call.dialog.remote.uri,
+        uri: contactUri,
         headers: {
           to: call.dialog.remote,
           from: call.dialog.local,
           'call-id': callId,
-          cseq: { method: 'INFO', seq: (call.dialog.cseq || 1) + 1 },
-          'content-type': 'application/dtmf-relay'
+          cseq: { method: 'INFO', seq: call.dialog.cseq + 1 },
+          'content-type': 'application/dtmf-relay',
+          via: call.dialog.inviteRequest.headers.via
         },
         content: `Signal=${digits}\r\nDuration=100`
-      });
+      };
+
+      call.dialog.cseq++;
+      sip.send(infoRequest);
       
       console.log('[SIP_SERVICE] ✅ DTMF sent');
       return true;
@@ -257,11 +345,27 @@ export class SIPService {
   }
 
   private handleIncomingMessage(message: any): void {
-    // Handle responses (200 OK, 180 Ringing, etc)
+    // Handle responses (200 OK, 180 Ringing, 401/407 Auth, etc)
     if (message.status) {
       const callId = message.headers['call-id'];
-      const call = this.activeCalls.get(callId);
       
+      // Handle REGISTER responses
+      if (message.headers.cseq?.method === 'REGISTER') {
+        if (message.status === 401 || message.status === 407) {
+          console.log(`[SIP_SERVICE] 🔐 Received ${message.status} auth challenge for REGISTER`);
+          digest.challenge(this.authSession, message);
+          this.register(message);
+        } else if (message.status === 200) {
+          console.log('[SIP_SERVICE] ✅ Registration successful!');
+          this.registered = true;
+        } else {
+          console.error(`[SIP_SERVICE] ❌ Registration failed with status ${message.status}`);
+        }
+        return;
+      }
+
+      // Handle INVITE responses
+      const call = this.activeCalls.get(callId);
       if (!call) return;
 
       switch (message.status) {
@@ -277,13 +381,28 @@ export class SIPService {
           if (message.headers.cseq.method === 'INVITE') {
             console.log(`[SIP_SERVICE] ✅ Call ${callId}: Answered!`);
             call.status = 'answered';
+            // Store the 200 OK response for later use
+            if (call.dialog) {
+              call.dialog.lastResponse = message;
+              call.dialog.remote = message.headers.from;
+            }
             // Send ACK
             this.sendAck(call, message);
           }
           break;
+        case 401:
+        case 407:
+          console.log(`[SIP_SERVICE] 🔐 Call ${callId}: Auth required (${message.status})`);
+          // For INVITE auth challenges, would need to re-send INVITE with credentials
+          // This is more complex and may require provider-level implementation
+          call.status = 'failed';
+          call.error = `Authentication required (${message.status})`;
+          call.endTime = new Date();
+          break;
         case 486:
           console.log(`[SIP_SERVICE] 📵 Call ${callId}: Busy`);
           call.status = 'ended';
+          call.error = 'Busy';
           call.endTime = new Date();
           break;
         case 487:
@@ -293,8 +412,9 @@ export class SIPService {
           break;
         default:
           if (message.status >= 400) {
-            console.log(`[SIP_SERVICE] ❌ Call ${callId}: Error ${message.status}`);
-            call.status = 'ended';
+            console.log(`[SIP_SERVICE] ❌ Call ${callId}: Error ${message.status} - ${message.reason}`);
+            call.status = 'failed';
+            call.error = `${message.status} ${message.reason}`;
             call.endTime = new Date();
           }
       }
@@ -327,26 +447,24 @@ export class SIPService {
 
   private sendAck(call: SIPCall, inviteResponse: any): void {
     try {
-      sip.send({
+      // ACK must be sent to the Contact URI from the 200 OK, not the original Request-URI
+      const contactUri = inviteResponse.headers.contact?.[0]?.uri 
+        || inviteResponse.headers.from.uri;
+
+      const ackRequest: any = {
         method: 'ACK',
-        uri: `sip:${call.toNumber}@${this.sipServer}:${this.sipPort}`,
+        uri: contactUri,
         headers: {
           to: inviteResponse.headers.to,
           from: inviteResponse.headers.from,
           'call-id': call.callId,
           cseq: { method: 'ACK', seq: inviteResponse.headers.cseq.seq },
-          via: inviteResponse.headers.via
+          via: call.dialog?.inviteRequest.headers.via || inviteResponse.headers.via
         }
-      });
-      
-      // Store dialog info
-      call.dialog = {
-        local: inviteResponse.headers.from,
-        remote: inviteResponse.headers.to,
-        cseq: inviteResponse.headers.cseq.seq
       };
       
-      console.log('[SIP_SERVICE] ✅ ACK sent');
+      sip.send(ackRequest);
+      console.log('[SIP_SERVICE] ✅ ACK sent to', contactUri);
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to send ACK:', error);
     }
@@ -374,12 +492,14 @@ export class SIPService {
     console.log('[SIP_SERVICE] Shutting down...');
     
     // Hangup all active calls
-    for (const callId of this.activeCalls.keys()) {
+    const callIds = Array.from(this.activeCalls.keys());
+    for (const callId of callIds) {
       await this.hangup(callId);
     }
     
     sip.stop();
     this.initialized = false;
+    this.registered = false;
     console.log('[SIP_SERVICE] ✅ Shutdown complete');
   }
 }
