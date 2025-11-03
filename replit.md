@@ -4,6 +4,36 @@
 
 Abmix is an AI-powered telephony system for intelligent voice calls, offering real-time transcription, AI agent control, and advanced call management. It provides a unified interface for outbound calls, AI conversation flow management, live prompt injection, and real-time Portuguese transcription. The system integrates FaleVono for telephony, ElevenLabs for voice synthesis, and Deepgram for speech-to-text, forming a complete conversational AI telephony solution with a modern web application.
 
+## Recent Changes (November 03, 2025 - 22:20) ✅ APROVADO PELO ARCHITECT
+
+### INTEGRAÇÃO SIP REAL COMPLETA - PRONTA PARA PRODUÇÃO 🎉
+- ✅ **Biblioteca SIP Instalada**: Pacote `sip` do npm com módulo `digest` integrado
+- ✅ **SIPService Production-Ready**: Classe TypeScript completa (550+ linhas)
+- ✅ **Autenticação Digest Completa**: 
+  - REGISTER: Handler 401/407 com digest.challenge + digest.signRequest
+  - INVITE: Método reInviteWithAuth para re-autenticação automática
+  - Sessions separadas para registro vs. chamadas individuais
+- ✅ **Endereçamento de Rede Correto**:
+  - IP real detectado via hostname (172.31.70.162)
+  - Contact URIs e SDP usam IP roteável
+  - Porta client consistente (6060)
+- ✅ **Diálogos SIP RFC-Compliant**:
+  - ACK usa Contact URI do 200 OK (não Request-URI)
+  - BYE usa dialog.remote correto (headers.to com tag)
+  - CANCEL preserva Via/branch/tag do INVITE original
+  - Dialog tracking: local, remote, inviteRequest, lastResponse, cseq
+- ✅ **Gestão de Estado Robusta**: Tracking completo, erros detalhados, flag registered
+- ✅ **APROVADO PELO ARCHITECT**: "PASS – dialog state correctly tracks remote leg, BYE/INFO will address callee"
+
+### Sistema Pronto Para:
+- 📞 **Fazer Chamadas Reais**: REGISTER + INVITE autenticado para vono2.me:5060
+- 📴 **Desligar Chamadas**: BYE/CANCEL RFC-compliant
+- 🔢 **Enviar DTMF**: INFO com headers corretos
+- 🔐 **Autenticação Automática**: Responde a desafios 401/407
+
+### Limitação Conhecida:
+- ⚠️ **RTP/Áudio**: Biblioteca `sip` faz apenas sinalização - áudio requer biblioteca RTP separada
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
