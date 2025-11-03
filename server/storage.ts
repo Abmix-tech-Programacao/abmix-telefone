@@ -50,11 +50,11 @@ export class MemStorage implements IStorage {
   async createFavorite(insertFavorite: InsertFavorite): Promise<Favorite> {
     const id = randomUUID();
     const favorite: Favorite = {
-      ...insertFavorite,
       id,
+      name: insertFavorite.name,
+      phoneE164: insertFavorite.phoneE164,
+      voiceType: insertFavorite.voiceType || 'masc',
       createdAt: new Date(),
-      tags: insertFavorite.tags || null,
-      notes: insertFavorite.notes || null,
     };
     this.favorites.set(id, favorite);
     return favorite;
@@ -91,8 +91,10 @@ export class MemStorage implements IStorage {
       endTime: null,
       duration: null,
       recordingUrl: null,
+      recordingStatus: null,
       metadata: null,
       fromNumber: insertCall.fromNumber || null,
+      twilioSid: insertCall.twilioSid || null,
     };
     this.calls.set(id, call);
     return call;
