@@ -99,11 +99,14 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
       return;
     }
 
-    const formattedNumber = formatPhoneNumber(formData.number);
-    if (!validateE164(formattedNumber)) {
+    // Remove caracteres não numéricos
+    const cleanNumber = formData.number.replace(/[^\d]/g, '');
+    
+    // Validar: deve ter 10 ou 11 dígitos (DDD + número)
+    if (cleanNumber.length < 10 || cleanNumber.length > 11) {
       toast({
         title: "Número inválido",
-        description: "Por favor, insira um número no formato E.164 (+5511999999999)",
+        description: "Por favor, insira apenas DDD + número (ex: 11999999999)",
         variant: "destructive",
       });
       return;
@@ -111,7 +114,7 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
 
     const submitData = {
       ...formData,
-      number: formattedNumber,
+      number: cleanNumber,
     };
 
     if (favorite) {
@@ -156,10 +159,10 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
           </div>
 
           <div>
-            <Label htmlFor="favorite-number">Número *</Label>
+            <Label htmlFor="favorite-number">Número (DDD + Número) *</Label>
             <Input
               id="favorite-number"
-              placeholder="+5511999999999"
+              placeholder="11999999999"
               value={formData.number}
               onChange={handleInputChange('number')}
               className="bg-dark-bg border-dark-border font-mono"

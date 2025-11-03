@@ -92,14 +92,14 @@ export function DialerCard() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phoneNumber,
+          to: phoneNumber,
           voiceType: selectedVoice,
           voipNumberId: selectedVoIPNumberId ? parseInt(selectedVoIPNumberId) : undefined
         }),
       });
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Falha ao iniciar chamada');
+        throw new Error(error.error || error.message || 'Falha ao iniciar chamada');
       }
       return response.json();
     },
@@ -171,18 +171,20 @@ export function DialerCard() {
   });
 
   const handleDial = () => {
-    const formatted = formatPhoneNumber(phoneNumber);
+    // Remove caracteres não numéricos
+    const cleanNumber = phoneNumber.replace(/[^\d]/g, '');
     
-    if (!validateE164(formatted)) {
+    // Validar: deve ter 10 ou 11 dígitos (DDD + número)
+    if (cleanNumber.length < 10 || cleanNumber.length > 11) {
       toast({
         title: "Número inválido",
-        description: "Por favor, insira um número no formato E.164 (+5511999999999)",
+        description: "Por favor, insira apenas DDD + número (ex: 11999999999)",
         variant: "destructive",
       });
       return;
     }
 
-    setPhoneNumber(formatted);
+    setPhoneNumber(cleanNumber);
     startCallMutation.mutate();
   };
 
@@ -299,12 +301,12 @@ export function DialerCard() {
       {/* Number Input */}
       <div className="mb-4">
         <Label htmlFor="phone-input" className="block text-sm text-muted-foreground mb-2">
-          Número de Destino (E.164)
+          Número de Destino (DDD + Número)
         </Label>
         <Input
           id="phone-input"
           type="text"
-          placeholder="+5511999999999"
+          placeholder="11999999999"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           onKeyDown={handleKeyDown}
