@@ -208,29 +208,29 @@ export async function registerRoutes(app: Express) {
   // Dial endpoint
   app.post("/api/call/dial", async (req, res) => {
     try {
-      const { phoneNumber, voipNumberId, voiceType } = req.body;
+      const { to, voipNumberId, voiceType } = req.body;
       
-      if (!phoneNumber) {
-        return res.status(400).json({ error: "Phone number is required" });
+      if (!to) {
+        return res.status(400).json({ error: "Phone number 'to' is required" });
       }
 
-      console.log(`[CALL] Initiating call to ${phoneNumber}`);
+      console.log(`[CALL] Initiating call to ${to}`);
       
       // Get the appropriate provider based on VoIP number
       const { provider, voipNumber } = ProviderFactory.getProviderForCall(voipNumberId);
       
       console.log(`[CALL] Using ${voipNumber.provider} provider (${voipNumber.name})`);
-      console.log(`[CALL] From: ${voipNumber.number} → To: ${phoneNumber}`);
+      console.log(`[CALL] From: ${voipNumber.number} → To: ${to}`);
       
       // Start the call
-      const result = await provider.startCall(phoneNumber, voiceType || 'masc');
+      const result = await provider.startCall(to, voiceType || 'masc');
       
       // Store the provider for this call
       activeCallProviders.set(result.callId, provider);
       
       res.json({
         success: true,
-        message: `Calling ${phoneNumber} via ${voipNumber.provider}...`,
+        message: `Calling ${to} via ${voipNumber.provider}...`,
         callId: result.callId,
         callSid: result.callId,
         status: result.status,

@@ -139,85 +139,16 @@ export function setupTelephony(app: Express, httpServer: Server) {
   console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
 
   // === TELEPHONY ROUTES ===
+  
+  // NOTA: Rota /api/call/dial movida para routes.ts para usar FaleVono SIP
+  // Este arquivo agora só gerencia WebSockets para Twilio (se configurado)
 
-  // Start call
-  app.post("/api/call/dial", async (req, res) => {
-    try {
-      const { to, voiceType = 'masc' } = req.body;
-      
-      if (!to) {
-        return res.status(400).json({ message: "Phone number 'to' is required" });
-      }
-
-      console.log(`[CALL] Starting call to ${to} with voice type: ${voiceType}`);
-      console.log(`[CALL] NODE_ENV: ${process.env.NODE_ENV}`);
-
-      const publicBase = resolvePublicBaseUrl(req);
-      console.log(`[CALL] publicBase resolved to: ${publicBase}`);
-
-      let callOptions: any = {
-        to,
-        from: TWILIO_NUMBER!,
-        record: false // Recording controlled via API
-      };
-
-      if (publicBase === 'local-simulation') {
-        // Desenvolvimento local - TwiML inline simples para teste
-        console.log('[CALL] Modo simulação local - sem WebSocket real');
-        callOptions.twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Polly.Camila-Neural" language="pt-BR">
-    Olá! Este é um teste local do sistema Abmix. 
-    Para conversação real com conversão de voz, use em produção com URL pública.
-  </Say>
-  <Pause length="1"/>
-  <Say voice="Polly.Camila-Neural" language="pt-BR">
-    Sistema funcionando. Teste concluído.
-  </Say>
-</Response>`;
-      } else {
-        // Produção - WebSocket real para conversação
-        console.log('[CALL] Produção - iniciando com WebSocket para conversação real');
-        const wsProtocol = publicBase.startsWith('https://') ? 'wss' : 'ws';
-        const wsHost = publicBase.replace(/^https?:\/\//, '');
-        
-        callOptions.twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Polly.Camila-Neural" language="pt-BR">
-    Olá! Sistema Abmix conectado. Você pode conversar normalmente.
-  </Say>
-  <Connect>
-    <Stream url="${wsProtocol}://${wsHost}/media"/>
-  </Connect>
-</Response>`;
-      }
-
-      const call = await twilioClient.calls.create(callOptions);
-
-      // Store call session
-      activeCalls.set(call.sid, {
-        callSid: call.sid,
-        to,
-        voiceType,
-        status: 'initiated',
-        startTime: new Date()
-      });
-
-      console.log(`[CALL] Call initiated with SID: ${call.sid}`);
-
-      res.json({ 
-        callSid: call.sid, 
-        status: call.status,
-        to,
-        voiceType 
-      });
-    } catch (error) {
-      console.error('[CALL] Error starting call:', error);
-      res.status(500).json({ message: "Failed to start call", error: error instanceof Error ? error.message : String(error) });
-    }
-  });
-
-  // Hangup call
+  // NOTA: Rota /api/call/hangup movida para routes.ts para usar FaleVono SIP
+  
+  // Manter apenas rotas específicas do Twilio WebSocket abaixo (se necessário)
+  
+  // Legacy Twilio routes (desabilitadas - agora usando FaleVono SIP em routes.ts)
+  /*
   app.post("/api/call/hangup", async (req, res) => {
     try {
       const { callSid } = req.body;
@@ -241,6 +172,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
       res.status(500).json({ message: "Failed to hangup call", error: error instanceof Error ? error.message : String(error) });
     }
   });
+  */
 
   // TwiML endpoint with recording
   app.all("/twiml", (req, res) => {

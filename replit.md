@@ -4,7 +4,17 @@
 
 Abmix is an AI-powered telephony system for intelligent voice calls, offering real-time transcription, AI agent control, and advanced call management. It provides a unified interface for outbound calls, AI conversation flow management, live prompt injection, and real-time Portuguese transcription. The system integrates FaleVono for telephony, ElevenLabs for voice synthesis, and Deepgram for speech-to-text, forming a complete conversational AI telephony solution with a modern web application.
 
-## Recent Changes (November 03, 2025 - 22:20) ✅ APROVADO PELO ARCHITECT
+## Recent Changes (November 03, 2025 - 22:34) ✅ APROVADO PELO ARCHITECT
+
+### CORREÇÃO CRÍTICA: CONFLITO DE ROTAS RESOLVIDO 🔧
+- ✅ **Problema Identificado**: Rotas duplicadas em `telephony.ts` e `routes.ts` causavam uso do Twilio (não configurado) ao invés do FaleVono SIP
+- ✅ **Solução Implementada**: 
+  - Rotas `/api/call/dial` e `/api/call/hangup` comentadas em `telephony.ts` (linhas 153-178)
+  - Backend `routes.ts` corrigido para aceitar campo `to` (ao invés de `phoneNumber`)
+  - Frontend alinhado para enviar `{ to, voipNumberId, voiceType }`
+- ✅ **Formato de Número Padronizado**: DDD+número sem prefixo +55 (ex: `11999999999`)
+- ✅ **Fluxo Completo Validado**: Frontend → routes.ts → ProviderFactory → SIPService (FaleVono)
+- ✅ **APROVADO PELO ARCHITECT**: "PASS — dialing now uses the `to` field consistently end-to-end and the SIP flow is aligned"
 
 ### INTEGRAÇÃO SIP REAL COMPLETA - PRONTA PARA PRODUÇÃO 🎉
 - ✅ **Biblioteca SIP Instalada**: Pacote `sip` do npm com módulo `digest` integrado
