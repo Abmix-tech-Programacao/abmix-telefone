@@ -28,6 +28,9 @@ interface SIPCall {
   error?: string;
 }
 
+// Global flag to track if SIP stack was started (singleton pattern)
+let globalSipStarted = false;
+
 export class SIPService {
   private initialized: boolean = false;
   private activeCalls: Map<string, SIPCall> = new Map();
@@ -78,26 +81,35 @@ export class SIPService {
       console.log(`[SIP_SERVICE] Server: ${this.sipServer}:${this.sipPort}`);
       console.log(`[SIP_SERVICE] Username: ${this.sipUsername}`);
       
-      // Start SIP stack
-      sip.start({
-        publicAddress: this.localIP,
-        port: 6060, // Use port 6060 for client
-        tcp: false,
-        logger: {
-          send: (message: any) => {
-            console.log('[SIP_SERVICE] >>> SENT:', JSON.stringify(message, null, 2).substring(0, 500));
-          },
-          recv: (message: any) => {
-            console.log('[SIP_SERVICE] <<< RECEIVED:', JSON.stringify(message, null, 2).substring(0, 500));
-            this.handleIncomingMessage(message);
+      // Start SIP stack only once (singleton pattern)
+      if (!globalSipStarted) {
+        console.log('[SIP_SERVICE] Starting SIP stack for the first time...');
+        sip.start({
+          publicAddress: this.localIP,
+          port: 6060, // Use port 6060 for client
+          tcp: false,
+          logger: {
+            send: (message: any) => {
+              console.log('[SIP_SERVICE] >>> SENT:', JSON.stringify(message, null, 2).substring(0, 500));
+            },
+            recv: (message: any) => {
+              console.log('[SIP_SERVICE] <<< RECEIVED:', JSON.stringify(message, null, 2).substring(0, 500));
+              this.handleIncomingMessage(message);
           }
-        }
-      }, (request: any) => {
-        this.handleIncomingRequest(request);
-      });
+          }
+        }, (request: any) => {
+          this.handleIncomingRequest(request);
+        });
 
-      // Wait for SIP stack to fully initialize (sip.send becomes available)
-      await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait for SIP stack to fully initialize (sip.send becomes available)
+        await new Promise(resolve => setTimeout(resolve, 500));
+        globalSipStarted = true;
+        console.log('[SIP_SERVICE] Global SIP stack started successfully');
+      } else {
+        console.log('[SIP_SERVICE] Reusing existing SIP stack');
+        // Small delay to ensure previous messages are processed
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
       this.initialized = true;
       console.log('[SIP_SERVICE] ✅ SIP stack initialized successfully');
