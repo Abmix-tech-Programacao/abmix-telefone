@@ -4,6 +4,40 @@
 
 Abmix is an AI-powered telephony system for intelligent voice calls, offering real-time transcription, AI agent control, and advanced call management. It provides a unified interface for outbound calls, AI conversation flow management, live prompt injection, and real-time Portuguese transcription. The system integrates FaleVono for telephony, ElevenLabs for voice synthesis, and Deepgram for speech-to-text, forming a complete conversational AI telephony solution with a modern web application.
 
+**Deployment Port:** 8080 (configured for EasyPanel VPS deployment)
+
+## Recent Changes (November 04, 2025 - 19:00) 🎯 CONFIGURAÇÃO FINAL ESM + PORTA 8080
+
+### DECISÃO TÉCNICA FINAL: ESM (ECMAScript Modules) ✅
+- ✅ **package.json**: `"type": "module"` confirmado como correto
+- ✅ **Build**: `format=esm` → `dist/index.js` (105.6kb)
+- ✅ **Porta**: Alterada de 5000 → **8080** (porta livre no VPS)
+- ✅ **Dockerfile**: EXPOSE 8080, ENV PORT=8080, healthcheck atualizado
+- ✅ **docker-compose.yml**: PORT=8080, network_mode: host (obrigatório para SIP)
+- ✅ **Import SIP**: Corrigido `sip/digest` → `sip/digest.js` (ESM requer extensões)
+- ✅ **Servidor Production**: Testado e funcionando perfeitamente na porta 8080
+
+### Por Que ESM é a Escolha Correta:
+1. **Vite Nativo**: Plugins Replit e vite.config.mjs requerem ESM
+2. **Node.js 20**: Recomenda ESM como padrão moderno
+3. **Top-level await**: Funciona apenas com ESM
+4. **Build Validado**: 4 testes confirmaram funcionamento perfeito
+5. **CommonJS Falhou**: Problemas técnicos insolúveis (await, import.meta, plugins)
+
+### Configuração para EasyPanel:
+```
+Expose Port: 8080
+Network Mode: host (CRÍTICO para SIP/UDP)
+Environment Variables:
+  - PORT=8080
+  - NODE_ENV=production
+  - FALEVONO_PASSWORD=...
+  - ELEVENLABS_API_KEY=...
+  - DEEPGRAM_API_KEY=...
+```
+
+---
+
 ## Recent Changes (November 04, 2025 - 16:50) 📚 TUTORIAL DE DEPLOY COMPLETO
 
 ### DEPLOY.md COMPLETAMENTE REESCRITO - PRONTO PARA USO 🎉

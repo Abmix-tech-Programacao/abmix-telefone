@@ -1,7 +1,7 @@
 // @ts-ignore - Module 'sip' has no type definitions
 import * as sip from 'sip';
 // @ts-ignore
-import * as digest from 'sip/digest';
+import * as digest from 'sip/digest.js';
 import { randomUUID } from 'crypto';
 import { exec } from 'child_process';
 import { promisify } from 'util';

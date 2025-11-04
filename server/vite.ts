@@ -1,15 +1,10 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config.mjs";
 import { nanoid } from "nanoid";
-
-const __dirname = typeof import.meta.dirname !== 'undefined' 
-  ? import.meta.dirname 
-  : path.dirname(fileURLToPath(import.meta.url));
 
 const viteLogger = createLogger();
 
@@ -51,7 +46,7 @@ export async function setupVite(app: Express, server: Server) {
 
     try {
       const clientTemplate = path.resolve(
-        __dirname,
+        import.meta.dirname,
         "..",
         "client",
         "index.html",
@@ -75,7 +70,7 @@ export async function setupVite(app: Express, server: Server) {
 export function serveStatic(app: Express) {
   // Estrutura simplificada: arquivos estáticos na raiz junto com index.js
   // Procurar por index.html na raiz do diretório atual (onde está o index.js)
-  const rootPath = __dirname; // Diretório onde está o index.js
+  const rootPath = import.meta.dirname; // Diretório onde está o index.js
   
   // Verificar se existe index.html na raiz
   const indexHtmlPath = path.resolve(rootPath, "index.html");
