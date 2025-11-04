@@ -23,31 +23,22 @@ Este guia te leva do zero ao deploy completo do sistema Abmix no seu VPS com Eas
 4. **NÃO** marque "Initialize with README"
 5. Clique em "Create repository"
 
-### 1.2 - Fazer Push do Código
+### 1.2 - Código Já Está no GitHub!
 
-Copie e execute estes comandos no terminal do Replit:
-
-```bash
-# Inicializar Git (se ainda não estiver)
-git init
-
-# Adicionar todos os arquivos
-git add .
-
-# Fazer commit inicial
-git commit -m "Deploy inicial - Abmix VoIP System"
-
-# Conectar ao GitHub (substitua SEU_USUARIO pelo seu username)
-git remote add origin https://github.com/SEU_USUARIO/abmix-voip.git
-
-# Enviar código
-git branch -M main
-git push -u origin main
+✅ O código já está no repositório:
+```
+Proprietário: Abmix-tech-Programacao
+Repositório: abmix-telefone
+Branch: main
 ```
 
-**Importante:** O GitHub vai pedir suas credenciais. Use:
-- **Username:** seu_usuario_github
-- **Password:** Personal Access Token (crie em: github.com/settings/tokens)
+Se você fez alterações locais e quer atualizar:
+
+```bash
+git add .
+git commit -m "Atualizações no sistema"
+git push origin main
+```
 
 ---
 
