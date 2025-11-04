@@ -59,7 +59,7 @@ export const useCallStore = create<CallState>((set, get) => ({
   favorites: [],
   isRecording: false,
   livePrompt: '',
-  selectedProvider: 'twilio',
+  selectedProvider: 'falevono',
   activeView: 'discagem',
   
   // Actions
