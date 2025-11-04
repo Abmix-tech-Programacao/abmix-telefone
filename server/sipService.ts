@@ -42,6 +42,7 @@ export class SIPService {
   private fromNumber: string;
   private authSession: any = {};
   private registered: boolean = false;
+  private clientPort: number = 7060;
 
   constructor(
     sipUsername: string,
@@ -82,15 +83,15 @@ export class SIPService {
       console.log(`[SIP_SERVICE] Username: ${this.sipUsername}`);
       
       // Get SIP client port from environment variable (default: 7060)
-      const clientPort = parseInt(process.env.FALEVONO_SIP_PORT || '7060', 10);
+      this.clientPort = parseInt(process.env.FALEVONO_SIP_PORT || '7060', 10);
       
       // Start SIP stack only once (singleton pattern)
       if (!globalSipStarted) {
         console.log('[SIP_SERVICE] Starting SIP stack for the first time...');
-        console.log(`[SIP_SERVICE] Client Port: ${clientPort}`);
+        console.log(`[SIP_SERVICE] Client Port: ${this.clientPort}`);
         sip.start({
           publicAddress: this.localIP,
-          port: clientPort,
+          port: this.clientPort,
           tcp: false,
           logger: {
             send: (message: any) => {
@@ -150,7 +151,7 @@ export class SIPService {
           },
           'call-id': callId,
           cseq: { method: 'REGISTER', seq: cseq },
-          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:6060` }],
+          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:${this.clientPort}` }],
           expires: 3600,
           via: []
         }
@@ -226,13 +227,13 @@ export class SIPService {
           },
           'call-id': callId,
           cseq: { method: 'INVITE', seq: 1 },
-          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:6060` }],
+          contact: [{ uri: `sip:${this.sipUsername}@${this.localIP}:${this.clientPort}` }],
           'content-type': 'application/sdp',
           via: [{
             version: '2.0',
             protocol: 'UDP',
             host: this.localIP,
-            port: 6060,
+            port: this.clientPort,
             params: { branch }
           }]
         },
