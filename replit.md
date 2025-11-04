@@ -4,23 +4,60 @@
 
 Abmix is an AI-powered telephony system for intelligent voice calls, offering real-time transcription, AI agent control, and advanced call management. It provides a unified interface for outbound calls, AI conversation flow management, live prompt injection, and real-time Portuguese transcription. The system integrates FaleVono for telephony, ElevenLabs for voice synthesis, and Deepgram for speech-to-text, forming a complete conversational AI telephony solution with a modern web application.
 
+## Recent Changes (November 04, 2025 - 16:50) 📚 TUTORIAL DE DEPLOY COMPLETO
+
+### DEPLOY.md COMPLETAMENTE REESCRITO - PRONTO PARA USO 🎉
+- ✅ **Tutorial Completo**: 580+ linhas de documentação detalhada passo-a-passo
+- ✅ **12 Seções Estruturadas**: Sumário navegável desde setup até troubleshooting
+- ✅ **Linguagem Simples**: Instruções claras para usuários não-técnicos
+- ✅ **Destaque para Configurações Críticas**: Network Mode = host (OBRIGATÓRIO para SIP)
+- ✅ **Tabelas de Configuração**: Copy-paste fácil para todas as configurações
+- ✅ **Links Diretos**: Como obter API keys (ElevenLabs, Deepgram)
+- ✅ **Deploy vs Redeploy**: Diferença clara entre primeiro deploy e atualizações
+- ✅ **7 Testes de Funcionamento**: Health check, logs SIP, chamada teste, SSL
+- ✅ **9 Problemas Comuns**: Troubleshooting expandido com soluções detalhadas
+- ✅ **Checklist de 20 Itens**: Validação completa antes de considerar deploy finalizado
+- ✅ **Monitoramento**: Logs, métricas, backup, comandos úteis SSH
+
+### Seções Principais do DEPLOY.md:
+1. Visão Geral - Entendimento do fluxo completo
+2. Pré-requisitos - Tabela com tudo que é necessário
+3. Preparar GitHub - Como garantir código atualizado
+4. Conectar EasyPanel - Autorização e configuração passo-a-passo
+5. Criar Aplicação - Onde clicar e o que preencher
+6. Variáveis de Ambiente - 5 variáveis obrigatórias + links para obter API keys
+7. Configurações Avançadas - Network Mode = host (CRÍTICO!)
+8. Deploy Inicial - Processo de build e verificação
+9. Verificar Funcionamento - Testes web, health check, logs SIP, chamada teste
+10. Redeploy - Como atualizar o sistema após mudanças
+11. Troubleshooting - 9 problemas comuns + soluções
+12. Checklist Final - 20 itens para validar deploy completo
+
+### Melhorias de Usabilidade:
+- 🎯 **Avisos Visuais**: Caixas de atenção para configurações críticas
+- 📊 **Tabelas Organizadas**: Configurações, portas, variáveis de ambiente
+- 🔗 **Links Úteis**: FaleVono, ElevenLabs, Deepgram, Let's Encrypt
+- 💻 **Comandos SSH**: Debug e manutenção do container
+- ✅ **Mensagens Esperadas**: Exemplos de logs corretos vs erros
+
+---
+
 ## Recent Changes (November 03, 2025 - 23:09) 🚀 PREPARADO PARA DEPLOY VPS
 
 ### DEPLOY EM VPS COM EASYPANEL - PRONTO PARA PRODUÇÃO 🎉
-- ✅ **Dockerfile Criado**: Multi-stage build otimizado para Node.js 20 Alpine
+- ✅ **Dockerfile Criado**: Multi-stage build otimizado para Node.js 20 Alpine (ESM)
 - ✅ **docker-compose.yml**: Configuração completa com network mode host para SIP/UDP
 - ✅ **.dockerignore**: Otimização de build removendo arquivos desnecessários
 - ✅ **.env.example**: Template com todas as variáveis necessárias (FaleVono + AI services)
 - ✅ **Health Check Atualizado**: Endpoints /api/health (simples) e /api/health/detailed
-- ✅ **DEPLOY.md**: Guia passo-a-passo completo para EasyPanel
 - ⚠️ **Limitação Replit**: SIP/UDP não funciona no Replit (firewall bloqueia) - **deploy em VPS é obrigatório**
 
 ### Arquivos de Deploy Criados:
-- `Dockerfile` - Container production-ready
+- `Dockerfile` - Container production-ready (ESM format)
 - `docker-compose.yml` - Orquestração com portas UDP (5060/6060)
 - `.dockerignore` - Otimização de build
 - `.env.example` - Template de variáveis
-- `DEPLOY.md` - Guia completo de deploy
+- `DEPLOY.md` - Guia completo de deploy (580+ linhas)
 
 ### Como Fazer Deploy:
 1. Fazer push do código para GitHub
