@@ -77,7 +77,7 @@ app.use((req, res, next) => {
     const { setupVite } = await import("./vite.js");
     await setupVite(app, server);
   } else {
-    const { serveStatic } = await import("./vite.js");
+    const { serveStatic } = await import("./static.js");
     serveStatic(app);
   }
 
