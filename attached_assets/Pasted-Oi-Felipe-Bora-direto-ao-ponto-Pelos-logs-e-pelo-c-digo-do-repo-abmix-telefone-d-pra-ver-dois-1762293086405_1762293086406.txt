@@ -1,0 +1,208 @@
+Oi Felipe! 👋 Bora direto ao ponto. Pelos logs e pelo código do repo abmix-telefone, dá pra ver dois problemas distintos causando o “SIP not registered”.
+
+O que os logs e o código mostram
+
+O erro raiz é: “sip.send is not a function” durante o registro (REGISTER), o que impede a conta de ficar registrada e, por consequência, o discador falha com “SIP not registered” (veja o log com o stack e o ponto do código) 
+
+Pasted--FALEVONO-PROVIDER-Faile…
+
+, 
+
+sipService
+
+.
+
+Em uma execução você registrou como Username: Fe120784! (isso tem cara de senha sendo usada como usuário), noutra como Felipe_Manieri (correto). Ou seja, houve tentativa com credencial trocada (veja o username nos logs) 
+
+Pasted--FALEVONO-PROVIDER-Faile…
+
+.
+
+No código:
+
+Você usa o pacote sip do Node e chama sip.start(...) e depois sip.send(...) para mandar o REGISTER/INVITE (pontos exatos) 
+
+sipService
+
+, 
+
+sipService
+
+, 
+
+sipService
+
+, 
+
+sipService
+
+.
+
+Você até loga os tipos de sip.start e sip.send, e lança erro se sip.send não for função (onde explode) 
+
+sipService
+
+, 
+
+sipService
+
+.
+
+Causas prováveis
+
+Import/interop do módulo sip
+Em runtime, require('sip') deve expor start, send, stop. Se send vem como undefined, é típico de:
+
+Ambiente ESM + bundling/transpile alterando o objeto exportado do sip; ou
+
+Alguma reatribuição do símbolo sip (não vi outra reatribuição no arquivo); ou
+
+Versão/instalação do pacote sip inconsistente no ambiente que roda o dist.
+
+Credenciais trocadas (username ≠ password)
+Em uma tentativa, o “username” logado é “Fe120784!” (parece senha). Isso garante falha de registro mesmo que sip.send estivesse ok (o servidor vai desafiar 401/407 e nunca completar) 
+
+Pasted--FALEVONO-PROVIDER-Faile…
+
+.
+
+Correções recomendadas (em ordem prática)
+
+Ajuste do import do módulo sip (ESM-safe)
+No server/sipService.ts, troque para um import que não dependa de hooches do bundler:
+
+// antes
+const sip = require('sip');
+
+// depois (duas opções estáveis; escolha UMA)
+// Opção A: manter CommonJS, mas congele a referência que você usa
+const sipModule = require('sip'); // CJS
+const sip = sipModule; // alias explícito para evitar sombreamento
+
+// Opção B (preferida em ESM puro):
+import sipModule from 'sip';            // se o pacote suportar default
+const sip: any = (sipModule as any).default ?? sipModule;
+
+
+E mantenha os usos como sip.start(...); sip.send(...); sip.stop();.
+O ponto onde você hoje valida e lança o erro fica igual (só que agora o objeto certo chega) 
+
+sipService
+
+.
+
+Dica de diagnóstico rápido: adicione temporariamente:
+
+console.log('[SIP path]', require.resolve('sip'));
+console.log('[SIP keys]', Object.keys(sip));
+
+
+Se send não aparecer, é import mesmo.
+
+Não faça “delay mágico” para o sip.send “aparecer”
+O send deve existir imediatamente após o import. O delay de 2s não deveria ser necessário; se send está undefined antes e depois, é import/interop. Você pode manter o guard (bom pra sanity check), mas a solução é o import correto (onde hoje explode) 
+
+sipService
+
+.
+
+Confirme as credenciais usadas
+
+O provider busca a senha do process.env.FALEVONO_PASSWORD (obrigatório) e o username do registro em banco (voip number) 
+
+faleVonoProvider
+
+, 
+
+providerFactory
+
+.
+
+Garanta que no banco sip_username é algo como Felipe_Manieri (ou o usuário SIP correto) e não a senha. No log em que falhou aparecia “Fe120784!” como username (suspeito) 
+
+Pasted--FALEVONO-PROVIDER-Faile…
+
+.
+
+Se o FALEVONO_PASSWORD não estiver setado, o provider quebra na criação (ele valida isso) 
+
+faleVonoProvider
+
+, 
+
+providerFactory
+
+.
+
+Verifique a porta local de cliente (FALEVONO_SIP_PORT)
+
+Você usa UDP e porta padrão 6060 (override por env). Se a porta estiver bloqueada no host, o start pode até subir mas não trafegar. Não explica send undefined, mas pode travar chamadas depois. O código pega a porta do env e loga isso (bom checar) 
+
+sipService
+
+.
+
+Registro (REGISTER) e fluxo de chamada
+A rotina de REGISTER está correta (com digest quando 401/407). Assim que sip.send estiver ok e as credenciais corretas, a Promise de registro resolve e a chamada segue com INVITE (veja onde a Promise é criada/esperada) 
+
+sipService
+
+, 
+
+sipService
+
+.
+
+Patch mínimo sugerido (trecho)
+
+No sipService.ts, ajuste o import e remova a dependência do “delay” como requisito:
+
+// topo do arquivo
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const sipModule = require('sip');
+const sip: any = (sipModule as any).default ?? sipModule;
+
+// dentro de initialize()
+sip.start({ /* ...como está... */ }, (request: any) => {
+  this.handleIncomingRequest(request);
+});
+
+// Você pode manter o guard, mas se ele falhar, é import/env:
+if (typeof sip.send !== 'function') {
+  console.error('[SIP_SERVICE] ❌ sip.send ausente. Keys:', Object.keys(sip));
+  throw new Error('SIP stack não inicializou corretamente - send ausente');
+}
+
+
+E, no banco/console administrativo do app, confirme e corrija:
+
+sip_username = "Felipe_Manieri" (ou o username SIP real)
+
+FALEVONO_PASSWORD setado no ambiente do processo (não no banco) 
+
+faleVonoProvider
+
+.
+
+Resumo
+
+Erro imediato: import/interop do pacote sip — send fica undefined e o REGISTER não sai.
+
+Erro secundário: em uma tentativa, o username pareceu ser a senha, o que impediria o registro mesmo com send correto.
+
+Ação: corrigir import do sip, garantir env FALEVONO_PASSWORD, e conferir sip_username no registro do número. Depois disso, o fluxo REGISTER → 200 → INVITE deve rodar normalmente (o seu handler de respostas/ACK/DTMF está bem estruturado) 
+
+sipService
+
+, 
+
+sipService
+
+, 
+
+sipService
+
+.
+
+Se quiser, eu já te mando um patch completo no sipService.ts com os ajustes de import e logs de diagnóstico — é só falar o formato que prefere (diff/PR).

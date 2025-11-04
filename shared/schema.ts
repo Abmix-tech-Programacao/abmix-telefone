@@ -64,6 +64,22 @@ export const settings = pgTable("settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+export const voipNumbers = pgTable("voip_numbers", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  name: text("name").notNull(),
+  number: text("number").notNull().unique(),
+  provider: text("provider").notNull(),
+  sipUsername: text("sip_username"),
+  sipPassword: text("sip_password"),
+  sipServer: text("sip_server"),
+  sipPort: integer("sip_port").default(5060),
+  sipIps: text("sip_ips"),
+  isDefault: boolean("is_default").default(false),
+  status: text("status").notNull().default('active'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertFavoriteSchema = createInsertSchema(favorites).omit({
   id: true,
   createdAt: true,
@@ -99,12 +115,19 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true,
 });
 
+export const insertVoipNumberSchema = createInsertSchema(voipNumbers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertFavorite = z.infer<typeof insertFavoriteSchema>;
 export type InsertCall = z.infer<typeof insertCallSchema>;
 export type InsertRecording = z.infer<typeof insertRecordingSchema>;
 export type InsertTranscript = z.infer<typeof insertTranscriptSchema>;
 export type InsertPrompt = z.infer<typeof insertPromptSchema>;
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type InsertVoipNumber = z.infer<typeof insertVoipNumberSchema>;
 
 export type Favorite = typeof favorites.$inferSelect;
 export type Call = typeof calls.$inferSelect;
@@ -112,10 +135,11 @@ export type Recording = typeof recordings.$inferSelect;
 export type Transcript = typeof transcripts.$inferSelect;
 export type Prompt = typeof prompts.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
+export type VoipNumber = typeof voipNumbers.$inferSelect;
 
 // Validation schemas
 export const phoneNumberSchema = z.string().regex(/^\+[1-9]\d{1,14}$/, "Invalid E.164 format");
 export const dtmfToneSchema = z.enum(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "#"]);
 export const callStateSchema = z.enum(["IDLE", "RINGING", "CONNECTED", "ENDED"]);
 export const speakerSchema = z.enum(["AI", "Human", "Remote"]);
-export const providerSchema = z.enum(["vapi", "retell", "twilio", "mock"]);
+export const providerSchema = z.enum(["vapi", "retell", "twilio", "mock", "falevono", "sobreip"]);

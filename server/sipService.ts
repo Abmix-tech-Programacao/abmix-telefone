@@ -4,10 +4,23 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 
 const require = createRequire(import.meta.url);
+
+// Load SIP module (CommonJS only - uses require())
+// NOTE: sip.send and sip.stop are created INSIDE sip.start(), not at module load time!
 // @ts-ignore - Module 'sip' has no type definitions
 const sip = require('sip');
 // @ts-ignore
-const digest = require('sip/digest.js');
+const digest = require('sip/digest');
+
+// Verify sip.start exists (sip.send/stop are created by sip.start())
+if (typeof sip.start !== 'function') {
+  console.error('[SIP_MODULE] ❌ sip.start is not a function!');
+  console.error('[SIP_MODULE] Available keys:', Object.keys(sip));
+  throw new Error('SIP module failed to load properly - sip.start not available');
+}
+
+console.log('[SIP_MODULE] ✅ SIP module loaded successfully');
+console.log('[SIP_MODULE] sip.start: available (send/stop will be created when start() is called)');
 
 const execAsync = promisify(exec);
 
@@ -143,9 +156,19 @@ export class SIPService {
         // Wait for SIP stack to fully initialize (sip.send becomes available)
         await new Promise(resolve => setTimeout(resolve, 1500));
         
+        // Debug: Check if sip.send appeared after start()
+        console.log('[SIP_SERVICE] After sip.start() - checking functions...');
+        console.log('[SIP_SERVICE] sip.send type:', typeof sip.send);
+        console.log('[SIP_SERVICE] sip.stop type:', typeof sip.stop);
+        console.log('[SIP_SERVICE] All sip keys:', Object.keys(sip));
+        
         // Verify sip.send is available
         if (typeof sip.send !== 'function') {
-          console.error('[SIP_SERVICE] ❌ sip.send is not available!');
+          console.error('[SIP_SERVICE] ❌ sip.send is STILL not available after sip.start()!');
+          console.error('[SIP_SERVICE] This suggests the module structure changed or bundling issue');
+          // Try alternate access pattern
+          const sipModule = require('sip');
+          console.log('[SIP_SERVICE] Direct require keys:', Object.keys(sipModule));
           throw new Error('SIP stack failed to initialize properly - sip.send not available');
         }
         

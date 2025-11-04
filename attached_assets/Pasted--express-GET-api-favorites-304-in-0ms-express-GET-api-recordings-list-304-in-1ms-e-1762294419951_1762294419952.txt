@@ -1,0 +1,90 @@
+[express] GET /api/favorites 304 in 0ms :: []
+[express] GET /api/recordings/list 304 in 1ms :: []
+[express] GET /api/voice/conversion-voices 304 in 232ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[CALL] Initiating call to 31983216883
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Fe120784!
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: +5511920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: +5511920838833 → To: 31983216883
+[FALEVONO_PROVIDER] Starting call to: 31983216883
+[SIP_SERVICE] Initializing SIP stack...
+[SIP_SERVICE] Local IP: 172.31.70.162
+[SIP_SERVICE] Server: vono2.me:5060
+[SIP_SERVICE] Username: Fe120784!
+[SIP_SERVICE] Reusing existing SIP stack
+[SIP_SERVICE] ✅ SIP stack initialized successfully
+[SIP_SERVICE] Registering...
+[SIP_SERVICE] ❌ Registration failed: TypeError: sip.send is not a function
+    at SIPService.register (file:///app/dist/index.js:1382:11)
+    at SIPService.initialize (file:///app/dist/index.js:1342:18)
+    at async SIPService.makeCall (file:///app/dist/index.js:1396:7)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[express] POST /api/call/dial 500 in 110ms :: {"error":"SIP not registered - wait for reg…
+[FALEVONO_PROVIDER] Failed to start call: Error: SIP not registered - wait for registration to complete
+    at SIPService.makeCall (file:///app/dist/index.js:1399:13)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[CALL] Error dialing: Error: SIP not registered - wait for registration to complete
+    at SIPService.makeCall (file:///app/dist/index.js:1399:13)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-04T21:18:47.1…
+[express] GET /api/voip-numbers 200 in 1ms :: [{"id":1,"name":"Vono Principal","number":"…
+[express] GET /api/favorites 200 in 0ms :: []
+[express] GET /api/recordings/list 200 in 0ms :: []
+[express] GET /api/voice/conversion-voices 200 in 231ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-04T21:19:17.2…
+[CALL] Initiating call to 31983216883
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Fe120784!
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: +5511920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: +5511920838833 → To: 31983216883
+[FALEVONO_PROVIDER] Starting call to: 31983216883
+[SIP_SERVICE] Initializing SIP stack...
+[SIP_SERVICE] Local IP: 172.31.70.162
+[SIP_SERVICE] Server: vono2.me:5060
+[SIP_SERVICE] Username: Fe120784!
+[SIP_SERVICE] Reusing existing SIP stack
+[SIP_SERVICE] ✅ SIP stack initialized successfully
+[SIP_SERVICE] Registering...
+[SIP_SERVICE] ❌ Registration failed: TypeError: sip.send is not a function
+    at SIPService.register (file:///app/dist/index.js:1382:11)
+    at SIPService.initialize (file:///app/dist/index.js:1342:18)
+    at async SIPService.makeCall (file:///app/dist/index.js:1396:7)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[FALEVONO_PROVIDER] Failed to start call: Error: SIP not registered - wait for registration to complete
+    at SIPService.makeCall (file:///app/dist/index.js:1399:13)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[CALL] Error dialing: Error: SIP not registered - wait for registration to complete
+    at SIPService.makeCall (file:///app/dist/index.js:1399:13)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1778:22)
+    at async file:///app/dist/index.js:1895:22
+[express] POST /api/call/dial 500 in 111ms :: {"error":"SIP not registered - wait for reg…
+[CALL] Initiating call to 31983216883
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Fe120784!
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: +5511920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: +5511920838833 → To: 31983216883
+[FALEVONO_PROVIDER] Starting call to: 31983216883
+[SIP_SERVICE] Initializing SIP stack...
+[SIP_SERVICE] Local IP: 172.31.70.162
+[SIP_SERVICE] Server: vono2.me:5060
+[SIP_SERVICE] Username: Fe120784!
+[SIP_SERVICE] Reusing existing SIP stack
+[SIP_SERVICE] ✅ SIP stack initialized successfully
+[SIP_SERVICE] Registering...
+[SIP_SERVICE] ❌ Registration failed: TypeError: sip.send is not a function
+    at SIPService.register (file:///app/dist/index.js:1382:11)
+    at SIPService.initialize (file:///app/dist/index.js:1342:18)
