@@ -15,7 +15,7 @@ services:
     # Alternativa se host mode não funcionar:
     # ports:
     #   - "8080:8080"       # HTTP/WebSocket
-    #   - "6060:6060/udp"   # SIP client
+    #   - "7060:7060/udp"   # SIP client (padrão, veja FALEVONO_SIP_PORT)
     
     environment:
       - NODE_ENV=production
@@ -23,6 +23,10 @@ services:
       
       # FaleVono Credentials (OBRIGATÓRIO)
       - FALEVONO_PASSWORD=${FALEVONO_PASSWORD}
+      
+      # Porta SIP Cliente (OPCIONAL - padrão: 7060)
+      # Altere se outra aplicação estiver usando a porta 7060
+      - FALEVONO_SIP_PORT=${FALEVONO_SIP_PORT:-7060}
       
       # AI Services (OBRIGATÓRIO)
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}

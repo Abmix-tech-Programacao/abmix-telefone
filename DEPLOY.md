@@ -198,6 +198,14 @@ Para cada variável abaixo, faça:
 | `ELEVENLABS_API_KEY` | Sua chave ElevenLabs | Ver seção 4.4 |
 | `DEEPGRAM_API_KEY` | Sua chave Deepgram | Ver seção 4.5 |
 
+#### ⚙️ Variáveis Opcionais (Configuração Avançada)
+
+| Nome | Valor Padrão | Quando Alterar |
+|------|--------------|----------------|
+| `FALEVONO_SIP_PORT` | `7060` | Se outra aplicação já estiver usando a porta 7060 |
+
+> 💡 **Nota sobre Porta SIP:** A porta 7060 é usada para comunicação SIP cliente. Se você tem outra aplicação de telefonia rodando no mesmo servidor que usa a porta 7060 (ou 6060), configure esta variável para uma porta diferente (exemplo: `7070`, `8060`, etc).
+
 ### 4.4 - Como Obter API Key do ElevenLabs
 
 1. Acesse: https://elevenlabs.io/app/settings/api-keys
@@ -265,8 +273,8 @@ Adicione as seguintes portas:
 
 | Container Port | Protocol | Published Port | Descrição |
 |----------------|----------|----------------|-----------|
-| `5000` | TCP | `5000` | Interface web |
-| `6060` | UDP | `6060` | Cliente SIP |
+| `8080` | TCP | `8080` | Interface web |
+| `7060` | UDP | `7060` | Cliente SIP (pode variar, veja `FALEVONO_SIP_PORT`) |
 
 **Como adicionar:**
 1. Procure por **"Port Mappings"** ou **"Ports"**
