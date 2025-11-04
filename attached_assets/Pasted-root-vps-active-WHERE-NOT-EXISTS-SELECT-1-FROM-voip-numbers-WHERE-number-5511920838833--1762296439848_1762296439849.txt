@@ -1,0 +1,35 @@
+root@vps:~# 'active'
+WHERE NOT EXISTS (
+SELECT 1 FROM voip_numbers WHERE number = '+5511920838833'
+);
+-bash: syntax error near unexpected token (' Command 'name,' not found, did you mean: command 'named' from deb bind9 (1:9.18.39-0ubuntu0.24.04.2) command 'namei' from deb util-linux (2.39.3-9ubuntu6.3) Try: apt install <deb name> Command 'number,' not found, did you mean: command 'numbers' from snap numbers (0+git.04c78e2) command 'number' from deb bsdgames (2.17-30) command 'numbers' from deb golang-webpki-org-jsoncanonicalizer-dev (0.20210204-1) See 'snap info <snapname>' for additional versions. provider,: command not found sip_username,: command not found sip_password,: command not found sip_server,: command not found is_default,: command not found Command 'status' not found, did you mean: command 'statup' from snap statup (0.79.91) command 'qstatus' from deb gridengine-client (8.1.9+dfsg-11) command 'statfs' from deb gocryptfs (2.4.0-1ubuntu0.24.04.3) command 'states' from deb enscript (1.6.5.90-3.1) See 'snap info <snapname>' for additional versions. -bash: syntax error near unexpected token)'
+SELECT: command not found
+FaleVono - SP,: command not found
++5511920838833,: command not found
+falevono,: command not found
+Felipe_Manieri,: command not found
+WILL_USE_ENV_VAR,: command not found
+vono2.me:5060,: command not found
+Command 'true,' not found, did you mean:
+command 'true' from deb coreutils (9.4-3ubuntu6.1)
+Try: apt install <deb name>
+active: command not found
+-bash: syntax error near unexpected token (' SELECT: command not found -bash: syntax error near unexpected token)'
+active: command not found
+-bash: syntax error near unexpected token `('
+SELECT: command not found
+-bash: syntax error near unexpected token `)'
+-bash: syntax error near unexpected token `('
+SELECT:: command not found
+FaleVono: command not found
++5511920838833,:: command not found
+falevono,:: command not found
+Felipe_Manieri,:: command not found
+WILL_USE_ENV_VAR,:: command not found
+vono2.me:5060,:: command not found
+Command: command not found
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `newline'
+active:: command not found
+-bash: syntax error near unexpected token `('
+root@vps:~# 
