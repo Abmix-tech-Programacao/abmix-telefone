@@ -1,0 +1,53 @@
+lcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-85-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Nov  5 01:59:56 UTC 2025
+
+  System load:  0.14                Processes:             310
+  Usage of /:   16.3% of 386.42GB   Users logged in:       1
+  Memory usage: 33%                 IPv4 address for eth0: 72.60.149.107
+  Swap usage:   0%                  IPv6 address for eth0: 2a02:4780:66:8d5b::1
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+30 updates can be applied immediately.
+1 of these updates is a standard security update.
+To see these additional updates run: apt list --upgradable
+
+1 additional security update can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+*** System restart required ***
+Last login: Wed Nov  5 01:46:39 2025 from 169.254.0.1
+root@vps:~# docker exec projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma node -e "const Database = require('better-sqlite3'); const db = new Database('/app/data/app.db'); db.exec(\"UPDATE voip_numbers SET username='Felipe_Manieri' WHERE username='Fe120784!' OR username LIKE '%Fe120784%'\"); db.close(); console.log('✅ Database updated');"
+docker exec projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma node -e "const Database = require('better-sqlite3'); const db = new Database('/app/data/app.db'); db.exec(\"UPDATE voip_numbers SET username='Felipe_Manieri' WHERE username='Fe120784'active' OR username LIKE '%Fe120784%'\"); db.close(); console.log('✅ Database updated');"
+/app/node_modules/better-sqlite3/lib/methods/wrappers.js:9
+        this[cppdb].exec(sql);
+                    ^
+
+SqliteError: near "active": syntax error
+    at Database.exec (/app/node_modules/better-sqlite3/lib/methods/wrappers.js:9:14)
+    at [eval]:1:93
+    at runScriptInThisContext (node:internal/vm:209:10)
+    at node:internal/process/execution:118:14
+    at [eval]-wrapper:6:24
+    at runScript (node:internal/process/execution:101:62)
+    at evalScript (node:internal/process/execution:133:3)
+    at node:internal/main/eval_string:51:3 {
+  code: 'SQLITE_ERROR'
+}
+
+Node.js v20.19.5
+root@vps:~# docker restart projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma
+projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma
+root@vps:~# docker logs projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma --tail 50 | grep -E "Username|Registration"
+Error response from daemon: No such container: projeto-abmix-tech_abmix-telefone.1.oy173vonhph0hvvgp5l73nzma
+root@vps:~# 
