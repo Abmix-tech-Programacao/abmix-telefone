@@ -1,0 +1,423 @@
+come to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-85-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Nov  5 02:31:29 UTC 2025
+
+  System load:  1.09               Processes:             309
+  Usage of /:   4.9% of 386.42GB   Users logged in:       1
+  Memory usage: 20%                IPv4 address for eth0: 72.60.149.107
+  Swap usage:   0%                 IPv6 address for eth0: 2a02:4780:66:8d5b::1
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+30 updates can be applied immediately.
+1 of these updates is a standard security update.
+To see these additional updates run: apt list --upgradable
+
+1 additional security update can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+*** System restart required ***
+Last login: Wed Nov  5 02:06:39 2025 from 169.254.0.1
+root@vps:~# docker logs -f $(docker ps | grep abmix-telefone | head -1 | awk '{print $1}')
+
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+
+[DB] Initializing database at: /app/data/app.db
+[DB] Database initialized successfully
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[SIP_MODULE] ✅ SIP module loaded successfully
+[SIP_MODULE] sip.start: available (send/stop will be created when start() is called)
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[ENV] Debug das variáveis de ambiente:
+[ENV] FALEVONO_PASSWORD: ✅ CONFIGURADA
+[ENV] ELEVENLABS_API_KEY: sk_58ab581... ✅
+[ENV] DEEPGRAM_API_KEY: ✅ CONFIGURADA
+[TELEPHONY] Telephony system ready - SIP will initialize on first call
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[DB] Initializing database at: /app/data/app.db
+[DB] Database initialized successfully
+[ROUTES] API routes configured
+[STATIC] Usando estrutura na raiz: /app/dist
+[STATIC] Servindo arquivos estáticos de: /app/dist
+[STATIC] Arquivos encontrados: [ 'assets', 'index.html', 'index.js' ]
+[express] HTTP/WS on 5000
+[express] GET /api/health 200 in 7ms :: {"status":"ok","timestamp":"2025-11-05T02:15:10.6…
+[express] GET /api/health 200 in 2ms :: {"status":"ok","timestamp":"2025-11-05T02:15:40.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:16:10.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:16:40.8…
+[express] GET /api/favorites 304 in 1ms :: []
+[express] GET /api/recordings/list 304 in 4ms :: []
+[express] GET /api/voip-numbers 200 in 0ms :: []
+[express] GET /api/voice/conversion-voices 304 in 554ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/voip-numbers 200 in 1ms :: []
+[express] GET /api/recordings/list 200 in 0ms :: []
+[express] GET /api/favorites 200 in 1ms :: []
+[express] GET /api/voice/conversion-voices 200 in 237ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:17:10.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:17:40.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:18:11.0…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:18:41.1…
+[express] GET /api/recordings/list 304 in 2ms :: []
+[express] GET /api/favorites 304 in 0ms :: []
+[express] GET /api/voip-numbers 200 in 1ms :: []
+[express] GET /api/voice/conversion-voices 304 in 247ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/favorites 304 in 0ms :: []
+[express] GET /api/recordings/list 304 in 1ms :: []
+[express] GET /api/voip-numbers 304 in 0ms :: []
+[express] GET /api/voice/conversion-voices 304 in 171ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:19:11.1…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:19:41.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:20:11.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:20:41.3…
+[express] GET /api/recordings/list 304 in 0ms :: []
+[express] GET /api/voip-numbers 200 in 1ms :: [{"id":1,"name":"Vono Principal","number":"…
+[express] GET /api/favorites 304 in 1ms :: []
+[express] GET /api/voice/conversion-voices 304 in 232ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:21:11.4…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Creating new global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Initializing SIP stack...
+[SIP_SERVICE] Local IP: 172.31.70.162
+[SIP_SERVICE] Server: vono2.me:5060
+[SIP_SERVICE] Username: Felipe_Manieri
+[SIP_SERVICE] Starting SIP stack for the first time...
+[SIP_SERVICE] Transport: UDP 
+[SIP_SERVICE] Client Port: 6060
+[SIP_SERVICE] After sip.start() - checking functions...
+[SIP_SERVICE] sip.send type: function
+[SIP_SERVICE] sip.stop type: function
+[SIP_SERVICE] All sip keys: [
+  'parseAOR',             'parseUri',
+  'stringifyUri',         'stringifyAuthHeader',
+  'stringify',            'makeResponse',
+  'copyMessage',          'makeStreamParser',
+  'parse',                'makeTransport',
+  'resolve',              'generateBranch',
+  'makeTransactionLayer', 'create',
+  'start',                'send',
+  'stop',                 'encodeFlowUri',
+  'decodeFlowUri',        'isFlowUri',
+  'hostname'
+]
+[SIP_SERVICE] ✅ SIP stack started successfully
+[SIP_SERVICE] ✅ SIP stack initialized successfully
+[SIP_SERVICE] Registering...
+[SIP_SERVICE] REGISTER with transport=UDP, contact=sip:Felipe_Manieri@172.31.70.162:6060
+[SIP_SERVICE] REGISTER request queued
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[SIP_SERVICE] >>> SENT: {
+  "method": "REGISTER",
+  "uri": "sip:vono2.me:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me"
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "32a72fa6-ed8d-4de0-9d01-dcc36981be80"
+      }
+    },
+    "call-id": "c3cb1a50-544a-4bab-8a3b-a49dc18955aa",
+    "cseq": {
+      "method": "REGISTER",
+      "seq": 1
+    },
+    "contact": [
+      {
+        "uri": "sip:Felipe_Manieri@172.31.70.162:6060"
+      }
+    ],
+    "exp
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 401,
+  "reason": "Unauthorized",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK203786",
+          "rport": "6060"
+        }
+      }
+    ],
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "0391.94a409aea13d14bf546e3fec69fc8030"
+      }
+    }
+[SIP_SERVICE] 🔐 Received 401 auth challenge for REGISTER
+[SIP_SERVICE] Re-registering with auth...
+[SIP_SERVICE] REGISTER with transport=UDP, contact=sip:Felipe_Manieri@172.31.70.162:6060
+[SIP_SERVICE] ❌ Registration failed: TypeError: Cannot read properties of undefined (reading 'www-authenticate')
+    at initClientContext (/app/node_modules/sip/digest.js:182:43)
+    at exports.signRequest (/app/node_modules/sip/digest.js:212:5)
+    at _SIPService.register (file:///app/dist/index.js:1440:16)
+    at _SIPService.handleIncomingMessage (file:///app/dist/index.js:1689:16)
+    at Object.recv (file:///app/dist/index.js:1356:20)
+    at callbackAndLog (/app/node_modules/sip/sip.js:809:22)
+    at Socket.onMessage (/app/node_modules/sip/sip.js:775:7)
+    at Socket.emit (node:events:524:28)
+    at UDP.onMessage [as onmessage] (node:dgram:951:8)
+[SIP_SERVICE] ❌ Error sending REGISTER: {
+  version: '2.0',
+  status: 401,
+  reason: 'Unauthorized',
+  headers: {
+    via: [ [Object] ],
+    to: {
+      name: undefined,
+      uri: 'sip:Felipe_Manieri@vono2.me',
+      params: [Object]
+    },
+    from: {
+      name: undefined,
+      uri: 'sip:Felipe_Manieri@vono2.me',
+      params: [Object]
+    },
+    'call-id': 'c3cb1a50-544a-4bab-8a3b-a49dc18955aa',
+    cseq: { seq: 1, method: 'REGISTER' },
+    'www-authenticate': [ [Object], [Object] ],
+    server: 'NextRouter C4 SoftSwitch v5.3.1',
+    'content-length': 0
+  },
+  content: ''
+}
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 11518ms :: {"error":"Cannot make call: SIP registrat…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:21:41.4…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:22:11.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:22:41.6…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[express] POST /api/call/dial 500 in 2ms :: {"error":"Cannot make call: SIP registration …
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:23:11.6…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 3ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 2ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:23:41.7…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:24:11.8…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:24:41.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:25:11.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:25:42.0…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:26:12.0…
+[express] GET /api/voip-numbers 200 in 0ms :: [{"id":1,"name":"Vono Principal","number":"…
+[express] GET /api/favorites 200 in 1ms :: []
+[express] GET /api/recordings/list 200 in 0ms :: []
+[express] GET /api/voice/conversion-voices 200 in 536ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:26:42.1…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[express] POST /api/call/dial 500 in 2ms :: {"error":"Cannot make call: SIP registration …
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:27:12.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:27:42.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:28:12.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:28:42.4…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:29:12.5…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:29:42.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:30:12.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:30:42.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:31:12.8…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:31:42.8…

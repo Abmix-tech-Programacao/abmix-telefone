@@ -1,0 +1,52 @@
+anch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   .local/state/replit/agent/.agent_state_main.bin
+    modified:   .local/state/replit/agent/repl_state.bin
+
+no changes added to commit (use "git add" and/or "git commit -a")
+Everything up-to-date
+~/workspace$ docker exec $(docker ps | grep abmix-telefone | head -1 | awk '{print $1}') node -e 'const Database = require("better-sqlite3"); const db = new Database("/app/data/app.db"); db.prepare("INSERT INTO voip_numbers (name, number, provider, sip_username, sip_password, sip_server, sip_port, is_default, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run("Vono Principal", "11920838833", "falevono", "Felipe_Manieri", "Fe120784!", "vono2.me", 5060, 1, "active"); console.log("✅ Número inserido"); db.close();'
+bash: docker: command not found
+docker: command not installed. Multiple versions of this command were found in Nix.
+Select one to run (or press Ctrl-C to cancel):
+git add .
+jq: error: syntax error, unexpected end of file, expecting FORMAT or QQSTRING_START or '[' (Unix shell quoting issues?) at <top-level>, line 1:
+.[0].store_paths.                
+jq: 1 compile error
+
+git add .
+git commit -m "Add debug logs for SIP authentication"
+git push origin main/nix/store/jxjzgz1p0hdqsg8k17ivw5mgcd6ffx9c-git-2.44.1
+Adding git to .replit
+/tmp/nix-shell-76279-1969101083/rc: line 3: docker: command not found
+~/workspace$ git commit -m "Add debug logs for SIP authentication"
+On branch main
+Your branch is ahead of 'origin/main' by 3 commits.
+  (use "git push" to publish your local commits)
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+    modified:   .local/state/replit/agent/.agent_state_main.bin
+    modified:   .local/state/replit/agent/repl_state.bin
+    modified:   .replit
+
+no changes added to commit (use "git add" and/or "git commit -a")
+~/workspace$ git push origin main
+Enumerating objects: 31, done.
+Counting objects: 100% (31/31), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (15/15), done.
+Writing objects: 100% (24/24), 398.16 KiB | 22.12 MiB/s, done.
+Total 24 (delta 8), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (8/8), completed with 2 local objects.
+To https://github.com/Abmix-tech-Programacao/abmix-telefone
+   6256d50..4250f1e  main -> main
+~/workspace$ git add .
+~/workspace$ git commit -m "Add debug logs for SIP authentication"
+[main 11a50ff] Add debug logs for SIP authentication
+ 3 files changed, 1 insertion(+)
+~/workspace$ git push origin main
