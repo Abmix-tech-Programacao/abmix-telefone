@@ -283,7 +283,19 @@ export class SIPService {
   }
 
   async makeCall(toNumber: string): Promise<string> {
-    if (!this.initialized) {
+    // If not initialized or registration failed, force re-initialization
+    if (!this.initialized || !this.registered) {
+      console.log(`[SIP_SERVICE] ${!this.initialized ? 'Not initialized' : 'Not registered'}, initializing...`);
+      
+      // Reset state if previous attempt failed
+      if (this.initialized && !this.registered) {
+        console.log('[SIP_SERVICE] Resetting failed SIP instance...');
+        this.initialized = false;
+        this.registered = false;
+        this.authSession = {};
+        this.activeCalls.clear();
+      }
+      
       await this.initialize();
     }
 
@@ -294,6 +306,9 @@ export class SIPService {
         await this.registrationPromise;
         console.log('[SIP_SERVICE] Registration completed, proceeding with call');
       } catch (error) {
+        // Mark as uninitialized so next call will retry
+        this.initialized = false;
+        this.registered = false;
         throw new Error(`Cannot make call: ${error instanceof Error ? error.message : 'Registration failed'}`);
       }
     }

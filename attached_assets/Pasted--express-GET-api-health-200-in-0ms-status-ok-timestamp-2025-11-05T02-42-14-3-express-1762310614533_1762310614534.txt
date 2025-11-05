@@ -1,0 +1,113 @@
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-05T02:42:14.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:42:44.4…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 2ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Vono Principal (falevono)
+[SIP_SERVICE] Reusing existing global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11920838833
+[CALL] Using falevono provider (Vono Principal)
+[CALL] From: 11920838833 → To: 11945140383
+[FALEVONO_PROVIDER] Starting call to: 11945140383
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[FALEVONO_PROVIDER] Failed to start call: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[CALL] Error dialing: Error: Cannot make call: SIP registration timeout after 10 seconds
+    at _SIPService.makeCall (file:///app/dist/index.js:1465:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async FaleVonoProviderImpl.startCall (file:///app/dist/index.js:1863:22)
+    at async file:///app/dist/index.js:1980:22
+[express] POST /api/call/dial 500 in 1ms :: {"error":"Cannot make call: SIP registration …
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-05T02:43:14.5…
