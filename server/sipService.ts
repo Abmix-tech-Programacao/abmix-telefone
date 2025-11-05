@@ -215,9 +215,8 @@ export class SIPService {
     }
   }
 
-  private async register(authChallenge?: any): Promise<void> {
-    const isReregister = !!authChallenge;
-    console.log(`[SIP_SERVICE] ${isReregister ? 'Re-registering with auth' : 'Registering'}...`);
+  private async register(isReauth: boolean = false): Promise<void> {
+    console.log(`[SIP_SERVICE] ${isReauth ? 'Re-registering with auth' : 'Registering'}...`);
     
     const callId = this.authSession.callId || randomUUID();
     const tag = this.authSession.tag || randomUUID();
@@ -252,15 +251,22 @@ export class SIPService {
       
       console.log(`[SIP_SERVICE] REGISTER with transport=${this.transport}, contact=${contactUri}`);
 
-      // Add digest authentication if we have a challenge
-      if (authChallenge) {
+      // Add digest authentication if this is a re-auth attempt
+      if (isReauth) {
+        console.log('[SIP_SERVICE] Auth session state:', JSON.stringify(this.authSession, null, 2));
+        
         const credentials = {
           user: this.sipUsername,
           password: this.sipPassword
         };
         
-        digest.signRequest(this.authSession, registerRequest, credentials);
-        console.log('[SIP_SERVICE] Added Authorization header for REGISTER');
+        try {
+          digest.signRequest(this.authSession, registerRequest, credentials);
+          console.log('[SIP_SERVICE] ✅ Authorization header added successfully');
+        } catch (signError) {
+          console.error('[SIP_SERVICE] ❌ Failed to sign request:', signError);
+          throw signError;
+        }
       }
       
       sip.send(registerRequest, (error: any) => {
@@ -570,8 +576,9 @@ export class SIPService {
           
           try {
             digest.challenge(this.authSession, message);
-            console.log('[SIP_SERVICE] Auth session after challenge:', JSON.stringify(this.authSession, null, 2));
-            this.register(message);
+            console.log('[SIP_SERVICE] ✅ Auth session populated successfully');
+            console.log('[SIP_SERVICE] Auth session keys:', Object.keys(this.authSession));
+            this.register(true);
           } catch (error) {
             console.error('[SIP_SERVICE] ❌ Error processing auth challenge:', error);
             if (this.registrationReject) {
