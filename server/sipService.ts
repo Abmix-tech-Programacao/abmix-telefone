@@ -271,13 +271,8 @@ export class SIPService {
         }
       }
       
-      sip.send(registerRequest, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending REGISTER:', error);
-        } else {
-          console.log('[SIP_SERVICE] ✅ REGISTER sent');
-        }
-      });
+      // Note: callback receives SIP responses, not errors - responses handled in handleIncomingResponse
+      sip.send(registerRequest);
       console.log('[SIP_SERVICE] REGISTER request queued');
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Registration failed:', error);
@@ -384,17 +379,8 @@ export class SIPService {
         };
       }
       
-      sip.send(inviteRequest, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending INVITE:', error);
-          call.status = 'failed';
-          call.error = String(error);
-          call.endTime = new Date();
-        } else {
-          call.status = 'ringing';
-          console.log('[SIP_SERVICE] ✅ INVITE sent');
-        }
-      });
+      // Note: callback receives SIP responses, not errors - responses handled in handleIncomingResponse
+      sip.send(inviteRequest);
       return callId;
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to send INVITE:', error);
@@ -447,17 +433,8 @@ export class SIPService {
       call.dialog.inviteRequest = reInviteRequest;
       
       // Send authenticated INVITE
-      sip.send(reInviteRequest, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending authenticated INVITE:', error);
-          call.status = 'failed';
-          call.error = String(error);
-          call.endTime = new Date();
-        } else {
-          console.log('[SIP_SERVICE] ✅ Authenticated INVITE sent');
-          call.status = 'ringing';
-        }
-      });
+      // Note: callback receives SIP responses, not errors
+      sip.send(reInviteRequest);
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to re-send INVITE with auth:', error);
       call.status = 'failed';
@@ -493,13 +470,8 @@ export class SIPService {
           }
         };
 
-        sip.send(byeRequest, (error: any) => {
-          if (error) {
-            console.error('[SIP_SERVICE] ❌ Error sending BYE:', error);
-          } else {
-            console.log('[SIP_SERVICE] ✅ BYE sent');
-          }
-        });
+        // Note: BYE is fire-and-forget
+        sip.send(byeRequest);
       } else if (call.status === 'ringing' || call.status === 'initiating') {
         // Send CANCEL for ringing calls
         if (call.dialog && call.dialog.inviteRequest) {
@@ -515,13 +487,8 @@ export class SIPService {
             }
           };
 
-          sip.send(cancelRequest, (error: any) => {
-            if (error) {
-              console.error('[SIP_SERVICE] ❌ Error sending CANCEL:', error);
-            } else {
-              console.log('[SIP_SERVICE] ✅ CANCEL sent');
-            }
-          });
+          // Note: CANCEL is fire-and-forget
+          sip.send(cancelRequest);
         }
       }
       
@@ -562,13 +529,8 @@ export class SIPService {
       };
 
       call.dialog.cseq++;
-      sip.send(infoRequest, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending DTMF:', error);
-        } else {
-          console.log('[SIP_SERVICE] ✅ DTMF sent');
-        }
-      });
+      // Note: INFO for DTMF is fire-and-forget
+      sip.send(infoRequest);
       
       return true;
     } catch (error) {
@@ -705,16 +667,12 @@ export class SIPService {
         call.endTime = new Date();
       }
       
-      // Send 200 OK
+      // Send 200 OK response to BYE
       sip.send({
         method: 'OK',
         status: 200,
         reason: 'OK',
         headers: request.headers
-      }, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending 200 OK:', error);
-        }
       });
     }
   }
@@ -737,13 +695,9 @@ export class SIPService {
         }
       };
       
-      sip.send(ackRequest, (error: any) => {
-        if (error) {
-          console.error('[SIP_SERVICE] ❌ Error sending ACK:', error);
-        } else {
-          console.log('[SIP_SERVICE] ✅ ACK sent to', contactUri);
-        }
-      });
+      // Note: ACK is fire-and-forget - no response expected
+      sip.send(ackRequest);
+      console.log('[SIP_SERVICE] ✅ ACK sent to', contactUri);
     } catch (error) {
       console.error('[SIP_SERVICE] ❌ Failed to send ACK:', error);
     }
