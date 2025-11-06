@@ -3,7 +3,7 @@ import { useCallStore } from '@/stores/useCallStore';
 import { metricsService } from '@/services/metrics';
 
 export function Header() {
-  const { callState, latency, audioLevel } = useCallStore();
+  const { callState, latency, micLevel, speakerLevel } = useCallStore();
   const setLatency = useCallStore(state => state.setLatency);
 
   // Connect to real-time metrics
@@ -51,21 +51,31 @@ export function Header() {
           )}
         </div>
 
-        {/* Audio Indicator */}
+        {/* Audio Indicators - 2 separate bars */}
         <div className="flex items-center space-x-4">
+          {/* Microphone Input Level */}
           <div className="flex items-center space-x-2">
             <i className="fas fa-microphone text-gray-400"></i>
-            <div className="w-16 h-2 bg-dark-border rounded-full overflow-hidden">
+            <div className="w-20 h-2 bg-dark-border rounded-full overflow-hidden">
               <div 
-                className="h-full bg-abmix-green transition-all duration-150" 
-                style={{ width: `${audioLevel}%` }}
-                data-testid="audio-level"
+                className="h-full bg-green-500 transition-all duration-150" 
+                style={{ width: `${micLevel}%` }}
+                data-testid="mic-level-bar"
               ></div>
             </div>
           </div>
-          <button className="p-2 hover:bg-dark-border rounded-lg transition-colors" data-testid="volume-button">
+          
+          {/* Speaker Output Level */}
+          <div className="flex items-center space-x-2">
             <i className="fas fa-volume-up text-gray-400"></i>
-          </button>
+            <div className="w-20 h-2 bg-dark-border rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-blue-500 transition-all duration-150" 
+                style={{ width: `${speakerLevel}%` }}
+                data-testid="speaker-level-bar"
+              ></div>
+            </div>
+          </div>
         </div>
       </div>
     </header>

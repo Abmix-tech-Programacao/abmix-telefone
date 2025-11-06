@@ -9,7 +9,8 @@ interface CallState {
   voiceType: 'masc' | 'fem' | 'natural';
   aiActive: boolean;
   latency: number;
-  audioLevel: number;
+  micLevel: number;
+  speakerLevel: number;
   phoneNumber: string;
   
   // Transcripts
@@ -31,7 +32,8 @@ interface CallState {
   setVoiceType: (type: 'masc' | 'fem' | 'natural') => void;
   setAiActive: (active: boolean) => void;
   setLatency: (latency: number) => void;
-  setAudioLevel: (level: number) => void;
+  setMicLevel: (level: number) => void;
+  setSpeakerLevel: (level: number) => void;
   setPhoneNumber: (number: string) => void;
   appendToPhoneNumber: (digit: string) => void;
   clearPhoneNumber: () => void;
@@ -53,7 +55,8 @@ export const useCallStore = create<CallState>((set, get) => ({
   voiceType: 'masc',
   aiActive: false,
   latency: 0,
-  audioLevel: 0,
+  micLevel: 0,
+  speakerLevel: 0,
   phoneNumber: '',
   transcripts: [],
   favorites: [],
@@ -69,7 +72,8 @@ export const useCallStore = create<CallState>((set, get) => ({
   setVoiceType: (type) => set({ voiceType: type }),
   setAiActive: (active) => set({ aiActive: active }),
   setLatency: (latency) => set({ latency }),
-  setAudioLevel: (level) => set({ audioLevel: level }),
+  setMicLevel: (level) => set({ micLevel: level }),
+  setSpeakerLevel: (level) => set({ speakerLevel: level }),
   setPhoneNumber: (number) => set({ phoneNumber: number }),
   appendToPhoneNumber: (digit) => set(state => ({ 
     phoneNumber: state.phoneNumber + digit 

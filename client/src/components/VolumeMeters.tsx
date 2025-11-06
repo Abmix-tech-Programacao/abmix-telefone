@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Mic, Volume2 } from 'lucide-react';
+import { useCallStore } from '@/stores/useCallStore';
 
 interface VolumeMeterProps {
   audioContext?: AudioContext;
 }
 
 export function VolumeMeters({ audioContext }: VolumeMeterProps) {
-  const [micLevel, setMicLevel] = useState(0);
-  const [outputLevel, setOutputLevel] = useState(0);
+  const setMicLevel = useCallStore(state => state.setMicLevel);
+  const setSpeakerLevel = useCallStore(state => state.setSpeakerLevel);
+  const micLevel = useCallStore(state => state.micLevel);
+  const outputLevel = useCallStore(state => state.speakerLevel);
   const animationFrameRef = useRef<number>();
   const micAnalyserRef = useRef<AnalyserNode>();
   const outputAnalyserRef = useRef<AnalyserNode>();
@@ -51,14 +54,16 @@ export function VolumeMeters({ audioContext }: VolumeMeterProps) {
             const micDataArray = new Uint8Array(micAnalyserRef.current.frequencyBinCount);
             micAnalyserRef.current.getByteFrequencyData(micDataArray);
             const micAvg = micDataArray.reduce((sum, val) => sum + val, 0) / micDataArray.length;
-            setMicLevel(Math.min(100, (micAvg / 255) * 100));
+            const level = Math.min(100, (micAvg / 255) * 100);
+            setMicLevel(level);
           }
 
           if (outputAnalyserRef.current) {
             const outputDataArray = new Uint8Array(outputAnalyserRef.current.frequencyBinCount);
             outputAnalyserRef.current.getByteFrequencyData(outputDataArray);
             const outputAvg = outputDataArray.reduce((sum, val) => sum + val, 0) / outputDataArray.length;
-            setOutputLevel(Math.min(100, (outputAvg / 255) * 100));
+            const level = Math.min(100, (outputAvg / 255) * 100);
+            setSpeakerLevel(level);
           }
 
           animationFrameRef.current = requestAnimationFrame(updateLevels);
