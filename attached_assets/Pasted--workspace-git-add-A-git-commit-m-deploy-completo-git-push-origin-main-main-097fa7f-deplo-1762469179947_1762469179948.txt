@@ -1,0 +1,120 @@
+~/workspace$ git add -A
+git commit -m "deploy completo"
+git push origin main
+[main 097fa7f] deploy completo
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+Enumerating objects: 71, done.
+Counting objects: 100% (71/71), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (39/39), done.
+Writing objects: 100% (57/57), 760.09 KiB | 25.34 MiB/s, done.
+Total 57 (delta 22), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (22/22), completed with 8 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.
+remote:      Visit the repository settings page, https://github.com/Abmix-tech-Programacao/abmix-telefone/settings/security_analysis
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 6ca99748e18686e837ae3f8ae3ac7799e39da3b8
+remote:            path: deploy-vps.sh:34
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Abmix-tech-Programacao/abmix-telefone/security/secret-scanning/unblock-secret/357lYVOa3IKi6XxaQok2PJLrOrL
+remote:     
+remote: 
+remote: 
+To https://github.com/Abmix-tech-Programacao/abmix-telefone
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Abmix-tech-Programacao/abmix-telefone'
+~/workspace$ git pull --rebase origin main
+git push origin main
+From https://github.com/Abmix-tech-Programacao/abmix-telefone
+ * branch            main       -> FETCH_HEAD
+Current branch main is up to date.
+Enumerating objects: 71, done.
+Counting objects: 100% (71/71), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (39/39), done.
+Writing objects: 100% (57/57), 760.09 KiB | 31.67 MiB/s, done.
+Total 57 (delta 22), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (22/22), completed with 8 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.
+remote:      Visit the repository settings page, https://github.com/Abmix-tech-Programacao/abmix-telefone/settings/security_analysis
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 6ca99748e18686e837ae3f8ae3ac7799e39da3b8
+remote:            path: deploy-vps.sh:34
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Abmix-tech-Programacao/abmix-telefone/security/secret-scanning/unblock-secret/357lYVOa3IKi6XxaQok2PJLrOrL
+remote:     
+remote: 
+remote: 
+To https://github.com/Abmix-tech-Programacao/abmix-telefone
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Abmix-tech-Programacao/abmix-telefone'
+~/workspace$ git push origin main --force
+Enumerating objects: 71, done.
+Counting objects: 100% (71/71), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (39/39), done.
+Writing objects: 100% (57/57), 760.09 KiB | 31.67 MiB/s, done.
+Total 57 (delta 22), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (22/22), completed with 8 local objects.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:      (?) This repository does not have Secret Scanning enabled, but is eligible. Enable Secret Scanning to view and manage detected secrets.
+remote:      Visit the repository settings page, https://github.com/Abmix-tech-Programacao/abmix-telefone/settings/security_analysis
+remote:     
+remote:     
+remote:       —— OpenAI API Key ————————————————————————————————————
+remote:        locations:
+remote:          - commit: 6ca99748e18686e837ae3f8ae3ac7799e39da3b8
+remote:            path: deploy-vps.sh:34
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/Abmix-tech-Programacao/abmix-telefone/security/secret-scanning/unblock-secret/357lYVOa3IKi6XxaQok2PJLrOrL
+remote:     
+remote: 
+remote: 
+To https://github.com/Abmix-tech-Programacao/abmix-telefone
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Abmix-tech-Programacao/abmix-telefone'
+~/workspace$ 
