@@ -165,7 +165,9 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true,
 });
 
-export const insertVoipNumberSchema = createInsertSchema(voipNumbers).omit({
+export const insertVoipNumberSchema = createInsertSchema(voipNumbers, {
+  id: z.number().optional(),
+}).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

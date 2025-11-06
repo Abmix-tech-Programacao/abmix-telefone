@@ -224,11 +224,15 @@ export class MemStorage implements IStorage {
   async createAgentSession(insertSession: InsertAgentSession): Promise<AgentSession> {
     const id = randomUUID();
     const session: AgentSession = {
-      ...insertSession,
       id,
+      callId: insertSession.callId,
+      systemPrompt: insertSession.systemPrompt,
+      temperature: insertSession.temperature ?? null,
+      isActive: insertSession.isActive ?? null,
+      isPaused: insertSession.isPaused ?? null,
       startedAt: new Date(),
       endedAt: null,
-      metadata: insertSession.metadata || null,
+      metadata: insertSession.metadata ?? null,
     };
     this.agentSessions.set(id, session);
     return session;
@@ -276,12 +280,20 @@ export class MemStorage implements IStorage {
   async createEffectPreset(insertPreset: InsertEffectPreset): Promise<EffectPreset> {
     const id = randomUUID();
     const preset: EffectPreset = {
-      ...insertPreset,
       id,
+      name: insertPreset.name,
+      description: insertPreset.description ?? null,
+      noiseReduction: insertPreset.noiseReduction ?? null,
+      noiseReductionLevel: insertPreset.noiseReductionLevel ?? null,
+      equalization: insertPreset.equalization ?? null,
+      eqPreset: insertPreset.eqPreset ?? null,
+      amplification: insertPreset.amplification ?? null,
+      amplificationGain: insertPreset.amplificationGain ?? null,
+      normalization: insertPreset.normalization ?? null,
+      normalizationTarget: insertPreset.normalizationTarget ?? null,
+      isDefault: insertPreset.isDefault ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
-      description: insertPreset.description || null,
-      eqPreset: insertPreset.eqPreset || null,
     };
     this.effectPresets.set(id, preset);
     return preset;
@@ -308,10 +320,15 @@ export class MemStorage implements IStorage {
   async createCodecPreference(insertPreference: InsertCodecPreference): Promise<CodecPreference> {
     const id = randomUUID();
     const preference: CodecPreference = {
-      ...insertPreference,
       id,
+      voipNumberId: insertPreference.voipNumberId ?? null,
+      codecOrder: insertPreference.codecOrder,
+      preferredCodec: insertPreference.preferredCodec ?? 'opus',
+      fallbackCodec: insertPreference.fallbackCodec ?? 'pcmu',
+      allowG711: insertPreference.allowG711 ?? null,
+      allowOpus: insertPreference.allowOpus ?? null,
+      opusBitrate: insertPreference.opusBitrate ?? null,
       updatedAt: new Date(),
-      voipNumberId: insertPreference.voipNumberId || null,
     };
     this.codecPreferences.set(id, preference);
     return preference;
