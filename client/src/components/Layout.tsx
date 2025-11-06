@@ -18,6 +18,7 @@ import { CallManager } from './CallManager';
 import { VoiceEnhancer } from './VoiceEnhancer';
 import { VoIPNumbers } from './VoIPNumbers';
 import { useCallStore } from '@/stores/useCallStore';
+import { AudioMonitor } from './AudioMonitor';
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -130,6 +131,9 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
+      {/* Monitor de áudio global - invisível mas sempre ativo */}
+      <AudioMonitor />
+      
       <div className="flex min-h-screen">
         <Sidebar />
         
