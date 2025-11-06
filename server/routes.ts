@@ -9,6 +9,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { ProviderFactory } from "./providers/providerFactory";
 import FormData from "form-data";
+import { agentOrchestrator } from "./agentOrchestrator";
 
 // Environment variables
 const {
@@ -247,8 +248,6 @@ export async function registerRoutes(app: Express) {
   });
 
   // === AI AGENT ROUTES ===
-  // Note: These are stubs for future OpenAI integration
-  // Currently return success to prevent UI errors
 
   // Inject live prompt during call
   app.post("/api/agent/prompt", async (req, res) => {
@@ -261,12 +260,15 @@ export async function registerRoutes(app: Express) {
 
       console.log(`[AI_AGENT] Prompt injection for call ${callSid}: "${text}"`);
       
-      // TODO: Integrate with OpenAI to inject prompt into conversation
-      // For now, just log and return success
+      const success = await agentOrchestrator.updatePrompt(callSid, text);
+      
+      if (!success) {
+        return res.status(404).json({ error: "No active AI session found for this call" });
+      }
       
       res.json({
         success: true,
-        message: "Prompt queued for AI agent",
+        message: "Prompt updated for AI agent",
         callSid,
         prompt: text
       });
@@ -287,7 +289,11 @@ export async function registerRoutes(app: Express) {
 
       console.log(`[AI_AGENT] Enabling AI for call ${callSid}`);
       
-      // TODO: Integrate with OpenAI to enable AI agent
+      const success = await agentOrchestrator.enableAgent(callSid);
+      
+      if (!success) {
+        return res.status(404).json({ error: "No AI session found for this call" });
+      }
       
       res.json({
         success: true,
@@ -312,7 +318,11 @@ export async function registerRoutes(app: Express) {
 
       console.log(`[AI_AGENT] Disabling AI for call ${callSid}`);
       
-      // TODO: Integrate with OpenAI to disable AI agent
+      const success = await agentOrchestrator.disableAgent(callSid);
+      
+      if (!success) {
+        return res.status(404).json({ error: "No AI session found for this call" });
+      }
       
       res.json({
         success: true,
@@ -337,7 +347,11 @@ export async function registerRoutes(app: Express) {
 
       console.log(`[AI_AGENT] Pausing speech for call ${callSid}`);
       
-      // TODO: Pause TTS output
+      const success = await agentOrchestrator.pauseSpeech(callSid);
+      
+      if (!success) {
+        return res.status(404).json({ error: "No AI session found for this call" });
+      }
       
       res.json({
         success: true,
@@ -361,7 +375,11 @@ export async function registerRoutes(app: Express) {
 
       console.log(`[AI_AGENT] Resuming speech for call ${callSid}`);
       
-      // TODO: Resume TTS output
+      const success = await agentOrchestrator.resumeSpeech(callSid);
+      
+      if (!success) {
+        return res.status(404).json({ error: "No AI session found for this call" });
+      }
       
       res.json({
         success: true,

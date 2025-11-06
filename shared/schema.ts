@@ -165,12 +165,17 @@ export const insertSettingSchema = createInsertSchema(settings).omit({
   updatedAt: true,
 });
 
-export const insertVoipNumberSchema = createInsertSchema(voipNumbers, {
-  id: z.number().optional(),
-}).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
+export const insertVoipNumberSchema = z.object({
+  name: z.string(),
+  number: z.string(),
+  provider: z.string(),
+  sipUsername: z.string().optional(),
+  sipPassword: z.string().optional(),
+  sipServer: z.string().optional(),
+  sipPort: z.number().optional(),
+  sipIps: z.string().optional(),
+  isDefault: z.boolean().optional(),
+  status: z.string().optional(),
 });
 
 export const insertAgentSessionSchema = createInsertSchema(agentSessions).omit({
