@@ -10,7 +10,7 @@ import type { Favorite } from '@shared/schema';
 export function Favorites() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { setPhoneNumber } = useCallStore();
+  const { setPhoneNumber, setActiveView } = useCallStore();
   const [editingFavorite, setEditingFavorite] = useState<Favorite | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -45,6 +45,9 @@ export function Favorites() {
       detail: { number: favorite.phoneE164 } 
     });
     window.dispatchEvent(event);
+    
+    // Switch to discagem view
+    setActiveView('discagem');
     
     toast({
       title: "Número preenchido",

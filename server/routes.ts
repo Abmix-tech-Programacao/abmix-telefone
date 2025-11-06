@@ -8,6 +8,7 @@ import multer from "multer";
 import { promises as fs } from "fs";
 import path from "path";
 import { ProviderFactory } from "./providers/providerFactory";
+import FormData from "form-data";
 
 // Environment variables
 const {
@@ -714,7 +715,6 @@ export async function registerRoutes(app: Express) {
       const audioBuffer = await fs.readFile(audioFile.path);
 
       // Use ElevenLabs Speech-to-Speech API for voice conversion
-      const FormData = (await import('form-data')).default;
       const formData = new FormData();
       formData.append('audio', audioBuffer, {
         filename: audioFile.originalname,

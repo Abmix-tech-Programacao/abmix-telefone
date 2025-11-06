@@ -6,7 +6,7 @@ interface CallState {
   callState: 'IDLE' | 'RINGING' | 'CONNECTED' | 'ENDED';
   currentCallId: string | null;
   recordingSid: string | null;
-  voiceType: 'masc' | 'fem' | 'natural';
+  voiceType: 'masc' | 'fem' | 'natural' | 'none';
   aiActive: boolean;
   latency: number;
   micLevel: number;
@@ -29,7 +29,7 @@ interface CallState {
   setCallState: (state: 'IDLE' | 'RINGING' | 'CONNECTED' | 'ENDED') => void;
   setCurrentCallId: (callId: string | null) => void;
   setRecordingSid: (sid: string | null) => void;
-  setVoiceType: (type: 'masc' | 'fem' | 'natural') => void;
+  setVoiceType: (type: 'masc' | 'fem' | 'natural' | 'none') => void;
   setAiActive: (active: boolean) => void;
   setLatency: (latency: number) => void;
   setMicLevel: (level: number) => void;
@@ -52,7 +52,7 @@ export const useCallStore = create<CallState>((set, get) => ({
   callState: 'IDLE',
   currentCallId: null,
   recordingSid: null,
-  voiceType: 'masc',
+  voiceType: 'none',
   aiActive: false,
   latency: 0,
   micLevel: 0,

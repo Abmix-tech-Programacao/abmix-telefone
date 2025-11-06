@@ -37,7 +37,7 @@ export function DialerCard() {
     selectedProvider 
   } = useCallStore();
 
-  const [selectedVoice, setSelectedVoice] = useState<'masc' | 'fem' | 'natural'>(voiceType as 'masc' | 'fem' | 'natural');
+  const [selectedVoice, setSelectedVoice] = useState<'masc' | 'fem' | 'natural' | 'none'>(voiceType);
   const [selectedVoIPNumberId, setSelectedVoIPNumberId] = useState<string>('');
 
   // Fetch VoIP numbers
@@ -317,14 +317,25 @@ export function DialerCard() {
 
       {/* Voice Selection */}
       <div className="mb-4">
-        <Label className="block text-sm text-muted-foreground mb-2">Tipo de Voz</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label className="block text-sm text-muted-foreground mb-2">
+          Tipo de Voz
+          {selectedVoice === 'none' && (
+            <span className="ml-2 text-xs text-abmix-green font-medium">
+              ✓ Usando sua voz original
+            </span>
+          )}
+        </Label>
+        <div className="grid grid-cols-4 gap-2">
           <Button
             onClick={() => {
-              setSelectedVoice('masc');
-              toast({ title: "Voz selecionada", description: "Voz masculina ativada" });
+              const newVoice = selectedVoice === 'masc' ? 'none' : 'masc';
+              setSelectedVoice(newVoice);
+              toast({ 
+                title: newVoice === 'masc' ? "Voz selecionada" : "Voz desmarcada", 
+                description: newVoice === 'masc' ? "Voz masculina ativada" : "Voz original ativada"
+              });
             }}
-            className={`py-2 px-3 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
+            className={`py-2 px-2 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
               selectedVoice === 'masc' 
                 ? 'bg-abmix-green text-black' 
                 : 'bg-background border border-border text-foreground hover:bg-muted'
@@ -332,15 +343,19 @@ export function DialerCard() {
             data-testid="male-voice-button"
           >
             <i className="fas fa-male text-sm"></i>
-            Masculina
+            Masc
           </Button>
           
           <Button
             onClick={() => {
-              setSelectedVoice('fem');
-              toast({ title: "Voz selecionada", description: "Voz feminina ativada" });
+              const newVoice = selectedVoice === 'fem' ? 'none' : 'fem';
+              setSelectedVoice(newVoice);
+              toast({ 
+                title: newVoice === 'fem' ? "Voz selecionada" : "Voz desmarcada", 
+                description: newVoice === 'fem' ? "Voz feminina ativada" : "Voz original ativada"
+              });
             }}
-            className={`py-2 px-3 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
+            className={`py-2 px-2 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
               selectedVoice === 'fem' 
                 ? 'bg-abmix-green text-black' 
                 : 'bg-background border border-border text-foreground hover:bg-muted'
@@ -348,15 +363,19 @@ export function DialerCard() {
             data-testid="female-voice-button"
           >
             <i className="fas fa-female text-sm"></i>
-            Feminina
+            Fem
           </Button>
           
           <Button
             onClick={() => {
-              setSelectedVoice('natural');
-              toast({ title: "Voz selecionada", description: "Voz natural ativada" });
+              const newVoice = selectedVoice === 'natural' ? 'none' : 'natural';
+              setSelectedVoice(newVoice);
+              toast({ 
+                title: newVoice === 'natural' ? "Voz selecionada" : "Voz desmarcada", 
+                description: newVoice === 'natural' ? "Voz natural ativada" : "Voz original ativada"
+              });
             }}
-            className={`py-2 px-3 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
+            className={`py-2 px-2 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
               selectedVoice === 'natural' 
                 ? 'bg-abmix-green text-black' 
                 : 'bg-background border border-border text-foreground hover:bg-muted'
@@ -365,6 +384,25 @@ export function DialerCard() {
           >
             <i className="fas fa-user text-sm"></i>
             Natural
+          </Button>
+
+          <Button
+            onClick={() => {
+              setSelectedVoice('none');
+              toast({ 
+                title: "Voz original", 
+                description: "Usando sua voz própria"
+              });
+            }}
+            className={`py-2 px-2 rounded-lg transition-colors flex flex-col items-center justify-center text-xs gap-1 ${
+              selectedVoice === 'none' 
+                ? 'bg-abmix-green text-black' 
+                : 'bg-background border border-border text-foreground hover:bg-muted'
+            }`}
+            data-testid="none-voice-button"
+          >
+            <i className="fas fa-microphone text-sm"></i>
+            Original
           </Button>
         </div>
       </div>
