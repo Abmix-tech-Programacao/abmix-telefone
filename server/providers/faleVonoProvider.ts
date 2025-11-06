@@ -2,7 +2,7 @@ import { SIPService } from '../sipService.js';
 
 export interface FaleVonoProvider {
   initialize(): Promise<void>;
-  startCall(to: string): Promise<string>;
+  startCall(to: string, voiceType?: string): Promise<string>;
   hangup(callId: string): Promise<boolean>;
 }
 
@@ -43,10 +43,10 @@ export class FaleVonoProviderImpl implements FaleVonoProvider {
     console.log('[FALEVONO_PROVIDER] ✅ SIP initialization complete');
   }
 
-  async startCall(to: string): Promise<string> {
-    console.log(`[FALEVONO_PROVIDER] Starting call to: ${to}`);
+  async startCall(to: string, voiceType: string = 'masc'): Promise<string> {
+    console.log(`[FALEVONO_PROVIDER] Starting call to: ${to} with voice: ${voiceType}`);
     try {
-      const callId = await this.sipService.makeCall(to);
+      const callId = await this.sipService.makeCall(to, voiceType);
       console.log(`[FALEVONO_PROVIDER] Call initiated with ID: ${callId}`);
       return callId;
     } catch (error) {

@@ -44,6 +44,7 @@ interface SIPCall {
   startTime: Date;
   endTime?: Date;
   error?: string;
+  voiceType?: string;
 }
 
 // Global flag to track if SIP stack was started (singleton pattern)
@@ -281,7 +282,7 @@ export class SIPService {
     }
   }
 
-  async makeCall(toNumber: string): Promise<string> {
+  async makeCall(toNumber: string, voiceType: string = 'masc'): Promise<string> {
     // If not initialized or registration failed, force re-initialization
     if (!this.initialized || !this.registered) {
       console.log(`[SIP_SERVICE] ${!this.initialized ? 'Not initialized' : 'Not registered'}, initializing...`);
@@ -324,7 +325,8 @@ export class SIPService {
       toNumber: cleanNumber,
       fromNumber: this.fromNumber,
       status: 'initiating',
-      startTime: new Date()
+      startTime: new Date(),
+      voiceType
     };
     
     this.activeCalls.set(callId, call);
@@ -638,19 +640,24 @@ export class SIPService {
                 // Create RTP session for audio (payload type 0 = PCMU)
                 rtpService.createSession(callId, remoteAddress, remotePort, 0);
                 
-                // Start real-time voice conversion for this call (default to 'masc' voice)
-                // TODO: Get voice type from call configuration
-                const voiceType = 'masc';
-                console.log(`[SIP_SERVICE] 🎙️ Starting voice conversion session with ${voiceType} voice`);
-                realtimeVoiceService.startRealtimeVoice(callId, voiceType).then((success) => {
-                  if (success) {
-                    console.log(`[SIP_SERVICE] ✅ Voice conversion session started for ${callId}`);
-                  } else {
-                    console.error(`[SIP_SERVICE] ❌ Failed to start voice conversion for ${callId}`);
-                  }
-                }).catch((error) => {
-                  console.error(`[SIP_SERVICE] ❌ Error starting voice conversion for ${callId}:`, error);
-                });
+                // Start real-time voice conversion based on call configuration
+                const voiceType = call.voiceType || 'masc';
+                
+                if (voiceType === 'none') {
+                  console.log(`[SIP_SERVICE] 🎤 Using original voice (no conversion) for call ${callId}`);
+                  // Do NOT start voice conversion - audio will pass through directly
+                } else {
+                  console.log(`[SIP_SERVICE] 🎙️ Starting voice conversion session with ${voiceType} voice`);
+                  realtimeVoiceService.startRealtimeVoice(callId, voiceType as 'masc' | 'fem' | 'natural').then((success) => {
+                    if (success) {
+                      console.log(`[SIP_SERVICE] ✅ Voice conversion session started for ${callId}`);
+                    } else {
+                      console.error(`[SIP_SERVICE] ❌ Failed to start voice conversion for ${callId}`);
+                    }
+                  }).catch((error) => {
+                    console.error(`[SIP_SERVICE] ❌ Error starting voice conversion for ${callId}:`, error);
+                  });
+                }
               } else {
                 console.warn(`[SIP_SERVICE] ⚠️ Could not parse SDP for RTP setup`);
               }
