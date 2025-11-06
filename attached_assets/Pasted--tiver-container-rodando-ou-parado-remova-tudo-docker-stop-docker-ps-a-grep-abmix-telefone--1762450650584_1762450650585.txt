@@ -1,0 +1,28 @@
+ tiver container (rodando ou parado), remova tudo:docker stop $(docker ps -a | grep abmix-telefone | awk '{print $1}') 2>/dev/null
+docker rm $(docker ps -a | grep abmix-telefone | awk '{print $1}') 2>/dev/null
+docker rmi $(docker images | grep abmix-telefone | awk '{print $3}') 2>/dev/null
+68aed0aa0eff   easypanel/projeto-abmix-tech/abmix-telefone:latest   "docker-entrypoint.s…"   1 second ago   Created                                                                                                   projeto-abmix-tech_abmix-telefone.1.n1xla5ajttpxn1wvgpb8dq91p
+68aed0aa0eff
+68aed0aa0eff
+Untagged: easypanel/projeto-abmix-tech/abmix-telefone:latest
+Deleted: sha256:02888796f6ff96f6ee408147f639a24247d0d2d5f09f169dd5f2e349f1ffe33f
+Untagged: easypanel/projeto-abmix-tech/abmix-telefone3:latest
+Deleted: sha256:ba721a5911691ca6eaa45a5629a44477684e41ba417f8d05e57bb6147f5ca75b
+Deleted: sha256:ab7d701c3811cd1bf253c833d0206c358a8e8add12c545d4ddd5f7af8a1acf4e
+Deleted: sha256:2adcc76ce5b7a9ee45e1d8ad2e5714e5ed44ca0b0158df65f8abf9a0582b9cb0
+Deleted: sha256:cf562f19dfc2e6d71fe026c4b76f3eb240bf2302984f81b0896786f0fd5aad6b
+Deleted: sha256:59c139f7d7d248aa829310fb5271a23986753e8c68a6cf9bc4542b51d4d4d7f8
+Untagged: easypanel/projeto-abmix-tech/abmix-telefone-2:latest
+Deleted: sha256:a80d8f959602bfdefeec4ec0a9393b114c9c75bb48e9b7c2670d64e7f3c2d916
+Deleted: sha256:18f3e6baca4e1c813b3aa1fae6f3126cc9f52c6ab2a0445756d2692f02d60343
+Deleted: sha256:e7e56a5a13d8c973fc3967a401169458332e78decc34223940481745409a5039
+Deleted: sha256:5b92347829d251ef37359865ec5de4b225088dc5140aebb4fb57a6dfbdf14842
+root@vps:~# docker exec $(docker ps | grep abmix-telefone | awk '{print $1}') node -e 'const Database = require("better-sqlite3"); const db = new Database("/app/data/app.db"); try { db.prepare("DELETE FROM voip_numbers WHERE number = ?").run("11920838833"); } catch(e) {} db.prepare("INSERT INTO voip_numbers (name, number, provider, sip_username, sip_password, sip_server, sip_port, is_default, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run("Vono Principal", "11920838833", "falevono", "Felipe_Manieri", "Fe120784!", "vono2.me", 5060, 1, "active"); console.log("✅ Cadastrado!"); db.close();'
+Error response from daemon: No such container: node
+root@vps:~# docker logs -f $(docker ps | grep abmix-telefone | awk '{print $1}')
+docker: 'docker logs' requires 1 argument
+
+Usage:  docker logs [OPTIONS] CONTAINER
+
+Run 'docker logs --help' for more information
+root@vps:~# 
