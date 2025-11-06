@@ -24,8 +24,7 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
   const [formData, setFormData] = useState({
     name: '',
     number: '',
-    tags: '',
-    notes: '',
+    voiceType: 'masc' as 'masc' | 'fem' | 'natural',
   });
 
   // Reset form when dialog opens/closes or favorite changes
@@ -34,16 +33,14 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
       if (favorite) {
         setFormData({
           name: favorite.name,
-          number: favorite.number,
-          tags: favorite.tags || '',
-          notes: favorite.notes || '',
+          number: favorite.phoneE164,
+          voiceType: favorite.voiceType as 'masc' | 'fem' | 'natural',
         });
       } else {
         setFormData({
           name: '',
           number: '',
-          tags: '',
-          notes: '',
+          voiceType: 'masc',
         });
       }
     }
@@ -172,27 +169,18 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
           </div>
 
           <div>
-            <Label htmlFor="favorite-tags">Tags</Label>
-            <Input
-              id="favorite-tags"
-              placeholder="Ex: trabalho, suporte, vendas"
-              value={formData.tags}
-              onChange={handleInputChange('tags')}
-              className="bg-dark-bg border-dark-border"
-              data-testid="favorite-tags-input"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="favorite-notes">Observações</Label>
-            <Textarea
-              id="favorite-notes"
-              placeholder="Notas adicionais sobre este contato..."
-              value={formData.notes}
-              onChange={handleInputChange('notes')}
-              className="bg-dark-bg border-dark-border h-20 resize-none"
-              data-testid="favorite-notes-input"
-            />
+            <Label htmlFor="favorite-voice">Tipo de Voz</Label>
+            <select
+              id="favorite-voice"
+              value={formData.voiceType}
+              onChange={(e) => setFormData(prev => ({ ...prev, voiceType: e.target.value as 'masc' | 'fem' | 'natural' }))}
+              className="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 text-white"
+              data-testid="favorite-voice-select"
+            >
+              <option value="masc">Masculina</option>
+              <option value="fem">Feminina</option>
+              <option value="natural">Natural</option>
+            </select>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">

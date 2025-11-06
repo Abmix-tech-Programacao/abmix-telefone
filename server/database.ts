@@ -136,6 +136,7 @@ export const queries = {
   // Favorites
   getAllFavorites: db.prepare('SELECT * FROM favorites ORDER BY name ASC'),
   addFavorite: db.prepare('INSERT INTO favorites (name, phone_e164, voice_type) VALUES (?, ?, ?)'),
+  updateFavorite: db.prepare('UPDATE favorites SET name = ?, phone_e164 = ?, voice_type = ? WHERE id = ?'),
   removeFavorite: db.prepare('DELETE FROM favorites WHERE id = ?'),
   
   // Recordings

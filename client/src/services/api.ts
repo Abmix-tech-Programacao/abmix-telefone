@@ -111,6 +111,24 @@ export const api = {
     return response.json();
   },
 
+  createFavorite: async (data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' }) => {
+    const response = await apiRequest('POST', '/api/favorites', {
+      name: data.name,
+      phoneE164: data.number,
+      voiceType: data.voiceType || 'masc'
+    });
+    return response.json();
+  },
+
+  updateFavorite: async (id: string, data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' }) => {
+    const response = await apiRequest('PUT', `/api/favorites/${id}`, {
+      name: data.name,
+      phoneE164: data.number,
+      voiceType: data.voiceType || 'masc'
+    });
+    return response.json();
+  },
+
   removeFavorite: async (id: string) => {
     const response = await apiRequest('DELETE', `/api/favorites/${id}`);
     return response.json();

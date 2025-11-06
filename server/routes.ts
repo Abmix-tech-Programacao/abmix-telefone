@@ -188,21 +188,60 @@ export async function registerRoutes(app: Express) {
   // Add favorite
   app.post("/api/favorites", (req, res) => {
     try {
-      const { name, phoneNumber, voiceType } = req.body;
+      const { name, phoneE164, voiceType } = req.body;
       
-      if (!name || !phoneNumber) {
+      if (!name || !phoneE164) {
         return res.status(400).json({ error: "Name and phone number are required" });
       }
 
-      queries.addFavorite.run(name, phoneNumber, voiceType || 'masculine');
+      queries.addFavorite.run(name, phoneE164, voiceType || 'masc');
       const favorites = queries.getAllFavorites.all();
       const favorite = favorites[favorites.length - 1];
       
-      console.log(`[FAVORITES] Added favorite: ${name} - ${phoneNumber}`);
+      console.log(`[FAVORITES] Added favorite: ${name} - ${phoneE164}`);
       res.json(favorite);
     } catch (error) {
       console.error('[FAVORITES] Error adding favorite:', error);
       res.status(500).json({ message: "Failed to add favorite", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Update favorite
+  app.put("/api/favorites/:id", (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, phoneE164, voiceType } = req.body;
+      
+      if (!name || !phoneE164) {
+        return res.status(400).json({ error: "Name and phone number are required" });
+      }
+
+      queries.updateFavorite.run(name, phoneE164, voiceType || 'masc', id);
+      
+      // Get updated favorite
+      const favorites = queries.getAllFavorites.all() as any[];
+      const favorite = favorites.find((f: any) => f.id === parseInt(id));
+      
+      console.log(`[FAVORITES] Updated favorite: ${name} - ${phoneE164}`);
+      res.json(favorite);
+    } catch (error) {
+      console.error('[FAVORITES] Error updating favorite:', error);
+      res.status(500).json({ message: "Failed to update favorite", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Delete favorite
+  app.delete("/api/favorites/:id", (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      queries.removeFavorite.run(id);
+      
+      console.log(`[FAVORITES] Deleted favorite: ${id}`);
+      res.json({ success: true, message: "Favorite deleted" });
+    } catch (error) {
+      console.error('[FAVORITES] Error deleting favorite:', error);
+      res.status(500).json({ message: "Failed to delete favorite", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
