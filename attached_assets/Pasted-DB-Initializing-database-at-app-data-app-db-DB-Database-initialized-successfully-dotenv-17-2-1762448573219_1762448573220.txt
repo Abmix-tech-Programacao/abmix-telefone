@@ -1,0 +1,56 @@
+DB] Initializing database at: /app/data/app.db
+[DB] Database initialized successfully
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔑 add access controls to secrets: https://dotenvx.com/ops
+[SIP_MODULE] ✅ SIP module loaded successfully
+[SIP_MODULE] sip.start: available (send/stop will be created when start() is called)
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[ENV] Debug das variáveis de ambiente:
+[ENV] FALEVONO_PASSWORD: ❌ NÃO DEFINIDA
+[ENV] ELEVENLABS_API_KEY: sk_58ab581... ✅
+[ENV] DEEPGRAM_API_KEY: ✅ CONFIGURADA
+[TELEPHONY] Telephony system ready - SIP will initialize on first call
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[DB] Initializing database at: /app/data/app.db
+[DB] Database initialized successfully
+[ROUTES] API routes configured
+[STATIC] Usando estrutura na raiz: /app/dist
+[STATIC] Servindo arquivos estáticos de: /app/dist
+[STATIC] Arquivos encontrados: [ 'assets', 'index.html', 'index.js' ]
+[express] HTTP/WS on 5000
+[express] GET /api/health 200 in 5ms :: {"status":"ok","timestamp":"2025-11-06T16:47:56.7…
+[express] GET /api/health 200 in 2ms :: {"status":"ok","timestamp":"2025-11-06T16:48:26.8…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:48:56.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:49:26.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:49:57.0…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:50:27.0…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:50:57.1…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:51:27.1…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:51:57.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:52:27.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:52:57.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:53:27.4…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:53:57.4…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:54:27.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:54:57.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:55:27.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:55:57.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:56:27.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:56:57.9…
+[express] GET /api/voip-numbers 200 in 0ms :: []
+[express] GET /api/favorites 200 in 0ms :: []
+[express] GET /api/recordings/list 200 in 0ms :: []
+[express] GET /api/voice/conversion-voices 200 in 719ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:57:27.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:57:58.0…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:58:28.0…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:58:58.1…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T16:59:28.2…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T16:59:58.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:00:28.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:00:58.4…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:01:28.4…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T17:01:58.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:02:28.6…

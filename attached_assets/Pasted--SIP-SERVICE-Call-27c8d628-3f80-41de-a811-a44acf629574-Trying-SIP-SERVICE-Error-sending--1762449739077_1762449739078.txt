@@ -1,0 +1,110 @@
+[SIP_SERVICE] 📞 Call 27c8d628-3f80-41de-a811-a44acf629574: Trying...
+[SIP_SERVICE] ❌ Error sending INVITE: {
+  version: '2.0',
+  status: 100,
+  reason: 'Giving it a try',
+  headers: {
+    via: [ [Object], [Object] ],
+    to: { name: undefined, uri: 'sip:31983216883@vono2.me', params: {} },
+    from: {
+      name: undefined,
+      uri: 'sip:Felipe_Manieri@vono2.me',
+      params: [Object]
+    },
+    'call-id': '27c8d628-3f80-41de-a811-a44acf629574',
+    cseq: { seq: 1, method: 'INVITE' },
+    server: 'NextRouter C4 SoftSwitch v5.3.1',
+    'content-length': 0
+  },
+  content: ''
+}
+[SIP_SERVICE] ❌ Failed to re-send INVITE with auth: TypeError: Cannot read properties of undefined (reading 'www-authenticate')
+    at initClientContext (/app/node_modules/sip/digest.js:182:43)
+    at exports.signRequest (/app/node_modules/sip/digest.js:212:5)
+    at _SIPService.reInviteWithAuth (file:///app/dist/index.js:1578:14)
+    at _SIPService.handleIncomingMessage (file:///app/dist/index.js:1765:18)
+    at Object.recv (file:///app/dist/index.js:1358:20)
+    at callbackAndLog (/app/node_modules/sip/sip.js:809:22)
+    at Socket.onMessage (/app/node_modules/sip/sip.js:775:7)
+    at Socket.emit (node:events:524:28)
+    at UDP.onMessage [as onmessage] (node:dgram:951:8)
+[SIP_SERVICE] ❌ Error sending INVITE: {
+  version: '2.0',
+  status: 407,
+  reason: 'Proxy Authentication Required',
+  headers: {
+    via: [ [Object], [Object] ],
+    to: {
+      name: undefined,
+      uri: 'sip:31983216883@vono2.me',
+      params: [Object]
+    },
+    from: {
+      name: undefined,
+      uri: 'sip:Felipe_Manieri@vono2.me',
+      params: [Object]
+    },
+    'call-id': '27c8d628-3f80-41de-a811-a44acf629574',
+    cseq: { seq: 1, method: 'INVITE' },
+    'proxy-authenticate': [ [Object], [Object] ],
+    server: 'NextRouter C4 SoftSwitch v5.3.1',
+    'content-length': 0
+  },
+  content: ''
+}
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 407,
+  "reason": "Proxy Authentication Required",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK239085",
+          "rport": "6060"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params
+[SIP_SERVICE] 🔐 Call 27c8d628-3f80-41de-a811-a44acf629574: Auth challenge for INVITE (407)
+[SIP_SERVICE] 🔐 Re-sending INVITE with digest authentication...
+[SIP_SERVICE] >>> SENT: {
+  "method": "ACK",
+  "uri": "sip:31983216883@vono2.me:5060",
+  "headers": {
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "05032088-19b8-4b42-ac1e-c3efa87efbb7"
+      }
+    },
+    "cseq": {
+      "method": "ACK",
+      "seq": 1
+    },
+    "call-id": "27c8d628-3f80-41de-a811-a44acf629574",
+    "via": [
+      {
+        "params": {
+          "branch": "z9hG4bK239085",
+          "rport": null
+        },
+        "host": "172.31.70.162",
+        "port": 6
+[CAPTIONS_WS] Connection attempt from: http://72.60.149.107:5000
+[CAPTIONS] Client connected to captions WebSocket
+[CAPTIONS] Captions WebSocket client disconnected
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:20:05.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:20:35.6…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T17:21:05.7…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-06T17:21:35.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-06T17:22:05.8…
