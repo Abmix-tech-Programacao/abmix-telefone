@@ -48,14 +48,14 @@ export function LatencyMonitor() {
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={`text-3xl font-mono font-bold ${getLatencyColor(latency)}`} data-testid="latency-value">
-            {latency}
+          <span className={`text-3xl font-mono font-bold ${latency > 0 ? getLatencyColor(latency) : 'text-muted-foreground'}`} data-testid="latency-value">
+            {latency > 0 ? latency : '--'}
           </span>
           <span className="text-sm text-muted-foreground">ms</span>
         </div>
         <div className="text-right">
-          <div className={`text-sm font-medium ${getLatencyColor(latency)}`}>
-            {getLatencyStatus(latency)}
+          <div className={`text-sm font-medium ${latency > 0 ? getLatencyColor(latency) : 'text-muted-foreground'}`}>
+            {latency > 0 ? getLatencyStatus(latency) : 'Sem dados'}
           </div>
           <div className="text-xs text-muted-foreground">
             {callState === 'CONNECTED' ? 'Monitorando...' : 'Aguardando chamada'}

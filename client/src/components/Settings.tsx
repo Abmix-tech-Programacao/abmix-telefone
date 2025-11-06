@@ -523,10 +523,13 @@ export function Settings() {
 
         {/* Volume Meters - Real-time audio level indicators */}
         <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <h4 className="text-sm font-medium mb-4">Indicadores de Volume em Tempo Real</h4>
+          <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
+            <i className="fas fa-chart-bar text-abmix-green"></i>
+            Níveis de Áudio (Microfone e Autofalante)
+          </h4>
           <VolumeMeters audioContext={audioContextRef.current} />
-          <p className="text-xs text-muted-foreground mt-3">
-            Barras verdes indicam nível de áudio. Verde: normal, Amarelo: alto, Vermelho: muito alto (clipping).
+          <p className="text-xs text-muted-foreground mt-4 bg-background/50 rounded p-2">
+            💡 <strong>Duas barras sincronizadas:</strong> A primeira mostra o volume do microfone, a segunda mostra o volume do autofalante em tempo real. Verde: normal, Amarelo: alto, Vermelho: clipping.
           </p>
         </div>
 
