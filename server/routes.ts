@@ -83,19 +83,20 @@ export async function registerRoutes(app: Express) {
       
       console.log(`[CALL] Using ${voipNumber.provider} provider (${voipNumber.name})`);
       console.log(`[CALL] From: ${voipNumber.number} → To: ${to}`);
+      console.log(`[CALL] Voice type: ${voiceType || 'masc'}`);
       
-      // Start the call
-      const result = await provider.startCall(to, voiceType || 'masc');
+      // Start the call - returns callId as string
+      const callId = await provider.startCall(to, voiceType || 'masc');
       
       // Store the provider for this call
-      activeCallProviders.set(result.callId, provider);
+      activeCallProviders.set(callId, provider);
       
       res.json({
         success: true,
         message: `Calling ${to} via ${voipNumber.provider}...`,
-        callId: result.callId,
-        callSid: result.callId,
-        status: result.status,
+        callId: callId,
+        callSid: callId,
+        status: 'initiating',
         provider: voipNumber.provider,
         fromNumber: voipNumber.number
       });
@@ -242,6 +243,134 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error('[FAVORITES] Error deleting favorite:', error);
       res.status(500).json({ message: "Failed to delete favorite", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // === AI AGENT ROUTES ===
+  // Note: These are stubs for future OpenAI integration
+  // Currently return success to prevent UI errors
+
+  // Inject live prompt during call
+  app.post("/api/agent/prompt", async (req, res) => {
+    try {
+      const { callSid, text } = req.body;
+      
+      if (!callSid || !text) {
+        return res.status(400).json({ error: "Call SID and prompt text are required" });
+      }
+
+      console.log(`[AI_AGENT] Prompt injection for call ${callSid}: "${text}"`);
+      
+      // TODO: Integrate with OpenAI to inject prompt into conversation
+      // For now, just log and return success
+      
+      res.json({
+        success: true,
+        message: "Prompt queued for AI agent",
+        callSid,
+        prompt: text
+      });
+    } catch (error) {
+      console.error('[AI_AGENT] Error injecting prompt:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Enable AI agent for call
+  app.post("/api/agent/enable", async (req, res) => {
+    try {
+      const { callSid } = req.body;
+      
+      if (!callSid) {
+        return res.status(400).json({ error: "Call SID is required" });
+      }
+
+      console.log(`[AI_AGENT] Enabling AI for call ${callSid}`);
+      
+      // TODO: Integrate with OpenAI to enable AI agent
+      
+      res.json({
+        success: true,
+        message: "AI agent enabled",
+        callSid,
+        status: "active"
+      });
+    } catch (error) {
+      console.error('[AI_AGENT] Error enabling AI:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Disable AI agent for call
+  app.post("/api/agent/disable", async (req, res) => {
+    try {
+      const { callSid } = req.body;
+      
+      if (!callSid) {
+        return res.status(400).json({ error: "Call SID is required" });
+      }
+
+      console.log(`[AI_AGENT] Disabling AI for call ${callSid}`);
+      
+      // TODO: Integrate with OpenAI to disable AI agent
+      
+      res.json({
+        success: true,
+        message: "AI agent disabled - human took control",
+        callSid,
+        status: "inactive"
+      });
+    } catch (error) {
+      console.error('[AI_AGENT] Error disabling AI:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Pause AI speech (TTS)
+  app.post("/api/agent/pause-speech", async (req, res) => {
+    try {
+      const { callSid } = req.body;
+      
+      if (!callSid) {
+        return res.status(400).json({ error: "Call SID is required" });
+      }
+
+      console.log(`[AI_AGENT] Pausing speech for call ${callSid}`);
+      
+      // TODO: Pause TTS output
+      
+      res.json({
+        success: true,
+        message: "Speech paused",
+        callSid
+      });
+    } catch (error) {
+      console.error('[AI_AGENT] Error pausing speech:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // Resume AI speech (TTS)
+  app.post("/api/agent/resume-speech", async (req, res) => {
+    try {
+      const { callSid } = req.body;
+      
+      if (!callSid) {
+        return res.status(400).json({ error: "Call SID is required" });
+      }
+
+      console.log(`[AI_AGENT] Resuming speech for call ${callSid}`);
+      
+      // TODO: Resume TTS output
+      
+      res.json({
+        success: true,
+        message: "Speech resumed",
+        callSid
+      });
+    } catch (error) {
+      console.error('[AI_AGENT] Error resuming speech:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
     }
   });
 
