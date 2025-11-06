@@ -111,20 +111,20 @@ export const api = {
     return response.json();
   },
 
-  createFavorite: async (data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' }) => {
+  createFavorite: async (data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' | 'none' }) => {
     const response = await apiRequest('POST', '/api/favorites', {
       name: data.name,
       phoneE164: data.number,
-      voiceType: data.voiceType || 'masc'
+      voiceType: data.voiceType || 'none'
     });
     return response.json();
   },
 
-  updateFavorite: async (id: string, data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' }) => {
+  updateFavorite: async (id: string, data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' | 'none' }) => {
     const response = await apiRequest('PUT', `/api/favorites/${id}`, {
       name: data.name,
       phoneE164: data.number,
-      voiceType: data.voiceType || 'masc'
+      voiceType: data.voiceType || 'none'
     });
     return response.json();
   },

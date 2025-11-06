@@ -117,7 +117,14 @@ export function Favorites() {
                 <div>
                   <h4 className="font-semibold">{favorite.name}</h4>
                   <p className="text-sm text-gray-400 font-mono">{favorite.phoneE164}</p>
-                  <p className="text-xs text-gray-500 mt-1">Voz: {favorite.voiceType === 'masc' ? 'Masculina' : 'Feminina'}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Voz: {
+                      favorite.voiceType === 'masc' ? 'Masculina' : 
+                      favorite.voiceType === 'fem' ? 'Feminina' : 
+                      favorite.voiceType === 'natural' ? 'Natural' : 
+                      'Original'
+                    }
+                  </p>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button

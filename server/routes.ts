@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ error: "Name and phone number are required" });
       }
 
-      queries.addFavorite.run(name, phoneE164, voiceType || 'masc');
+      queries.addFavorite.run(name, phoneE164, voiceType || 'none');
       const favorites = queries.getAllFavorites.all();
       const favorite = favorites[favorites.length - 1];
       
@@ -216,7 +216,7 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ error: "Name and phone number are required" });
       }
 
-      queries.updateFavorite.run(name, phoneE164, voiceType || 'masc', id);
+      queries.updateFavorite.run(name, phoneE164, voiceType || 'none', id);
       
       // Get updated favorite
       const favorites = queries.getAllFavorites.all() as any[];

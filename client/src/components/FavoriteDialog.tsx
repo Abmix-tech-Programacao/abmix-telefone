@@ -24,7 +24,7 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
   const [formData, setFormData] = useState({
     name: '',
     number: '',
-    voiceType: 'masc' as 'masc' | 'fem' | 'natural',
+    voiceType: 'none' as 'masc' | 'fem' | 'natural' | 'none',
   });
 
   // Reset form when dialog opens/closes or favorite changes
@@ -34,13 +34,13 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
         setFormData({
           name: favorite.name,
           number: favorite.phoneE164,
-          voiceType: favorite.voiceType as 'masc' | 'fem' | 'natural',
+          voiceType: favorite.voiceType as 'masc' | 'fem' | 'natural' | 'none',
         });
       } else {
         setFormData({
           name: '',
           number: '',
-          voiceType: 'masc',
+          voiceType: 'none',
         });
       }
     }
@@ -173,10 +173,11 @@ export function FavoriteDialog({ open, onOpenChange, favorite, onClose }: Favori
             <select
               id="favorite-voice"
               value={formData.voiceType}
-              onChange={(e) => setFormData(prev => ({ ...prev, voiceType: e.target.value as 'masc' | 'fem' | 'natural' }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, voiceType: e.target.value as 'masc' | 'fem' | 'natural' | 'none' }))}
               className="w-full bg-dark-bg border border-dark-border rounded-lg px-4 py-2 text-white"
               data-testid="favorite-voice-select"
             >
+              <option value="none">Original (Sua Voz)</option>
               <option value="masc">Masculina</option>
               <option value="fem">Feminina</option>
               <option value="natural">Natural</option>
