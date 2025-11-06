@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy Abmix - SIMPLES E DIRETO
+# Deploy Abmix - Instruções no README
 set -e
 
 echo "🚀 Instalando Abmix..."
@@ -14,7 +14,7 @@ echo "📦 Instalando PM2..."
 sudo npm install -g pm2
 
 # Repositório
-echo "📥 Qual o repositório? (ex: https://github.com/usuario/abmix)"
+echo "📥 Qual o repositório?"
 read -p "URL: " REPO_URL
 
 cd /root
@@ -22,31 +22,15 @@ rm -rf abmix 2>/dev/null || true
 git clone "$REPO_URL" abmix
 cd abmix
 
-# .env
-echo "🔧 Criando .env..."
-cat > .env << 'EOF'
-NODE_ENV=production
-PORT=5000
-SESSION_SECRET=p9Wkc/bD+vGCzCk1xVR3/+3gCoXvJOpfUx+S/ETop+DUjYX23HGI6YsgNZTxqiiWvtjWU2rVxLd9hGVQHSTgQQ==
+# .env - CONFIGURE COM SUAS CREDENCIAIS
+echo "🔧 IMPORTANTE: Configure o arquivo .env com suas credenciais"
+echo "Exemplo em .env.example"
 
-DEEPGRAM_API_KEY=e81295a63e96b3283c22c1de5db9af5dd1466b85
-ELEVENLABS_API_KEY=sk_58ab581ca38280c62eb8d560b3288c9ae2d9184d62a42cfe
-OPENAI_API_KEY=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
-
-VOIP_NUMBER=+5511920838833
-SIP_ENABLED=true
-SIP_SERVER=vono2.me
-SIP_DOMAIN=vono2.me
-SIP_PROXY=vono2.me
-SIP_PORT=5060
-SIP_TRANSPORT=udp
-SIP_REALM=vono2.me
-SIP_USERNAME=Felipe_Manieri
-SIP_PASSWORD=Fe120784!
-FALEVONO_PASSWORD=Fe120784!
-
-RTP_PORT=8000
-EOF
+if [ ! -f .env ]; then
+    echo "❌ Arquivo .env não encontrado!"
+    echo "Crie o arquivo .env com suas credenciais antes de continuar"
+    exit 1
+fi
 
 chmod 600 .env
 
