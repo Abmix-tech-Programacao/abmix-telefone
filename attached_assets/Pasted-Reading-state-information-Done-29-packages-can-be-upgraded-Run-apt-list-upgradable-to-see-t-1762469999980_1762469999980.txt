@@ -1,0 +1,40 @@
+Reading state information... Done
+29 packages can be upgraded. Run 'apt list --upgradable' to see them.
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+apt-transport-https is already the newest version (2.8.3).
+ca-certificates is already the newest version (20240203).
+curl is already the newest version (8.5.0-2ubuntu10.6).
+gnupg is already the newest version (2.4.4-2ubuntu17.3).
+0 upgraded, 0 newly installed, 0 to remove and 29 not upgraded.
+Hit:1 http://mirror.ufscar.br/ubuntu noble-backports InRelease
+Hit:2 https://download.docker.com/linux/ubuntu noble InRelease                                                              
+Hit:3 http://mirror.ufscar.br/ubuntu noble InRelease                                                                        
+Hit:4 http://mirror.ufscar.br/ubuntu noble-security InRelease                                                               
+Hit:5 http://mirror.ufscar.br/ubuntu noble-updates InRelease                                                                
+Hit:6 https://deb.nodesource.com/node_20.x nodistro InRelease                                                               
+Hit:7 http://archive.ubuntu.com/ubuntu noble InRelease                                                                      
+Hit:8 http://security.ubuntu.com/ubuntu noble-security InRelease
+Hit:9 http://archive.ubuntu.com/ubuntu noble-updates InRelease
+Hit:10 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+29 packages can be upgraded. Run 'apt list --upgradable' to see them.
+2025-11-06 22:59:17 - Repository configured successfully.
+2025-11-06 22:59:17 - To install Node.js, run: apt install nodejs -y
+2025-11-06 22:59:17 - You can use N|solid Runtime as a node.js alternative
+2025-11-06 22:59:17 - To install N|solid Runtime, run: apt install nsolid -y 
+
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+nodejs is already the newest version (20.19.5-1nodesource1).
+0 upgraded, 0 newly installed, 0 to remove and 29 not upgraded.
+
+changed 133 packages in 4s
+
+13 packages are looking for funding
+  run `npm fund` for details
+> 
