@@ -1,0 +1,86 @@
+
+=== 2. Quando foi ultimo build? ===
+-rw-r--r-- 1 root root 470K Nov  7 00:02 /root/abmix/dist/assets/index-BdEeT1F9.js
+
+=== 3. PM2 rodando de onde? ===
+│ script path       │ /usr/bin/npm                    │
+│ exec cwd          │ /root/abmix                     │
+
+=== 4. Qual porta PM2 esta usando? ===
+tcp        0      0 0.0.0.0:5000            0.0.0.0:*               LISTEN      39558/docker-proxy  
+tcp6       0      0 :::5000                 :::*                    LISTEN      39565/docker-proxy  
+
+=== 5. Tem cache do navegador? Arquivo build contem Natural? ===
+2
+root@vps:~/abmix# curl -s http://localhost:5000 | grep -o 'index-[^"]*\.js' | head -1 | xargs -I {} sh -c 'zcat /root/abmix/dist/assets/{} 2>/dev/null || cat /root/abmix/dist/assets/{}' | grep -c "Natural" && echo "TEM NATURAL NO BUILD SERVIDO" || echo "NAO TEM NATURAL NO BUILD SERVIDO"
+cat: /root/abmix/dist/assets/index-CNjAN7cp.js: No such file or directory
+0
+NAO TEM NATURAL NO BUILD SERVIDO
+root@vps:~/abmix# docker ps
+CONTAINER ID   IMAGE                               COMMAND                  CREATED       STATUS                 PORTS                                                                                                                                                                                NAMES
+380a45b5aba4   44ab1c1917dc                        "docker-entrypoint.s…"   5 hours ago   Up 5 hours (healthy)   0.0.0.0:5000->5000/tcp, 0.0.0.0:5000->5000/udp, [::]:5000->5000/tcp, [::]:5000->5000/udp, 0.0.0.0:6060->6060/tcp, 0.0.0.0:6060->6060/udp, [::]:6060->6060/tcp, [::]:6060->6060/udp   projeto-abmix-tech_abmix-telefone.1.tlusy3thf5vaissrz8egz70c5
+0dec2287a9da   minio/minio:latest                  "/bin/sh -c 'minio s…"   5 hours ago   Up 5 hours             9000/tcp                                                                                                                                                                             projeto-abmix-tech_minio.1.pdlp5rxjeobylknu765pgsvsv
+ffca6b93f892   n8nio/n8n:latest                    "tini -- /docker-ent…"   5 hours ago   Up 5 hours             5678/tcp                                                                                                                                                                             projeto-abmix-tech_n8n.1.jpmt8kvvm2ikpyobrsr7mu8ey
+7376f93a7475   baptistearno/typebot-viewer:3.9.0   "/bin/sh -c ./${SCOP…"   6 hours ago   Up 6 hours             3000/tcp                                                                                                                                                                             projeto-abmix-tech_typebot-viewer.1.s0fi6feex4pet0sly85wiovgr
+58edac986e8b   baptistearno/typebot-builder:3.9    "/bin/sh -c ./${SCOP…"   6 hours ago   Up 6 hours             3000/tcp                                                                                                                                                                             projeto-abmix-tech_typebot-builder.1.1ld4niya4z3dvepgiq3mzokqu
+a64cc8a0f072   redis:7                             "/bin/sh -c 'redis-s…"   6 hours ago   Up 6 hours             6379/tcp                                                                                                                                                                             projeto-abmix-tech_typebot-redis.1.ungasycth82qoy6bi5p7m4c9n
+5dffa294a26d   evoapicloud/evolution-api:latest    "/bin/bash -c '. ./D…"   6 hours ago   Up 6 hours             8080/tcp                                                                                                                                                                             abmix-tech-desenvolvimento_evolution-api.1.n4i4z52k61fdx9wc0si7nix80
+62fb181c105b   postgres:17                         "docker-entrypoint.s…"   6 hours ago   Up 6 hours             5432/tcp                                                                                                                                                                             projeto-abmix-tech_evolution-api-db.1.6r6jsbl4r9mot011671xg8f0n
+76929f011a81   postgres:17                         "docker-entrypoint.s…"   6 hours ago   Up 6 hours             5432/tcp                                                                                                                                                                             projeto-abmix-tech_typebot-db.1.soco73oticmshdd9iu7hqow6i
+3408516d1a2f   redis:7                             "/bin/sh -c 'redis-s…"   6 hours ago   Up 6 hours             6379/tcp                                                                                                                                                                             projeto-abmix-tech_evolution-api-redis.1.skgj2diim5m8bpb7a970o43pj
+5c046ed98bf8   postgres:17                         "docker-entrypoint.s…"   6 hours ago   Up 6 hours             5432/tcp                                                                                                                                                                             abmix-tech-desenvolvimento_evolution-api-db.1.h1qbw8uq79i1e2hd16x13j5hg
+4fa003422f85   evoapicloud/evolution-api:latest    "/bin/bash -c '. ./D…"   6 hours ago   Up 6 hours             8080/tcp                                                                                                                                                                             projeto-abmix-tech_evolution-api.1.fbxu9jl46yvhhvhsic9eqokcw
+29594d5d3352   redis:7                             "/bin/sh -c 'redis-s…"   6 hours ago   Up 6 hours             6379/tcp                                                                                                                                                                             abmix-tech-desenvolvimento_evolution-api-redis.1.92ka412a6zc0mh65hetpstfom
+4de2b79dd2e6   n8nio/n8n:latest                    "tini -- /docker-ent…"   6 hours ago   Up 6 hours             5678/tcp                                                                                                                                                                             aulateste_n8n.1.umx2ajcieda79igspm128xwjy
+21b0b9d4d370   easypanel/easypanel:latest          "node backend.js sta…"   6 hours ago   Up 6 hours             0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp                                                                                                                                          easypanel.1.ilp3taf1ghuqbhufpigox81au
+0fbd2512f7d6   evoapicloud/evolution-api:latest    "/bin/bash -c '. ./D…"   6 hours ago   Up 6 hours             8080/tcp                                                                                                                                                                             aulateste_evolution-api.1.rlolthe1exl709nrdnl9bzakp
+225b646ccac4   postgres:17                         "docker-entrypoint.s…"   6 hours ago   Up 6 hours             5432/tcp                                                                                                                                                                             aulateste_evolution-api-db.1.uxxifoo86htibw586wd98r3xy
+6afc6b5162d3   redis:7                             "/bin/sh -c 'redis-s…"   6 hours ago   Up 6 hours             6379/tcp                                                                                                                                                                             aulateste_evolution-api-redis.1.bzxaxcpbbhy5caq77h253i0se
+13120783b1ca   traefik:3.3.7                       "/entrypoint.sh trae…"   6 hours ago   Up 6 hours             0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp                                                                                                         traefik.1.jfa356hao7wh2pqcillvgr9xd
+root@vps:~/abmix# docker service ls
+ID             NAME                                             MODE         REPLICAS   IMAGE                                         PORTS
+qctwoekyl7xa   abmix-tech-desenvolvimento_evolution-api         replicated   1/1        evoapicloud/evolution-api:latest              
+0dcfvewgtlcf   abmix-tech-desenvolvimento_evolution-api-db      replicated   1/1        postgres:17                                   
+x2tk4xz2lbsq   abmix-tech-desenvolvimento_evolution-api-redis   replicated   1/1        redis:7                                       
+0ee3tpxf8f2o   abmix-tech-desenvolvimento_n8n                   replicated   0/1        n8nio/n8n:latest                              
+zv5i1qrtt8dz   aulateste_evolution-api                          replicated   1/1        evoapicloud/evolution-api:latest              
+hfbvuifa8s7s   aulateste_evolution-api-db                       replicated   1/1        postgres:17                                   
+pbh7zrz1nfij   aulateste_evolution-api-redis                    replicated   1/1        redis:7                                       
+w1hraj21cxjz   aulateste_n8n                                    replicated   1/1        n8nio/n8n:latest                              
+7x5n1q9f3eeg   easypanel                                        replicated   1/1        easypanel/easypanel:latest                    
+kkbs0aqwk4ws   projeto-abmix-tech_abmix-telefone                replicated   1/1        easypanel/projeto-abmix-tech/abmix-telefone   
+rtw21fed73qi   projeto-abmix-tech_evolution-api                 replicated   1/1        evoapicloud/evolution-api:latest              
+ax73i533jr3o   projeto-abmix-tech_evolution-api-db              replicated   1/1        postgres:17                                   
+6klhjtrscx7a   projeto-abmix-tech_evolution-api-redis           replicated   1/1        redis:7                                       
+wov40ex5t9ro   projeto-abmix-tech_minio                         replicated   1/1        minio/minio:latest                            
+11081r8jcise   projeto-abmix-tech_n8n                           replicated   1/1        n8nio/n8n:latest                              
+mz963qr9tzeh   projeto-abmix-tech_typebot-builder               replicated   1/1        baptistearno/typebot-builder:3.9              
+3p3gkbgf81zz   projeto-abmix-tech_typebot-db                    replicated   1/1        postgres:17                                   
+ad9w76224ugi   projeto-abmix-tech_typebot-redis                 replicated   1/1        redis:7                                       
+m5b133ol4xbj   projeto-abmix-tech_typebot-viewer                replicated   1/1        baptistearno/typebot-viewer:3.9.0             
+xq6v4bgi84ym   traefik                                          replicated   1/1        traefik:3.3.7                                 
+root@vps:~/abmix# docker service rm $(docker service ls | grep abmix | awk '{print $1}')
+pm2 restart abmix
+qctwoekyl7xa
+0dcfvewgtlcf
+x2tk4xz2lbsq
+0ee3tpxf8f2o
+kkbs0aqwk4ws
+rtw21fed73qi
+ax73i533jr3o
+6klhjtrscx7a
+wov40ex5t9ro
+11081r8jcise
+mz963qr9tzeh
+3p3gkbgf81zz
+ad9w76224ugi
+m5b133ol4xbj
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [abmix](ids: [ 0 ])
+[PM2] [abmix](0) ✓
+┌────┬──────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name     │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼──────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ abmix    │ default     │ N/A     │ fork    │ 75819    │ 0s     │ 15   │ online    │ 0%       │ 24.9mb   │ root     │ disabled │
+└────┴──────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+root@vps:~/abmix# 
