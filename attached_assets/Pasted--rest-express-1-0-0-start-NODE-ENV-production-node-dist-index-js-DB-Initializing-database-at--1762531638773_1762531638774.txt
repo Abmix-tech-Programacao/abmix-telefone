@@ -1,0 +1,511 @@
+
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+
+[DB] Initializing database at: /app/data/app.db
+[DB] FaleVono number already exists
+[DB] Database initialized successfully
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[OPENAI] Service initialized
+[AGENT_ORCHESTRATOR] Initialized
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[SIP_MODULE] ✅ SIP module loaded successfully
+[SIP_MODULE] sip.start: available (send/stop will be created when start() is called)
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
+[ENV] Debug das variáveis de ambiente:
+[ENV] FALEVONO_PASSWORD: ✅ CONFIGURADA
+[ENV] ELEVENLABS_API_KEY: sk_58ab581... ✅
+[ENV] DEEPGRAM_API_KEY: ✅ CONFIGURADA
+[TELEPHONY] Telephony system ready - SIP will initialize on first call
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[TELEPHONY] WebSocket servers initialized on /captions and /media
+[DB] Initializing database at: /app/data/app.db
+[DB] FaleVono number already exists
+[DB] Database initialized successfully
+[ROUTES] API routes configured
+[STATIC] Usando estrutura na raiz: /app/dist
+[STATIC] Servindo arquivos estáticos de: /app/dist
+[STATIC] Arquivos encontrados: [ 'assets', 'index.html', 'index.js' ]
+[RTP] Server listening on 0.0.0.0:8000
+[RTP] Binding to port 8000
+[express] HTTP/WS on 5000
+[TELEPHONY] RTP server started on port 8000
+[express] GET /api/health 200 in 22ms :: {"status":"ok","timestamp":"2025-11-07T14:13:40.…
+[express] GET /api/health 200 in 2ms :: {"status":"ok","timestamp":"2025-11-07T14:14:10.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:14:40.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:15:10.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:15:40.9…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:16:11.0…
+[express] GET /api/voip-numbers 200 in 0ms :: []
+[express] GET /api/favorites 200 in 1ms :: []
+[express] GET /api/recordings/list 200 in 0ms :: []
+[express] GET /api/voice/conversion-voices 200 in 472ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:16:41.0…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:17:11.2…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:17:41.2…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T14:18:11.3…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:18:41.4…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T14:19:11.4…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:19:41.5…
+[express] GET /api/settings 200 in 1ms :: {"VOZ_MASC_ID":"pNInz6obpgDQGcFmaJgB","VOZ_FEM_…
+[express] GET /api/voices 200 in 196ms :: [{"voice_id":"2EiwWnXFnvU5JabPnv8n","name":"Cly…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T14:20:11.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:20:41.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:21:11.7…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T14:21:41.8…
+[VOIP_NUMBERS] Added number: Felipe Manieri - 11995879984 (falevono)
+[express] POST /api/voip-numbers 200 in 2ms :: {"id":1,"name":"Felipe Manieri","number":"…
+[express] GET /api/voip-numbers 200 in 1ms :: [{"id":1,"name":"Felipe Manieri","number":"…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T14:22:11.8…
+[express] GET /api/voice/conversion-voices 304 in 301ms :: [{"voice_id":"2EiwWnXFnvU5JabP…
+[CALL] Initiating call to 11945140383
+[PROVIDER_FACTORY] Creating provider for Felipe Manieri (falevono)
+[SIP_SERVICE] Creating new global SIPService instance
+[FALEVONO_PROVIDER] Initialized with:
+[FALEVONO_PROVIDER]   Username: Felipe_Manieri
+[FALEVONO_PROVIDER]   Server: vono2.me:5060
+[FALEVONO_PROVIDER]   From Number: 11995879984
+[CALL] Using falevono provider (Felipe Manieri)
+[CALL] From: 11995879984 → To: 11945140383
+[CALL] Voice type: fem
+[FALEVONO_PROVIDER] Starting call to: 11945140383 with voice: fem
+[SIP_SERVICE] Not initialized, initializing...
+[SIP_SERVICE] Initializing SIP stack...
+[SIP_SERVICE] Local IP: 172.31.70.162
+[SIP_SERVICE] Server: vono2.me:5060
+[SIP_SERVICE] Username: Felipe_Manieri
+[SIP_SERVICE] Starting SIP stack for the first time...
+[SIP_SERVICE] Transport: UDP 
+[SIP_SERVICE] Client Port: 6060
+[SIP_SERVICE] After sip.start() - checking functions...
+[SIP_SERVICE] sip.send type: function
+[SIP_SERVICE] sip.stop type: function
+[SIP_SERVICE] All sip keys: [
+  'parseAOR',             'parseUri',
+  'stringifyUri',         'stringifyAuthHeader',
+  'stringify',            'makeResponse',
+  'copyMessage',          'makeStreamParser',
+  'parse',                'makeTransport',
+  'resolve',              'generateBranch',
+  'makeTransactionLayer', 'create',
+  'start',                'send',
+  'stop',                 'encodeFlowUri',
+  'decodeFlowUri',        'isFlowUri',
+  'hostname'
+]
+[SIP_SERVICE] ✅ SIP stack started successfully
+[SIP_SERVICE] ✅ SIP stack initialized successfully
+[SIP_SERVICE] Registering...
+[SIP_SERVICE] REGISTER with transport=UDP, contact=sip:Felipe_Manieri@172.31.70.162:6060
+[SIP_SERVICE] REGISTER request queued
+[SIP_SERVICE] Waiting for SIP registration to complete...
+[SIP_SERVICE] >>> SENT: {
+  "method": "REGISTER",
+  "uri": "sip:vono2.me:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me"
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "83699c3f-00d9-4c6d-8114-6d227af2480e"
+      }
+    },
+    "call-id": "f059bf08-e3f8-489a-9c78-3c5b0770f286",
+    "cseq": {
+      "method": "REGISTER",
+      "seq": 1
+    },
+    "contact": [
+      {
+        "uri": "sip:Felipe_Manieri@172.31.70.162:6060"
+      }
+    ],
+    "exp
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 401,
+  "reason": "Unauthorized",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK235450",
+          "rport": "6060"
+        }
+      }
+    ],
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "0391.3f0ee9724fda39f835d575c338f7bb76"
+      }
+    }
+[SIP_SERVICE] 🔐 Received 401 auth challenge for REGISTER
+[SIP_SERVICE] Auth challenge headers: [
+  {
+    "scheme": "Digest",
+    "realm": "\"vono2.me\"",
+    "nonce": "\"690e00c50001449347d93d02a4007ed1bcf896bdce7c1a54\""
+  }
+]
+[SIP_SERVICE] ✅ Auth session populated successfully
+[SIP_SERVICE] Auth session keys: [
+  'callId', 'tag',
+  'cseq',   'proxy',
+  'nonce',  'nc',
+  'qop',    'algorithm'
+]
+[SIP_SERVICE] Re-registering with auth...
+[SIP_SERVICE] REGISTER with transport=UDP, contact=sip:Felipe_Manieri@172.31.70.162:6060
+[SIP_SERVICE] Auth session state: {
+  "callId": "f059bf08-e3f8-489a-9c78-3c5b0770f286",
+  "tag": "83699c3f-00d9-4c6d-8114-6d227af2480e",
+  "cseq": 2,
+  "proxy": false,
+  "nonce": "feb0ce4e5217a14539858e2c5b81d43b",
+  "nc": 0,
+  "qop": "auth,auth-int",
+  "algorithm": "md5"
+}
+[SIP_SERVICE] ✅ Authorization header added successfully
+[SIP_SERVICE] REGISTER request queued
+[SIP_SERVICE] >>> SENT: {
+  "method": "REGISTER",
+  "uri": "sip:vono2.me:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me"
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "83699c3f-00d9-4c6d-8114-6d227af2480e"
+      }
+    },
+    "call-id": "f059bf08-e3f8-489a-9c78-3c5b0770f286",
+    "cseq": {
+      "method": "REGISTER",
+      "seq": 2
+    },
+    "contact": [
+      {
+        "uri": "sip:Felipe_Manieri@172.31.70.162:6060"
+      }
+    ],
+    "exp
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 200,
+  "reason": "OK",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK540928",
+          "rport": "6060"
+        }
+      }
+    ],
+    "to": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "0391.3e9f2a64f4daf4aec2cb5e882f3bc756"
+      }
+    },
+    "fro
+[SIP_SERVICE] ✅ Registration successful!
+[SIP_SERVICE] Registration completed, proceeding with call
+[SIP_SERVICE] 📞 Making call...
+[SIP_SERVICE]   From: 11995879984 (Felipe_Manieri)
+[SIP_SERVICE]   To: 11945140383
+[SIP_SERVICE]   Call-ID: b41aa955-fd0c-4ef8-8931-3a285c693011
+[SIP_SERVICE] INVITE with transport=UDP, contact=sip:Felipe_Manieri@172.31.70.162:6060
+[FALEVONO_PROVIDER] Call initiated with ID: b41aa955-fd0c-4ef8-8931-3a285c693011
+[OPENAI] Conversation created for call b41aa955-fd0c-4ef8-8931-3a285c693011
+[AGENT_ORCHESTRATOR] Agent started for call b41aa955-fd0c-4ef8-8931-3a285c693011, session 26a14da5-4254-49a2-912c-d728520b8a72
+[CALL] AI agent auto-started for call b41aa955-fd0c-4ef8-8931-3a285c693011
+[express] POST /api/call/dial 200 in 1864ms :: {"success":true,"message":"Calling 1194514…
+[SIP_SERVICE] >>> SENT: {
+  "method": "INVITE",
+  "uri": "sip:11945140383@vono2.me:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:11945140383@vono2.me"
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "9557d8ef-c921-4e82-8f64-4f6dde78e278"
+      }
+    },
+    "call-id": "b41aa955-fd0c-4ef8-8931-3a285c693011",
+    "cseq": {
+      "method": "INVITE",
+      "seq": 1
+    },
+    "contact": [
+      {
+        "uri": "sip:Felipe_Manieri@172.31.70.162:6060"
+      }
+    ],
+   
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 100,
+  "reason": "Giving it a try",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK93479",
+          "rport": "6060"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          
+[SIP_SERVICE] 📞 Call b41aa955-fd0c-4ef8-8931-3a285c693011: Trying...
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 407,
+  "reason": "Proxy Authentication Required",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK93479",
+          "rport": "6060"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params"
+[SIP_SERVICE] 🔐 Call b41aa955-fd0c-4ef8-8931-3a285c693011: Auth challenge for INVITE (407)
+[SIP_SERVICE] 🔐 Re-sending INVITE with digest authentication...
+[SIP_SERVICE] Auth challenge response: [
+  {
+    "scheme": "Digest",
+    "realm": "\"vono2.me\"",
+    "nonce": "\"690e00c50001449522246e75eca77a1de6cae9feb517a97d\""
+  }
+]
+[SIP_SERVICE] ✅ Call auth session populated successfully
+[SIP_SERVICE] Call auth session keys: [ 'proxy', 'nonce', 'nc', 'qop', 'algorithm' ]
+[SIP_SERVICE] ✅ Authorization header added to INVITE successfully
+[SIP_SERVICE] >>> SENT: {
+  "method": "ACK",
+  "uri": "sip:11945140383@vono2.me:5060",
+  "headers": {
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "9557d8ef-c921-4e82-8f64-4f6dde78e278"
+      }
+    },
+    "cseq": {
+      "method": "ACK",
+      "seq": 1
+    },
+    "call-id": "b41aa955-fd0c-4ef8-8931-3a285c693011",
+    "via": [
+      {
+        "params": {
+          "branch": "z9hG4bK93479",
+          "rport": null
+        },
+        "host": "172.31.70.162",
+        "port": 60
+[SIP_SERVICE] >>> SENT: {
+  "method": "INVITE",
+  "uri": "sip:11945140383@vono2.me:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:11945140383@vono2.me"
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "9557d8ef-c921-4e82-8f64-4f6dde78e278"
+      }
+    },
+    "call-id": "b41aa955-fd0c-4ef8-8931-3a285c693011",
+    "cseq": {
+      "method": "INVITE",
+      "seq": 2
+    },
+    "contact": [
+      {
+        "uri": "sip:Felipe_Manieri@172.31.70.162:6060"
+      }
+    ],
+   
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 100,
+  "reason": "Giving it a try",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "branch": "z9hG4bK259837",
+          "rport": "6060"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+         
+[SIP_SERVICE] 📞 Call b41aa955-fd0c-4ef8-8931-3a285c693011: Trying...
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 180,
+  "reason": "Ringing",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "rport": "6060",
+          "branch": "z9hG4bK259837"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "branch
+[SIP_SERVICE] 📞 Call b41aa955-fd0c-4ef8-8931-3a285c693011: Ringing...
+[SIP_SERVICE] <<< RECEIVED: {
+  "version": "2.0",
+  "status": 200,
+  "reason": "OK",
+  "headers": {
+    "via": [
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "received": "72.60.149.107",
+          "rport": "6060",
+          "branch": "z9hG4bK259837"
+        }
+      },
+      {
+        "version": "2.0",
+        "protocol": "UDP",
+        "host": "172.31.70.162",
+        "port": 6060,
+        "params": {
+          "branch": "z
+[SIP_SERVICE] ✅ Call b41aa955-fd0c-4ef8-8931-3a285c693011: Answered!
+[SIP_SERVICE] 🎵 Creating RTP session for call b41aa955-fd0c-4ef8-8931-3a285c693011
+[SIP_SERVICE] 🎵 Remote RTP: 190.89.248.49:45214
+[RTP] Session created for call b41aa955-fd0c-4ef8-8931-3a285c693011 -> 190.89.248.49:45214
+[SIP_SERVICE] 🎙️ Starting voice conversion session with fem voice
+[REALTIME_VOICE] Starting session b41aa955-fd0c-4ef8-8931-3a285c693011 with voice EXAVITQu4vr4xnSDxMaL
+[SIP_SERVICE] >>> SENT: {
+  "method": "ACK",
+  "uri": "sip:X.nr-node0.ce81.a2708d81@190.89.248.47:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:11945140383@vono2.me",
+      "params": {
+        "tag": "aU7v84Ucyge0c"
+      }
+    },
+    "from": {
+      "uri": "sip:Felipe_Manieri@vono2.me",
+      "params": {
+        "tag": "9557d8ef-c921-4e82-8f64-4f6dde78e278"
+      }
+    },
+    "call-id": "b41aa955-fd0c-4ef8-8931-3a285c693011",
+    "cseq": {
+      "method": "ACK",
+      "seq": 2
+    },
+    "via": [
+      {
+       
+[SIP_SERVICE] ✅ ACK sent to sip:X.nr-node0.ce81.a2708d81@190.89.248.47:5060
+[SIP_SERVICE] ✅ Voice conversion session started for b41aa955-fd0c-4ef8-8931-3a285c693011
+[REALTIME_VOICE] TTS connected for b41aa955-fd0c-4ef8-8931-3a285c693011
+[REALTIME_VOICE] STT error for b41aa955-fd0c-4ef8-8931-3a285c693011: Error: Unexpected server response: 403
+[REALTIME_VOICE] Session b41aa955-fd0c-4ef8-8931-3a285c693011 closed
+    at ClientRequest.<anonymous> (/app/node_modules/ws/lib/websocket.js:913:7)
+    at ClientRequest.emit (node:events:524:28)
+    at HTTPParser.parserOnIncomingClient (node:_http_client:702:27)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:118:17)
+    at TLSSocket.socketOnData (node:_http_client:544:22)
+    at TLSSocket.emit (node:events:524:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:191:23)
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T14:22:41.9…
+[CALL] Hanging up call b41aa955-fd0c-4ef8-8931-3a285c693011
+[FALEVONO_PROVIDER] Hanging up call: b41aa955-fd0c-4ef8-8931-3a285c693011
+[SIP_SERVICE] 📴 Hanging up call b41aa955-fd0c-4ef8-8931-3a285c693011 (status: answered)
+[SIP_SERVICE] >>> SENT: {
+  "method": "BYE",
+  "uri": "sip:X.nr-node0.ce81.a2708d81@190.89.248.47:5060",
+  "headers": {
+    "to": {
+      "uri": "sip:11945140383@vono2.me",
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:01:55.3…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T16:02:25.4…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T16:02:55.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:03:25.5…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:03:55.6…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:04:25.7…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T16:04:55.7…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:05:25.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:05:55.8…
+[express] GET /api/health 200 in 1ms :: {"status":"ok","timestamp":"2025-11-07T16:06:25.9…
+[express] GET /api/health 200 in 0ms :: {"status":"ok","timestamp":"2025-11-07T16:06:56.0…
