@@ -1,0 +1,34 @@
+
+Last login: Fri Nov  7 00:36:52 2025 from 169.254.0.1
+root@vps:~# curl -s http://localhost:3000/api/trpc/project.getAll | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    projects = data.get('result', {}).get('data', {}).get('json', [])
+    for p in projects:
+        print(p.get('name', 'unknown'))
+except:
+    print('erro')
+" 2>/dev/null | while read project; do
+  [ ! -z "$project" ] && curl -X POST "http://localhost:3000/api/trpc/service.deploy?batch=1" \
+    -H "Content-Type: application/json" \
+    -d "{\"0\":{\"json\":{\"projectName\":\"$project\"}}}" 2>/dev/null && echo "Restaurando: $project"
+done
+sleep 30
+docker service ls
+ID             NAME                                 MODE         REPLICAS   IMAGE                                         PORTS
+zv5i1qrtt8dz   aulateste_evolution-api              replicated   1/1        evoapicloud/evolution-api:latest              
+hfbvuifa8s7s   aulateste_evolution-api-db           replicated   1/1        postgres:17                                   
+pbh7zrz1nfij   aulateste_evolution-api-redis        replicated   1/1        redis:7                                       
+w1hraj21cxjz   aulateste_n8n                        replicated   1/1        n8nio/n8n:latest                              
+7x5n1q9f3eeg   easypanel                            replicated   1/1        easypanel/easypanel:latest                    
+wvf17bsvmbo9   projeto-abmix-tech_abmix-telefone    replicated   1/1        easypanel/projeto-abmix-tech/abmix-telefone   
+ucqoghfxowv9   projeto-abmix-tech_evolution-api     replicated   0/1        evoapicloud/evolution-api:latest              
+xl95gru5rmj9   projeto-abmix-tech_minio             replicated   1/1        minio/minio:latest                            
+gvcjzt3tmk1g   projeto-abmix-tech_n8n               replicated   1/1        n8nio/n8n:latest                              
+x887wou6owjh   projeto-abmix-tech_typebot-builder   replicated   1/1        baptistearno/typebot-builder:3.9              
+ek09dodk1tex   projeto-abmix-tech_typebot-viewer    replicated   1/1        baptistearno/typebot-viewer:3.9.0             
+xq6v4bgi84ym   traefik                              replicated   1/1        traefik:3.3.7                                 
+root@vps:~# docker exec $(docker ps | grep easypanel | awk '{print $1}') find /app/data -name "*.yml" -o -name "*.yaml" | head -20
+find: /app/data: No such file or directory
+root@vps:~# 
