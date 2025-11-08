@@ -1,6 +1,10 @@
 # --- BUILD ---
 FROM node:20-alpine AS build
 WORKDIR /app
+
+# FORCE CACHE BUST - Esta linha muda a cada commit para forçar rebuild
+RUN echo "Cache bust: $(date)" > /tmp/cache-bust
+
 COPY package*.json ./
 RUN npm install
 COPY . .
