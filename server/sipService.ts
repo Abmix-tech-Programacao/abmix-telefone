@@ -2,7 +2,7 @@ import { createRequire } from 'module';
 import { randomUUID } from 'crypto';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { rtpService } from './rtpService';
+import { simpleRtpService as rtpService } from './simpleRtpService';
 import { realtimeVoiceService } from './realtimeVoiceService';
 
 const require = createRequire(import.meta.url);

@@ -12,7 +12,7 @@ import { queries } from "./database";
 import { writeFileSync, statSync } from "fs";
 import { join } from "path";
 import { ProviderFactory } from "./providers/providerFactory";
-import { rtpService } from "./rtpService";
+import { simpleRtpService as rtpService } from "./simpleRtpService";
 
 function resolvePublicBaseUrl(req?: any): string {
   const configured = process.env.PUBLIC_BASE_URL || process.env.PUBLIC_URL || process.env.NGROK_URL;
