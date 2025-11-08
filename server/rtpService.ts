@@ -133,8 +133,14 @@ class RTPService extends EventEmitter {
    */
   private handleIncomingRTP(msg: Buffer, rinfo: dgram.RemoteInfo): void {
     try {
-      // Create RtpPacket from buffer
-      const packet = new RtpPacket(msg as any);
+      // Validate buffer before processing
+      if (!msg || msg.length < 12) {
+        console.log(`[RTP] Invalid packet size: ${msg?.length || 0} bytes`);
+        return;
+      }
+
+      // Create RtpPacket from buffer with proper validation
+      const packet = new RtpPacket(msg.buffer.slice(msg.byteOffset, msg.byteOffset + msg.byteLength));
       
       // Find session by remote address/port
       const session = Array.from(this.sessions.values()).find(
