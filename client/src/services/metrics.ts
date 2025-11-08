@@ -28,12 +28,12 @@ export const metricsService = {
 
     eventSource.onerror = (error) => {
       console.error('[METRICS] EventSource error:', error);
-      // TEMPORARIAMENTE DESABILITADO: Auto-reconnect pode causar loops
-      // setTimeout(() => {
-      //   if (eventSource?.readyState === EventSource.CLOSED) {
-      //     this.connect(callback);
-      //   }
-      // }, 5000);
+      // Reconnect after 5 seconds
+      setTimeout(() => {
+        if (eventSource?.readyState === EventSource.CLOSED) {
+          this.connect(callback);
+        }
+      }, 5000);
     };
 
     console.log('[METRICS] Connected to metrics stream');
