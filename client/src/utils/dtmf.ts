@@ -75,7 +75,7 @@ class DTMFPlayer {
       // Create oscillators for dual-tone
       const osc1 = context.createOscillator();
       const osc2 = context.createOscillator();
-      const gainNode = context.createGainNode();
+      const gainNode = context.createGain();
 
       // Configure frequencies
       osc1.frequency.setValueAtTime(frequencies[0], context.currentTime);
