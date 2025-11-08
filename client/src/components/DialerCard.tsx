@@ -11,6 +11,7 @@ import { connectCaptions, disconnectCaptions } from '@/services/captions';
 import { validateE164, formatPhoneNumber, isDTMFTone } from '@/utils/validation';
 import { VoiceConversionControl } from './VoiceConversionControl';
 import { useDTMF } from '@/hooks/useDTMF';
+import { useCallSync } from '@/hooks/useCallSync';
 
 interface VoIPNumber {
   id: number;
@@ -43,6 +44,9 @@ export function DialerCard() {
 
   // DTMF sounds hook
   const { enabled: dtmfSoundsEnabled, playTone, toggleEnabled: toggleDTMFSounds } = useDTMF();
+
+  // Call state synchronization hook
+  useCallSync();
 
   // Fetch VoIP numbers
   const { data: voipNumbers = [], isLoading: isLoadingNumbers } = useQuery<VoIPNumber[]>({

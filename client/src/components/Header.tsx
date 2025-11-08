@@ -51,11 +51,9 @@ export function Header() {
           )}
         </div>
 
-        {/* Audio Controls - TEMPORARIAMENTE DESABILITADO para corrigir problemas de performance */}
+        {/* Audio Controls - Espaço para futuros controles */}
         <div className="flex items-center space-x-6">
-          <div className="text-sm text-gray-400">
-            Controles de áudio temporariamente desabilitados
-          </div>
+          {/* Espaço reservado para controles de áudio */}
         </div>
       </div>
     </header>

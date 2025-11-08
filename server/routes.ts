@@ -173,6 +173,44 @@ Mantenha respostas concisas e diretas ao ponto.`;
     }
   });
 
+  // Call status endpoint
+  app.get("/api/call/status/:callId", async (req, res) => {
+    try {
+      const { callId } = req.params;
+      
+      // Get provider for this call
+      const provider = activeCallProviders.get(callId);
+      
+      if (!provider) {
+        return res.status(404).json({ error: "Call not found" });
+      }
+
+      // Get call status from SIP service (assuming FaleVono provider)
+      const { sipService } = await import('./sipService');
+      const callInfo = sipService.getCallStatus?.(callId);
+      
+      if (callInfo) {
+        res.json({
+          callId,
+          status: callInfo.status,
+          startTime: callInfo.startTime,
+          endTime: callInfo.endTime,
+          toNumber: callInfo.toNumber,
+          fromNumber: callInfo.fromNumber
+        });
+      } else {
+        res.json({
+          callId,
+          status: 'unknown',
+          message: 'Call status not available'
+        });
+      }
+    } catch (error) {
+      console.error('[CALL] Error getting status:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
   // DTMF endpoint
   app.post("/api/call/dtmf", async (req, res) => {
     try {
