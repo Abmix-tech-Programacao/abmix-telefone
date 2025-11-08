@@ -102,12 +102,14 @@ function processUserAudio(callSid: string, audioPayload: string, streamSid: stri
 export function setupTelephony(app: Express, httpServer: Server) {
   console.log('[TELEPHONY] Telephony system ready - SIP will initialize on first call');
   
-  // Initialize RTP server for SIP audio
-  rtpService.start(10000).then(() => {
-    console.log('[TELEPHONY] RTP server started on port 10000');
-  }).catch((err) => {
-    console.error('[TELEPHONY] Failed to start RTP server:', err);
-  });
+  // TEMPORARIAMENTE DESABILITADO - RTP causando problemas no EasyPanel com código antigo
+  // rtpService.start(10000).then(() => {
+  //   console.log('[TELEPHONY] RTP server started on port 10000');
+  // }).catch((err) => {
+  //   console.error('[TELEPHONY] Failed to start RTP server:', err);
+  // });
+  console.log('[TELEPHONY] ⚠️  RTP server DISABLED - audio will not work but no spam errors');
+  console.log('[TELEPHONY] 🔧 To fix: Delete + Recreate app in EasyPanel for clean build');
 
   // Handle RTP audio events -> send to STT
   rtpService.on('audio', (data: any) => {
