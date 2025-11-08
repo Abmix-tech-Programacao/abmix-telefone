@@ -108,8 +108,8 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
-      {/* Monitor de áudio global - invisível mas sempre ativo */}
-      <AudioMonitor />
+      {/* Monitor de áudio global - TEMPORARIAMENTE DESABILITADO para corrigir interface tremendo */}
+      {/* <AudioMonitor /> */}
       
       <div className="flex min-h-screen">
         <Sidebar />

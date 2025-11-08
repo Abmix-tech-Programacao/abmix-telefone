@@ -55,8 +55,8 @@ export function Header() {
           )}
         </div>
 
-        {/* Audio Controls - Volume + Level Bars */}
-        <div className="flex items-center space-x-6">
+        {/* Audio Controls - TEMPORARIAMENTE DESABILITADO para corrigir interface tremendo */}
+        {/* <div className="flex items-center space-x-6">
           {/* Microphone Control */}
           <div className="flex items-center space-x-2">
             <Mic className="w-4 h-4 text-gray-400" />
@@ -110,7 +110,7 @@ export function Header() {
             </div>
             <span className="text-xs text-gray-400 w-8">{speakerVolume}%</span>
           </div>
-        </div>
+        </div> */}
       </div>
     </header>
   );

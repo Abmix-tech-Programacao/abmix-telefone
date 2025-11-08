@@ -32,12 +32,12 @@ export function connectCaptions() {
     ws = null;
     console.log('captions: closed');
     
-    // Reconnect only if call is active
-    setTimeout(() => {
-      if ((window as any).__CALL_ACTIVE__) {
-        connectCaptions();
-      }
-    }, 2000);
+    // TEMPORARIAMENTE DESABILITADO: Auto-reconnect pode causar loops
+    // setTimeout(() => {
+    //   if ((window as any).__CALL_ACTIVE__) {
+    //     connectCaptions();
+    //   }
+    // }, 2000);
   };
 }
 
