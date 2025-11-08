@@ -110,8 +110,8 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
-      {/* Monitor de áudio global - TEMPORARIAMENTE DESABILITADO para corrigir interface tremendo */}
-      {/* <AudioMonitor /> */}
+      {/* Monitor de áudio global - RESTAURADO */}
+      <AudioMonitor />
       
       {/* Ativador de áudio para resolver problemas de som */}
       <AudioActivator />
