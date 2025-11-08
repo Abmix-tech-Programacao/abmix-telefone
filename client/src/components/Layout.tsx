@@ -16,6 +16,8 @@ import { CallManager } from './CallManager';
 import { VoIPNumbers } from './VoIPNumbers';
 import { useCallStore } from '@/stores/useCallStore';
 import { AudioMonitor } from './AudioMonitor';
+import { AudioActivator } from './AudioActivator';
+import { Ringtone } from './Ringtone';
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -110,6 +112,12 @@ export function Layout() {
     <div className="min-h-screen bg-background text-foreground font-inter">
       {/* Monitor de áudio global - TEMPORARIAMENTE DESABILITADO para corrigir interface tremendo */}
       {/* <AudioMonitor /> */}
+      
+      {/* Ativador de áudio para resolver problemas de som */}
+      <AudioActivator />
+      
+      {/* Ringtone para som de chamando */}
+      <Ringtone />
       
       <div className="flex min-h-screen">
         <Sidebar />

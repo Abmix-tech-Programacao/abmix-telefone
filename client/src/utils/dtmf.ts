@@ -53,7 +53,7 @@ class DTMFPlayer {
    * @param key - The key pressed ('0'-'9', '*', '#')
    * @param duration - Duration in milliseconds (default: 100ms)
    */
-  playTone(key: string, duration: number = 100): void {
+  async playTone(key: string, duration: number = 100): Promise<void> {
     if (!this.isEnabled()) {
       return;
     }
@@ -67,9 +67,16 @@ class DTMFPlayer {
     try {
       const context = this.getAudioContext();
       
-      // Resume context if suspended (required by some browsers)
+      // CRITICAL: Resume context if suspended (required by most browsers)
       if (context.state === 'suspended') {
-        context.resume();
+        console.log('[DTMF] Resuming suspended AudioContext...');
+        await context.resume();
+      }
+      
+      // Double-check context is running
+      if (context.state !== 'running') {
+        console.warn('[DTMF] AudioContext not running, state:', context.state);
+        return;
       }
 
       // Create oscillators for dual-tone

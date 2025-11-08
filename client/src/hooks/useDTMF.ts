@@ -11,8 +11,12 @@ export function useDTMF() {
   /**
    * Play DTMF tone for given key
    */
-  const playTone = useCallback((key: string, duration?: number) => {
-    dtmfPlayer.playTone(key, duration);
+  const playTone = useCallback(async (key: string, duration?: number) => {
+    try {
+      await dtmfPlayer.playTone(key, duration);
+    } catch (error) {
+      console.warn('[DTMF] Failed to play tone:', error);
+    }
   }, []);
 
   /**

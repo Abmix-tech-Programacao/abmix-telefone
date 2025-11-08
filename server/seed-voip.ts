@@ -3,28 +3,35 @@ import { db, queries } from './database';
 console.log('[SEED] Limpando números VoIP antigos e inserindo FaleVono...');
 
 try {
-  // LIMPAR TODOS OS NÚMEROS ANTIGOS
-  db.exec('DELETE FROM voip_numbers');
-  console.log('[SEED] ✅ Números antigos removidos');
+  // VERIFICAR SE JÁ EXISTE NÚMERO FALEVONO (NÃO LIMPAR)
+  const existingNumbers = queries.getAllVoipNumbers.all();
+  const faleVonoExists = existingNumbers.some((num: any) => num.provider === 'falevono');
   
-  // INSERIR NÚMERO FALEVONO
-  db.exec(`
-    INSERT INTO voip_numbers (
-      name, number, provider, sip_username, sip_password, 
-      sip_server, sip_port, sip_ips, is_default, status
-    ) VALUES (
-      'FaleVono - SP',
-      '+5511920838833',
-      'falevono',
-      'Felipe_Manieri',
-      NULL,
-      'vono2.me',
-      5060,
-      '190.89.248.47,190.89.248.48',
-      1,
-      'active'
-    )
-  `);
+  if (!faleVonoExists) {
+    console.log('[SEED] Número FaleVono não encontrado, adicionando...');
+    
+    // INSERIR NÚMERO FALEVONO APENAS SE NÃO EXISTIR
+    db.exec(`
+      INSERT INTO voip_numbers (
+        name, number, provider, sip_username, sip_password, 
+        sip_server, sip_port, sip_ips, is_default, status
+      ) VALUES (
+        'FaleVono - SP',
+        '+5511920838833',
+        'falevono',
+        'Felipe_Manieri',
+        NULL,
+        'vono2.me',
+        5060,
+        '190.89.248.47,190.89.248.48',
+        1,
+        'active'
+      )
+    `);
+    console.log('[SEED] ✅ Número FaleVono adicionado!');
+  } else {
+    console.log('[SEED] ✅ Número FaleVono já existe, mantendo configuração atual');
+  }
   
   console.log('[SEED] ✅ Número FaleVono adicionado com sucesso!');
   console.log('[SEED] 📞 Número: +55 11 92083-8833');

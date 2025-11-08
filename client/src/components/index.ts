@@ -16,3 +16,5 @@ export { VoicesHub } from './VoicesHub';
 export { DTMFKeypad } from './DTMFKeypad';
 export { DubbingTranslation } from './DubbingTranslation';
 export { CallManager } from './CallManager';
+export { AudioActivator } from './AudioActivator';
+export { Ringtone } from './Ringtone';
