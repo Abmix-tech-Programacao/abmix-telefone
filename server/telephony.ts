@@ -109,17 +109,22 @@ export function setupTelephony(app: Express, httpServer: Server) {
     console.error('[TELEPHONY] Failed to start RTP server:', err);
   });
 
-  // Handle RTP audio events -> send to STT
+  // Handle RTP audio events -> send to STT (DEBUG DETALHADO)
   rtpService.on('audio', (data: any) => {
-    console.log(`[TELEPHONY] RTP audio received for call ${data.callId}`);
+    console.log(`[TELEPHONY] 🎵 RTP AUDIO EVENT: call=${data.callId}, bytes=${data.audioData?.length || 0}`);
     
     // Check if voice conversion is enabled for this call
     if (realtimeVoiceService.isConversionEnabled(data.callId)) {
+      console.log(`[TELEPHONY] 🔄 Processing with voice conversion for ${data.callId}`);
       // Convert PCM16 to base64 for STT
       const audioBase64 = data.audioData.toString('base64');
       realtimeVoiceService.processIncomingAudio(data.callId, audioBase64);
+    } else {
+      console.log(`[TELEPHONY] 🎤 Voice conversion disabled for ${data.callId} - audio should pass through`);
     }
   });
+
+  console.log('[TELEPHONY] 🔍 RTP audio event listener registered');
 
   // Handle converted audio from TTS -> send back via RTP
   realtimeVoiceService.on('converted-voice-audio', (callId: string, audioBuffer: Buffer) => {

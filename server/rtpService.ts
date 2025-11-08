@@ -52,6 +52,7 @@ class RTPService extends EventEmitter {
       });
 
       this.socket.on('message', (msg, rinfo) => {
+        console.log(`[RTP] 📥 INCOMING: ${msg.length} bytes from ${rinfo.address}:${rinfo.port}`);
         this.handleIncomingRTP(msg, rinfo);
       });
 
