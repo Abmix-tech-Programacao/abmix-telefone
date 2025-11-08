@@ -10,6 +10,7 @@ export function Ringtone() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const playRingtone = async () => {
@@ -57,7 +58,7 @@ export function Ringtone() {
         console.log('[RINGTONE] Playing ringtone...');
 
         // Agendar próximo ringtone se ainda estiver chamando
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           if (callState === 'RINGING') {
             playRingtone();
           }
@@ -69,6 +70,13 @@ export function Ringtone() {
     };
 
     const stopRingtone = () => {
+      // Parar timeout pendente
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      
+      // Parar oscillator atual
       if (oscillatorRef.current) {
         try {
           oscillatorRef.current.stop();
@@ -81,9 +89,13 @@ export function Ringtone() {
     };
 
     // Controlar ringtone baseado no estado da chamada
+    console.log(`[RINGTONE] Call state changed to: ${callState}`);
+    
     if (callState === 'RINGING') {
+      console.log('[RINGTONE] Starting ringtone...');
       playRingtone();
     } else {
+      console.log('[RINGTONE] Stopping ringtone...');
       stopRingtone();
     }
 

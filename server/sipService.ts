@@ -769,10 +769,16 @@ export class SIPService {
       
       // Send 200 OK response to BYE
       sip.send({
-        method: 'OK',
+        version: '2.0',
         status: 200,
         reason: 'OK',
-        headers: request.headers
+        headers: {
+          via: request.headers.via,
+          to: request.headers.to,
+          from: request.headers.from,
+          'call-id': request.headers['call-id'],
+          cseq: request.headers.cseq
+        }
       });
     }
   }
