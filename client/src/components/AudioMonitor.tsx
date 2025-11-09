@@ -21,11 +21,27 @@ export function AudioMonitor() {
       try {
         // Create AudioContext
         if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+          const AC = (window.AudioContext || (window as any).webkitAudioContext);
+          if (!AC) {
+            console.warn('[AUDIO_MONITOR] AudioContext não disponível');
+            return;
+          }
+          audioContextRef.current = new AC();
           (window as any).audioContext = audioContextRef.current;
         }
 
         const audioContext = audioContextRef.current;
+
+        // Tentar retomar contexto de áudio (autoplay policy)
+        const resume = async () => {
+          try { if (audioContext.state !== 'running') { await audioContext.resume(); } } catch {}
+        };
+        await resume();
+        if (audioContext.state !== 'running') {
+          const onInteract = async () => { await resume(); document.removeEventListener('click', onInteract); document.removeEventListener('touchstart', onInteract); };
+          document.addEventListener('click', onInteract, { once: true });
+          document.addEventListener('touchstart', onInteract, { once: true });
+        }
 
         // Setup microphone monitoring
         try {
@@ -34,8 +50,14 @@ export function AudioMonitor() {
             console.warn('[AUDIO_MONITOR] MediaDevices não disponível - monitoramento desabilitado');
             return;
           }
-          
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+          // Usar dispositivo selecionado (se configurado)
+          const inputDeviceId = localStorage.getItem('audioInputDevice') || undefined;
+          const audioConstraints: MediaStreamConstraints['audio'] = inputDeviceId
+            ? { deviceId: { exact: inputDeviceId } }
+            : true;
+
+          micStream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
           const micSource = audioContext.createMediaStreamSource(micStream);
           const micAnalyser = audioContext.createAnalyser();
           micAnalyser.fftSize = 256;
