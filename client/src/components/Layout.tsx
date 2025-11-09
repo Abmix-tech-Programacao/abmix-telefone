@@ -19,6 +19,7 @@ import { AudioMonitor } from './AudioMonitor';
 import { Ringtone } from './Ringtone';
 import { AudioPlayer } from './AudioPlayer';
 import { MicrophoneCapture } from './MicrophoneCapture';
+import { AudioSettings } from './AudioSettings';
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -76,7 +77,10 @@ export function Layout() {
       case 'configuracoes':
         return (
           <div className="max-w-4xl mx-auto">
-            <Settings />
+            <div className="space-y-6">
+              <Settings />
+              <AudioSettings />
+            </div>
           </div>
         );
 

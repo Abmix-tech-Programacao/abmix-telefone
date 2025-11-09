@@ -34,9 +34,12 @@ export function MicrophoneCapture() {
         return;
       }
 
+      const inputDeviceId = localStorage.getItem('audioInputDevice') || undefined;
+
       // Capturar microfone
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
+          deviceId: inputDeviceId ? { exact: inputDeviceId } as any : undefined,
           echoCancellation: true,
           noiseSuppression: true,
           sampleRate: 8000

@@ -8,6 +8,8 @@ export function AudioPlayer() {
   const { callState, currentCallId } = useCallStore();
   const audioContextRef = useRef<AudioContext | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const destNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   useEffect(() => {
     // Conectar já em RINGING para que a mídia abra e possamos parar o ringtone na hora certa
@@ -71,6 +73,32 @@ export function AudioPlayer() {
       ws.onopen = () => {
         console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP');
         (window as any).__mediaOpen = true;
+
+        // Preparar saída com <audio> oculto + MediaStreamDestination (melhor suporte a setSinkId)
+        if (!destNodeRef.current) {
+          destNodeRef.current = audioContext.createMediaStreamDestination();
+        }
+        if (!audioElRef.current) {
+          const el = document.createElement('audio');
+          el.style.display = 'none';
+          el.autoplay = true;
+          el.playsInline = true;
+          audioElRef.current = el;
+          document.body.appendChild(el);
+        }
+        if (audioElRef.current) {
+          audioElRef.current.srcObject = destNodeRef.current!.stream;
+        }
+
+        // Aplicar dispositivo de saída salvo, quando suportado
+        const outputDeviceId = localStorage.getItem('audioOutputDevice') || '';
+        if (outputDeviceId && (audioElRef.current as any)?.setSinkId) {
+          (audioElRef.current as any).setSinkId(outputDeviceId).then(() => {
+            console.log('[AUDIO_PLAYER] Saída aplicada via setSinkId:', outputDeviceId);
+          }).catch((e: any) => {
+            console.warn('[AUDIO_PLAYER] setSinkId falhou/não suportado:', e);
+          });
+        }
       };
 
       ws.onclose = () => {
@@ -106,10 +134,16 @@ export function AudioPlayer() {
             }
 
             // Reproduzir áudio nos autofalantes
-            const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer;
+          const source = audioContext.createBufferSource();
+          source.buffer = audioBuffer;
+
+          // Se houver destino para <audio>, use-o; caso contrário, destination padrão
+          if (destNodeRef.current) {
+            source.connect(destNodeRef.current);
+          } else {
             source.connect(audioContext.destination);
-            source.start();
+          }
+          source.start();
           }
         } catch (error) {
           console.error('[AUDIO_PLAYER] ❌ Erro ao reproduzir áudio:', error);
@@ -138,7 +172,18 @@ export function AudioPlayer() {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+
+    if (audioElRef.current) {
+      try { audioElRef.current.pause(); } catch {}
+      audioElRef.current.srcObject = null;
+      if (audioElRef.current.parentNode) {
+        audioElRef.current.parentNode.removeChild(audioElRef.current);
+      }
+      audioElRef.current = null;
+    }
+
+    destNodeRef.current = null;
   };
 
-  return null; // Componente invisível
+  return null; // Invisível
 }
