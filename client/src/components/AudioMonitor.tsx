@@ -29,6 +29,12 @@ export function AudioMonitor() {
 
         // Setup microphone monitoring
         try {
+          // Feature-detect MediaDevices (CORREÇÃO FINAL)
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            console.warn('[AUDIO_MONITOR] MediaDevices não disponível - monitoramento desabilitado');
+            return;
+          }
+          
           micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const micSource = audioContext.createMediaStreamSource(micStream);
           const micAnalyser = audioContext.createAnalyser();

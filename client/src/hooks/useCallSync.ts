@@ -9,7 +9,12 @@ export function useCallSync() {
   const { currentCallId, setCallState } = useCallStore();
 
   useEffect(() => {
-    if (!currentCallId) return;
+    if (!currentCallId) {
+      console.log('[CALL_SYNC] No current call ID, skipping sync');
+      return;
+    }
+
+    console.log(`[CALL_SYNC] Starting sync for call ${currentCallId}`);
 
     // Polling simples para verificar estado da chamada
     const checkCallState = async () => {
