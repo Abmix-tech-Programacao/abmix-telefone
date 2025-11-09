@@ -162,11 +162,12 @@ Mantenha respostas concisas e diretas ao ponto.`;
         return res.status(404).json({ error: "Call not found" });
       }
 
-      // Return simple status based on SIP state
+      // Simples: enquanto não houver confirmação explícita de mídia/200 OK,
+      // mantenha como 'ringing' para o frontend não parar o ringtone cedo.
       res.json({
         callId,
-        status: 'connected', // Assume connected when call exists
-        message: 'Call active'
+        status: 'ringing',
+        message: 'Call in progress'
       });
     } catch (error) {
       console.error('[CALL] Error getting status:', error);

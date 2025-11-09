@@ -37,7 +37,15 @@ export function useCallSync() {
 
           // Gate: não mudar para CONNECTED até mídia /media abrir
           const mediaOpen = (window as any).__mediaOpen === true;
-          const effectiveState = (newState === 'CONNECTED' && !mediaOpen) ? 'RINGING' : newState;
+
+          // Regra final:
+          // - Se mediaOpen: forçar CONNECTED (já temos mídia válida)
+          // - Senão, se veio CONNECTED mas ainda sem mídia: manter RINGING
+          // - Caso contrário, usar o estado do backend
+          const effectiveState =
+            mediaOpen ? 'CONNECTED' :
+            (newState === 'CONNECTED' && !mediaOpen) ? 'RINGING' :
+            newState;
 
           setCallState(effectiveState);
           console.log(`[CALL_SYNC] State updated: ${data.status} → ${effectiveState} (mediaOpen=${mediaOpen})`);
