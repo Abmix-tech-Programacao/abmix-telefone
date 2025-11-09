@@ -174,7 +174,7 @@ export function AudioPlayer() {
       };
 
       // inicia tentativa de conexão
-      openWithFallback([...try.$(tryPaths)]);
+      openWithFallback([...tryPaths]);
 
     } catch (error) {
       console.error('[AUDIO_PLAYER] ❌ Erro ao conectar stream:', error);
