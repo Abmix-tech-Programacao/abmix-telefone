@@ -65,7 +65,7 @@ export function AudioPlayer() {
 
       // Conectar WebSocket para receber áudio RTP (tenta /media, depois /ws-media)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const tryPaths = ['/media', '/ws-media'];
+      const tryPaths = ['/ws-media', '/media'];
 
       const openWithFallback = (paths: string[]) => {
         if (paths.length === 0) {
