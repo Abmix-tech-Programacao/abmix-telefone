@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Switch } from '@/components/ui/switch';
 
 type MediaDev = { deviceId: string; kind: string; label: string };
 
@@ -9,6 +10,10 @@ export function AudioSettings() {
   const [outputSel, setOutputSel] = useState(localStorage.getItem('audioOutputDevice') || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dtmfEnabled, setDtmfEnabled] = useState<boolean>(() => {
+    const stored = localStorage.getItem('dtmf_sounds_enabled');
+    return stored === null ? true : stored === 'true';
+  });
 
   const loadDevices = async () => {
     try {
@@ -40,6 +45,7 @@ export function AudioSettings() {
   const save = () => {
     localStorage.setItem('audioInputDevice', inputSel || '');
     localStorage.setItem('audioOutputDevice', outputSel || '');
+    localStorage.setItem('dtmf_sounds_enabled', dtmfEnabled ? 'true' : 'false');
     // Feedback visual simples no padrão do app
     // (evitar alert intrusivo)
     console.log('[AUDIO_SETTINGS] Dispositivos salvos:', { inputSel, outputSel });
@@ -85,6 +91,25 @@ export function AudioSettings() {
             A troca de saída depende do navegador (setSinkId). Em caso de limitação, use o padrão do sistema.
           </div>
         </div>
+      </div>
+
+      {/* Sons do Teclado (DTMF) */}
+      <div className="flex items-center justify-between bg-muted/30 rounded-lg border border-border p-3">
+        <div>
+          <div className="text-sm font-medium">Som das teclas (DTMF)</div>
+          <div className="text-xs text-muted-foreground">
+            Emite bip ao pressionar as teclas do discador/DTMF.
+          </div>
+        </div>
+        <Switch
+          checked={dtmfEnabled}
+          onCheckedChange={(checked) => {
+            setDtmfEnabled(checked);
+            localStorage.setItem('dtmf_sounds_enabled', checked ? 'true' : 'false');
+            // Notifica outros hooks pela StorageEvent
+            window.dispatchEvent(new StorageEvent('storage', { key: 'dtmf_sounds_enabled', newValue: checked ? 'true' : 'false' } as any));
+          }}
+        />
       </div>
 
       <div className="flex items-center gap-2">
