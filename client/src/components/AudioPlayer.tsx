@@ -10,7 +10,8 @@ export function AudioPlayer() {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    if (callState === 'CONNECTED' && currentCallId) {
+    // Conectar já em RINGING para que a mídia abra e possamos parar o ringtone na hora certa
+    if ((callState === 'RINGING' || callState === 'CONNECTED') && currentCallId) {
       connectAudioStream();
     } else {
       disconnectAudioStream();
