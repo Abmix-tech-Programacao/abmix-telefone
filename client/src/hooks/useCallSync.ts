@@ -20,6 +20,7 @@ export function useCallSync() {
           
           // Mapear estado do backend para frontend
           const stateMap: Record<string, any> = {
+            'initiating': 'RINGING', // Quando está iniciando, mostrar como RINGING
             'ringing': 'RINGING',
             'answered': 'CONNECTED', 
             'connected': 'CONNECTED',
@@ -28,9 +29,20 @@ export function useCallSync() {
           };
 
           const newState = stateMap[data.status] || 'IDLE';
-          setCallState(newState);
           
-          console.log(`[CALL_SYNC] State updated: ${data.status} → ${newState}`);
+          // Não sobrescrever RINGING com CONNECTED muito rápido
+          const currentState = useCallStore.getState().callState;
+          if (currentState === 'RINGING' && newState === 'CONNECTED') {
+            // Dar tempo para ringtone tocar antes de mudar para CONNECTED
+            console.log(`[CALL_SYNC] Aguardando ringtone... (${data.status} → ${newState})`);
+            setTimeout(() => {
+              setCallState(newState);
+              console.log(`[CALL_SYNC] State updated after delay: ${data.status} → ${newState}`);
+            }, 2000); // 2 segundos de delay
+          } else {
+            setCallState(newState);
+            console.log(`[CALL_SYNC] State updated: ${data.status} → ${newState}`);
+          }
         }
       } catch (error) {
         console.warn('[CALL_SYNC] Failed to check call state:', error);
