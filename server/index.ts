@@ -54,6 +54,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Guard para evitar dupla inicialização
+  if ((global as any).__APP_STARTED__) {
+    console.log('[BOOTSTRAP] App already started, skipping initialization');
+    return;
+  }
+  (global as any).__APP_STARTED__ = true;
+
   // Create HTTP server
   const server = http.createServer(app);
   

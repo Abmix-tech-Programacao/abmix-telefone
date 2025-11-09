@@ -116,9 +116,10 @@ export function DialerCard() {
       setCallState('RINGING');
       setVoiceType(selectedVoice);
       
-      // Connect captions when call starts
-      (window as any).__CALL_ACTIVE__ = true;
-      connectCaptions();
+      // Connect captions quando call está ATIVA (não no início)
+      // Esperar estado CONNECTED para conectar
+      // (window as any).__CALL_ACTIVE__ = true;
+      // connectCaptions(); // REMOVIDO - conecta automaticamente muito cedo
       
       const selectedNumber = voipNumbers.find(n => n.id.toString() === selectedVoIPNumberId);
       
