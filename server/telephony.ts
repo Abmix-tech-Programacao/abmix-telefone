@@ -153,32 +153,39 @@ export function setupTelephony(app: Express, httpServer: Server) {
     rtpService.sendAudio(callId, audioBuffer, 8000);
   });
   
-  // WebSocket servers - escutar nos paths que o nginx vai fazer proxy
+  // WebSocket servers - upgrade manual (noServer) para contornar proxies que não fazem upgrade
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
 
-  const captionsWss = new WebSocketServer({ 
-    server: httpServer, 
-    path: captionsPath,
-    perMessageDeflate: false,
-    verifyClient: (info: any) => {
-      console.log('[CAPTIONS_WS] Connection attempt from:', info.origin);
-      return true; // Aceitar todas as conexões
-    }
-  });
-  
-  const mediaWss = new WebSocketServer({ 
-    server: httpServer, 
-    path: mediaPath,
-    perMessageDeflate: false,
-    verifyClient: (info: any) => {
-      console.log('[MEDIA_WS] Connection attempt from:', info.origin);
-      console.log('[MEDIA_WS] Headers:', info.req.headers);
-      return true; // Accept all connections
+  const captionsWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  const mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+
+  // Upgrade manual por caminho (aceita basePath calculado e caminhos raiz)
+  httpServer.on('upgrade', (req: any, socket, head) => {
+    try {
+      const url = new URL(req.url || '/', 'http://upgrade.local');
+      const path = url.pathname;
+
+      const isMedia = path === mediaPath || path === '/media';
+      const isCaptions = path === captionsPath || path === '/captions';
+
+      if (isMedia) {
+        mediaWss.handleUpgrade(req, socket, head, (ws) => {
+          mediaWss.emit('connection', ws, req);
+        });
+      } else if (isCaptions) {
+        captionsWss.handleUpgrade(req, socket, head, (ws) => {
+          captionsWss.emit('connection', ws, req);
+        });
+      } else {
+        socket.destroy();
+      }
+    } catch {
+      socket.destroy();
     }
   });
 
-  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
+  console.log(`[TELEPHONY] WebSocket servers initialized (manual upgrade) for ${captionsPath} and ${mediaPath}`);
 
   // === WEBSOCKET HANDLERS ===
 
@@ -587,6 +594,6 @@ export function setupTelephony(app: Express, httpServer: Server) {
     }
   });
 
-  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
+  console.log(`[TELEPHONY] WebSocket servers initialized (manual upgrade) for ${captionsPath} and ${mediaPath}`);
   return { captionsWss, mediaWss };
 }
