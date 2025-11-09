@@ -14,6 +14,10 @@ export function AudioSettings() {
     const stored = localStorage.getItem('dtmf_sounds_enabled');
     return stored === null ? true : stored === 'true';
   });
+  const [captionsOn, setCaptionsOn] = useState<boolean>(() => {
+    const stored = localStorage.getItem('captions_enabled');
+    return stored === 'true';
+  });
 
   const loadDevices = async () => {
     try {
@@ -108,6 +112,23 @@ export function AudioSettings() {
             localStorage.setItem('dtmf_sounds_enabled', checked ? 'true' : 'false');
             // Notifica outros hooks pela StorageEvent
             window.dispatchEvent(new StorageEvent('storage', { key: 'dtmf_sounds_enabled', newValue: checked ? 'true' : 'false' } as any));
+          }}
+        />
+      </div>
+
+      {/* Legendas (Captions) */}
+      <div className="flex items-center justify-between bg-muted/30 rounded-lg border border-border p-3">
+        <div>
+          <div className="text-sm font-medium">Legendas (captions)</div>
+          <div className="text-xs text-muted-foreground">
+            Ative para conectar ao WebSocket de legendas durante a chamada.
+          </div>
+        </div>
+        <Switch
+          checked={captionsOn}
+          onCheckedChange={(checked) => {
+            setCaptionsOn(checked);
+            localStorage.setItem('captions_enabled', checked ? 'true' : 'false');
           }}
         />
       </div>
