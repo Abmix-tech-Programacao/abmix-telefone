@@ -52,7 +52,7 @@ export async function registerRoutes(app: Express) {
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({
-      status: 'ok',
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       port: process.env.PORT || 8080,
