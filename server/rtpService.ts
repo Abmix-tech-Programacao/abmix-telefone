@@ -1,5 +1,4 @@
 import dgram from 'dgram';
-import { RtpPacket } from 'rtp.js/packets';
 import { EventEmitter } from 'events';
 
 /**
@@ -133,8 +132,15 @@ class RTPService extends EventEmitter {
    */
   private handleIncomingRTP(msg: Buffer, rinfo: dgram.RemoteInfo): void {
     try {
-      // Create RtpPacket from buffer
-      const packet = new RtpPacket(msg as any);
+      // Parse RTP packet manually (SEM rtp.js)
+      // Validação básica sem usar rtp.js
+      if (!msg || msg.length < 12) {
+        return; // Silently ignore invalid packets
+      }
+
+      // Parse RTP header manualmente
+      const version = (msg[0] >> 6) & 0x03;
+      const payloadType = msg[1] & 0x7F;
       
       // Find session by remote address/port
       const session = Array.from(this.sessions.values()).find(
@@ -156,7 +162,7 @@ class RTPService extends EventEmitter {
         return;
       }
 
-      this.processAudioPacket(session, packet);
+      this.processAudioPacket(session, msg, payloadType);
 
     } catch (err) {
       console.error('[RTP] Failed to parse RTP packet:', err);
@@ -166,25 +172,22 @@ class RTPService extends EventEmitter {
   /**
    * Process audio from RTP packet
    */
-  private processAudioPacket(session: RTPSession, packet: RtpPacket): void {
-    const payloadData = packet.getPayload();
-    if (!payloadData || payloadData.byteLength === 0) {
+  private processAudioPacket(session: RTPSession, msg: Buffer, payloadType: number): void {
+    // Extract payload (skip 12-byte RTP header)
+    const payloadData = msg.slice(12);
+    if (!payloadData || payloadData.length === 0) {
       return;
     }
 
-    // Convert DataView to Buffer
-    const payloadBuffer = Buffer.from(payloadData.buffer, payloadData.byteOffset, payloadData.byteLength);
-
-    // Decode audio based on payload type
+    // Decode audio based on payload type (payloadData já é Buffer)
     let audioData: Buffer;
-    const payloadType = packet.getPayloadType();
     
     if (payloadType === 0) {
       // PCMU (G.711 μ-law)
-      audioData = this.decodePCMU(payloadBuffer);
+      audioData = this.decodePCMU(payloadData);
     } else if (payloadType === 8) {
       // PCMA (G.711 A-law)
-      audioData = this.decodePCMA(payloadBuffer);
+      audioData = this.decodePCMA(payloadData);
     } else {
       console.log(`[RTP] Unsupported payload type: ${payloadType}`);
       return;
@@ -223,28 +226,22 @@ class RTPService extends EventEmitter {
         return false;
       }
 
-      // Create RTP packet using constructor
-      const packet = new RtpPacket();
-      
-      // Set packet properties using setters
-      packet.setPayloadType(session.payloadType);
-      packet.setSequenceNumber(session.sequenceNumber++);
-      packet.setTimestamp(session.timestamp);
-      packet.setSsrc(session.ssrc);
-      packet.setMarker(false);
-      
-      // Set payload
-      packet.setPayload(encodedAudio as any);
+      // Create RTP header manually (12 bytes) - SEM rtp.js
+      const header = Buffer.alloc(12);
+      header[0] = 0x80; // Version 2, no padding, no extension, no CSRC
+      header[1] = session.payloadType; // Payload type
+      header.writeUInt16BE(session.sequenceNumber++, 2);
+      header.writeUInt32BE(session.timestamp, 4);
+      header.writeUInt32BE(session.ssrc, 8);
 
       // Update timestamp (160 samples per packet for 20ms at 8kHz)
       session.timestamp += 160;
 
-      // Serialize packet (updates internal buffer)
-      const byteLength = packet.getByteLength();
-      const buffer = Buffer.alloc(byteLength);
-      packet.serialize(buffer.buffer);
-      
-      this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
+      // Combine header + payload
+      const packet = Buffer.concat([header, encodedAudio]);
+
+      // Send packet
+      this.socket.send(packet, session.remotePort, session.remoteAddress, (err) => {
         if (err) {
           console.error('[RTP] Error sending packet:', err);
         }

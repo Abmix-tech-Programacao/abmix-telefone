@@ -98,7 +98,6 @@
     "react-icons": "^5.4.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.2",
-    "rtp.js": "^0.15.5",
     "sip": "^0.0.6",
     "sqlite3": "^5.1.7",
     "tailwind-merge": "^2.6.0",
