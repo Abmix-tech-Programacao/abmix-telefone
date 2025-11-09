@@ -25,6 +25,9 @@ class RTPService extends EventEmitter {
   private sessions: Map<string, RTPSession> = new Map();
   private port: number = 8000;
   private isRunning: boolean = false;
+  private inRtpCount: number = 0;
+  private outRtpCount: number = 0;
+  private statsTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     super();
@@ -61,6 +64,16 @@ class RTPService extends EventEmitter {
         const address = this.socket!.address();
         console.log(`[RTP] Server listening on ${address.address}:${address.port}`);
         this.isRunning = true;
+
+        // Periodic stats
+        if (this.statsTimer) clearInterval(this.statsTimer);
+        this.statsTimer = setInterval(() => {
+          if (!this.isRunning) return;
+          const active = this.getActiveSessions().length;
+          console.log(`[RTP] Stats: in=${this.inRtpCount} out=${this.outRtpCount} active_sessions=${active}`);
+          this.inRtpCount = 0;
+          this.outRtpCount = 0;
+        }, 5000);
         resolve();
       });
 
@@ -84,6 +97,10 @@ class RTPService extends EventEmitter {
         this.isRunning = false;
         this.socket = null;
         this.sessions.clear();
+        if (this.statsTimer) {
+          clearInterval(this.statsTimer);
+          this.statsTimer = null;
+        }
         resolve();
       });
     });
@@ -165,6 +182,7 @@ class RTPService extends EventEmitter {
       }
 
       this.processAudioPacket(session, packet);
+      this.inRtpCount++;
 
     } catch (err) {
       console.error('[RTP] Failed to parse RTP packet:', err);
@@ -257,6 +275,7 @@ class RTPService extends EventEmitter {
         }
       });
 
+      this.outRtpCount++;
       return true;
 
     } catch (err) {
