@@ -36,7 +36,7 @@ function App() {
         const response = await fetch('/api/health');
         const healthData = await response.json();
         
-        if (healthData.status === 'healthy') {
+        if (healthData.status === 'healthy' || healthData.status === 'ok') {
           // Backend is configured, skip setup
           localStorage.setItem('abmix_setup_complete', 'true');
           setIsSetupComplete(true);

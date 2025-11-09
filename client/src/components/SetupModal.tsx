@@ -33,7 +33,7 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
       const healthResponse = await fetch('/api/health');
       const healthData = await healthResponse.json();
 
-      if (healthData.status === 'healthy') {
+      if (healthData.status === 'healthy' || healthData.status === 'ok') {
         localStorage.setItem('abmix_setup_complete', 'true');
         toast({
           title: "Sistema Já Configurado",
