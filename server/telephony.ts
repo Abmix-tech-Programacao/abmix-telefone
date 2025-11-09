@@ -157,30 +157,16 @@ export function setupTelephony(app: Express, httpServer: Server) {
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
 
-  const ALLOWED_ORIGIN = process.env.PUBLIC_BASE_URL || 'https://telefone.abmix.tech';
-
-  const captionsWss = new WebSocketServer({ 
-    server: httpServer, 
+  const captionsWss = new WebSocketServer({
+    server: httpServer,
     path: captionsPath,
-    perMessageDeflate: false,
-    verifyClient: (info: any) => {
-      const origin = info.origin;
-      const ok = !origin || origin === ALLOWED_ORIGIN;
-      if (!ok) console.warn('[CAPTIONS_WS] Blocked origin:', origin);
-      return ok;
-    }
+    perMessageDeflate: false
   });
-  
-  const mediaWss = new WebSocketServer({ 
-    server: httpServer, 
+
+  const mediaWss = new WebSocketServer({
+    server: httpServer,
     path: mediaPath,
-    perMessageDeflate: false,
-    verifyClient: (info: any) => {
-      const origin = info.origin;
-      const ok = !origin || origin === ALLOWED_ORIGIN;
-      if (!ok) console.warn('[MEDIA_WS] Blocked origin:', origin);
-      return ok;
-    }
+    perMessageDeflate: false
   });
 
   console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
