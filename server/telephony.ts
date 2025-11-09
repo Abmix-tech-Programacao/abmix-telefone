@@ -104,9 +104,12 @@ export function setupTelephony(app: Express, httpServer: Server) {
   
   // Initialize RTP server for SIP audio
   rtpService.start(10000).then(() => {
-    console.log('[TELEPHONY] RTP server started on port 10000');
+    console.log('[TELEPHONY] ✅ RTP server started on port 10000');
+    console.log('[TELEPHONY] 🔊 UDP port 10000 MUST be open for audio to work');
+    console.log('[TELEPHONY] 📞 SIP port 6060 MUST be open for calls to work');
   }).catch((err) => {
-    console.error('[TELEPHONY] Failed to start RTP server:', err);
+    console.error('[TELEPHONY] ❌ CRITICAL: Failed to start RTP server:', err);
+    console.error('[TELEPHONY] 🚨 Check if UDP port 10000 is available!');
   });
 
   // Handle RTP audio events -> send to STT AND browser
