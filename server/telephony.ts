@@ -153,39 +153,37 @@ export function setupTelephony(app: Express, httpServer: Server) {
     rtpService.sendAudio(callId, audioBuffer, 8000);
   });
   
-  // WebSocket servers - upgrade manual (noServer) para contornar proxies que não fazem upgrade
+  // WebSocket servers - com path (Traefik faz o upgrade automaticamente)
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
 
-  const captionsWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
-  const mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  const ALLOWED_ORIGIN = process.env.PUBLIC_BASE_URL || 'https://telefone.abmix.tech';
 
-  // Upgrade manual por caminho (aceita basePath calculado e caminhos raiz)
-  httpServer.on('upgrade', (req: any, socket, head) => {
-    try {
-      const url = new URL(req.url || '/', 'http://upgrade.local');
-      const path = url.pathname;
-
-      const isMedia = path === mediaPath || path === '/media';
-      const isCaptions = path === captionsPath || path === '/captions';
-
-      if (isMedia) {
-        mediaWss.handleUpgrade(req, socket, head, (ws) => {
-          mediaWss.emit('connection', ws, req);
-        });
-      } else if (isCaptions) {
-        captionsWss.handleUpgrade(req, socket, head, (ws) => {
-          captionsWss.emit('connection', ws, req);
-        });
-      } else {
-        socket.destroy();
-      }
-    } catch {
-      socket.destroy();
+  const captionsWss = new WebSocketServer({ 
+    server: httpServer, 
+    path: captionsPath,
+    perMessageDeflate: false,
+    verifyClient: (info: any) => {
+      const origin = info.origin;
+      const ok = !origin || origin === ALLOWED_ORIGIN;
+      if (!ok) console.warn('[CAPTIONS_WS] Blocked origin:', origin);
+      return ok;
+    }
+  });
+  
+  const mediaWss = new WebSocketServer({ 
+    server: httpServer, 
+    path: mediaPath,
+    perMessageDeflate: false,
+    verifyClient: (info: any) => {
+      const origin = info.origin;
+      const ok = !origin || origin === ALLOWED_ORIGIN;
+      if (!ok) console.warn('[MEDIA_WS] Blocked origin:', origin);
+      return ok;
     }
   });
 
-  console.log(`[TELEPHONY] WebSocket servers initialized (manual upgrade) for ${captionsPath} and ${mediaPath}`);
+  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
 
   // === WEBSOCKET HANDLERS ===
 

@@ -75,14 +75,8 @@ export function Ringtone() {
 
     console.log(`[RINGTONE] Call state changed to: ${callState}`);
     
-    const mediaOpen = (window as any).__mediaOpen === true;
-
     if (callState === 'RINGING') {
       console.log('[RINGTONE] Starting ringtone...');
-      playRingtone();
-    } else if (callState === 'CONNECTED' && !mediaOpen) {
-      // Evitar parar cedo: manter tocando até mídia abrir
-      console.log('[RINGTONE] CONNECTED sem mídia pronta, mantendo ringtone...');
       playRingtone();
     } else {
       console.log('[RINGTONE] Stopping ringtone...');
