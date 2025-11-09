@@ -63,14 +63,41 @@ export function AudioPlayer() {
         document.addEventListener('touchstart', onUserInteract, { once: true });
       }
 
-      // Conectar WebSocket para receber áudio RTP
+      // Conectar WebSocket para receber áudio RTP (tenta /media, depois /ws-media)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/media`;
-      
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+      const tryPaths = ['/media', '/ws-media'];
 
-      ws.onopen = () => {
+      const openWithFallback = (paths: string[]) => {
+        if (paths.length === 0) {
+          console.error('[AUDIO_PLAYER] ❌ Falha ao abrir WS em todas as rotas');
+          return;
+        }
+        const path = paths.shift()!;
+        const url = `${protocol}//${window.location.host}${path}`;
+        console.log('[AUDIO_PLAYER] 🌐 Tentando WS em', url);
+        const ws = new WebSocket(url);
+        wsRef.current = ws;
+        let opened = false;
+
+        ws.onopen = () => {
+          opened = true;
+          console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP em', path);
+          onWsOpen();
+        };
+        ws.onmessage = onWsMessage;
+        ws.onclose = () => {
+          (window as any).__mediaOpen = false;
+          if (!opened && paths.length > 0) {
+            // tentar próximo path
+            openWithFallback(paths);
+          }
+        };
+        ws.onerror = () => {
+          console.warn('[AUDIO_PLAYER] WS erro em', path);
+        };
+      };
+
+      const onWsOpen = () => {
         console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP');
         (window as any).__mediaOpen = true;
 
@@ -101,11 +128,7 @@ export function AudioPlayer() {
         }
       };
 
-      ws.onclose = () => {
-        (window as any).__mediaOpen = false;
-      };
-
-      ws.onmessage = async (event) => {
+      const onWsMessage = async (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
           
@@ -150,9 +173,8 @@ export function AudioPlayer() {
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('[AUDIO_PLAYER] ❌ Erro WebSocket:', error);
-      };
+      // inicia tentativa de conexão
+      openWithFallback([...try.$(tryPaths)]);
 
     } catch (error) {
       console.error('[AUDIO_PLAYER] ❌ Erro ao conectar stream:', error);

@@ -195,14 +195,14 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
   });
 
-  // Handle media WebSocket connections from Twilio
-  mediaWss.on('connection', (ws, req) => {
+  // Handle media WebSocket connections from browser/Twilio
+  const onMediaConnection = (ws: any, req: any) => {
     console.log('[MEDIA] Twilio media stream connected');
     
     let callSid: string | null = null;
     let streamSid: string | null = null;
 
-    ws.on('message', (message) => {
+    ws.on('message', (message: any) => {
       try {
         const data = JSON.parse(message.toString());
         
@@ -278,9 +278,18 @@ export function setupTelephony(app: Express, httpServer: Server) {
       }
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', (error: any) => {
       console.error('[MEDIA] Media stream error:', error);
     });
+  };
+  mediaWss.on('connection', onMediaConnection);
+
+  // Alternate WS path to avoid intermediaries eating '/media'
+  const mediaAltPath = '/ws-media';
+  const mediaAltWss = new WebSocketServer({ server: httpServer, path: mediaAltPath, perMessageDeflate: false });
+  mediaAltWss.on('connection', (ws, req) => {
+    console.log('[MEDIA_ALT] Media alt path connected');
+    onMediaConnection(ws, req);
   });
 
   // Forward STT results to captions WebSocket
