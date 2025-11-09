@@ -27,6 +27,27 @@ const upload = multer({
 export async function registerRoutes(app: Express) {
   // Initialize database
   initDatabase();
+  
+  // Auto-cadastrar número FaleVono se não existir
+  try {
+    const numbers = queries.getAllVoipNumbers.all();
+    if (numbers.length === 0) {
+      console.log('[ROUTES] Auto-cadastrando número FaleVono...');
+      queries.addVoipNumber.run(
+        'Cel _Sp',
+        '11920838833',
+        'falevono',
+        'Felipe_Manieri',
+        null, // password vem de env
+        'vono2.me',
+        1, // is_default
+        'active'
+      );
+      console.log('[ROUTES] ✅ Número FaleVono cadastrado automaticamente!');
+    }
+  } catch (error) {
+    console.error('[ROUTES] Erro ao cadastrar número:', error);
+  }
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {
