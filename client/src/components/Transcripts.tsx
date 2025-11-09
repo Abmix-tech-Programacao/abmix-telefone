@@ -1,36 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
 import { format } from 'date-fns';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 export function Transcripts() {
   const { transcripts, callState } = useCallStore();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showTranscripts, setShowTranscripts] = useState(() => {
-    const saved = localStorage.getItem('showTranscripts');
-    return saved ? JSON.parse(saved) : true;
-  });
 
   // Auto-scroll to bottom when new transcripts arrive
   useEffect(() => {
-    if (containerRef.current && showTranscripts) {
+    if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [transcripts, showTranscripts]);
-
-  // Save preference to localStorage
-  useEffect(() => {
-    localStorage.setItem('showTranscripts', JSON.stringify(showTranscripts));
-  }, [showTranscripts]);
+  }, [transcripts]);
 
   const getSpeakerConfig = (speaker: string) => {
     const configs = {
       'AI': {
-        bgColor: 'bg-abmix-green',
-        textColor: 'text-abmix-green',
+        bgColor: 'bg-primary',
+        textColor: 'text-primary',
         icon: 'fas fa-robot',
-        iconColor: 'text-black',
+        iconColor: 'text-primary-foreground',
       },
       'Human': {
         bgColor: 'bg-orange-600',
@@ -56,47 +45,30 @@ export function Transcripts() {
     <div className="bg-dark-surface rounded-xl p-6 border border-dark-border h-fit flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Legendas (PT-BR)</h3>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="show-transcripts"
-              checked={showTranscripts}
-              onCheckedChange={setShowTranscripts}
-              data-testid="toggle-transcripts"
-            />
-            <Label 
-              htmlFor="show-transcripts" 
-              className="text-sm text-gray-400 cursor-pointer"
-            >
-              {showTranscripts ? 'Mostrar' : 'Ocultar'}
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className={`w-2 h-2 rounded-full ${callState === 'CONNECTED' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-            <span className="text-sm text-gray-400">
-              {callState === 'CONNECTED' ? 'Ativo' : 'Inativo'}
-            </span>
-          </div>
+        <div className="flex items-center space-x-2">
+          <div className={`w-2 h-2 rounded-full ${callState === 'CONNECTED' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+          <span className="text-sm text-gray-400">
+            {callState === 'CONNECTED' ? 'Ativo' : 'Inativo'}
+          </span>
         </div>
       </div>
 
-      {showTranscripts ? (
-        <div 
-          ref={containerRef}
-          className="flex-1 space-y-4 overflow-y-auto max-h-96"
-          data-testid="transcripts-container"
-        >
-          {transcripts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400">
-              <i className="fas fa-comments text-4xl mb-3 opacity-50"></i>
-              <p className="text-center">
-                {callState === 'CONNECTED' 
-                  ? 'Aguardando transcrições...' 
-                  : 'Inicie uma chamada para ver as transcrições'
-                }
-              </p>
-            </div>
-          ) : (
+      <div 
+        ref={containerRef}
+        className="flex-1 space-y-4 overflow-y-auto max-h-96"
+        data-testid="transcripts-container"
+      >
+        {transcripts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-gray-400">
+            <i className="fas fa-comments text-4xl mb-3 opacity-50"></i>
+            <p className="text-center">
+              {callState === 'CONNECTED' 
+                ? 'Aguardando transcrições...' 
+                : 'Inicie uma chamada para ver as transcrições'
+              }
+            </p>
+          </div>
+        ) : (
           transcripts.map((transcript, index) => {
             const speakerConfig = getSpeakerConfig(transcript.speaker);
             
@@ -142,19 +114,8 @@ export function Transcripts() {
               </div>
             );
           })
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-          <i className="fas fa-eye-slash text-4xl mb-3 opacity-50"></i>
-          <p className="text-center">
-            Legendas ocultas
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            (Transcrição continua ativa em segundo plano)
-          </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

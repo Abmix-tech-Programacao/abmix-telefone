@@ -60,11 +60,8 @@ function resolveWebSocketBasePath(): string {
   return candidate === '/' ? '' : candidate;
 }
 
-const WS_BASE_PATH = resolveWebSocketBasePath();
-const buildWsPath = (suffix: string) => {
-  const normalizedSuffix = suffix.startsWith('/') ? suffix : `/${suffix}`;
-  return WS_BASE_PATH ? `${WS_BASE_PATH}${normalizedSuffix}` : normalizedSuffix;
-};
+// Forçar caminhos WS SEM prefixo para evitar interferência de proxies/variáveis
+const buildWsPath = (suffix: string) => (suffix.startsWith('/') ? suffix : `/${suffix}`);
 
 // Active calls and sessions tracking
 const activeCalls = new Map();
@@ -156,6 +153,8 @@ export function setupTelephony(app: Express, httpServer: Server) {
   // WebSocket servers - com path (Traefik faz o upgrade automaticamente)
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
+  const mediaAltPath = '/ws-media';
+  console.log(`[TELEPHONY] WS paths -> captions=${captionsPath}, media=${mediaPath}, alt=${mediaAltPath}`);
 
   const captionsWss = new WebSocketServer({
     server: httpServer,
@@ -285,7 +284,6 @@ export function setupTelephony(app: Express, httpServer: Server) {
   mediaWss.on('connection', onMediaConnection);
 
   // Alternate WS path to avoid intermediaries eating '/media'
-  const mediaAltPath = '/ws-media';
   const mediaAltWss = new WebSocketServer({ server: httpServer, path: mediaAltPath, perMessageDeflate: false });
   mediaAltWss.on('connection', (ws, req) => {
     console.log('[MEDIA_ALT] Media alt path connected');

@@ -2,55 +2,40 @@
 import { Request, Response } from 'express';
 
 export function setupHealthCheck(app: any) {
-  // Endpoint para verificar saúde do sistema (Docker health check)
+  // Endpoint para verificar se as chaves estão configuradas
   app.get('/api/health', (req: Request, res: Response) => {
-    // Health check simples para Docker/Kubernetes
-    res.status(200).json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
-    });
-  });
-
-  // Endpoint detalhado para verificar configuração (uso interno)
-  app.get('/api/health/detailed', (req: Request, res: Response) => {
     const requiredEnvVars = [
       'ELEVENLABS_API_KEY',
-      'DEEPGRAM_API_KEY',
-      'FALEVONO_PASSWORD'
+      'OPENAI_API_KEY'
     ];
 
-    const optionalEnvVars: string[] = [];
-
     const envStatus: { [key: string]: boolean } = {};
-    const missingRequired: string[] = [];
+    const missingVars: string[] = [];
 
     requiredEnvVars.forEach(envVar => {
       const isPresent = !!process.env[envVar];
       envStatus[envVar] = isPresent;
       
       if (!isPresent) {
-        missingRequired.push(envVar);
+        missingVars.push(envVar);
       }
     });
 
-    optionalEnvVars.forEach(envVar => {
-      envStatus[envVar] = !!process.env[envVar];
-    });
+    // Track optional variables too
+    envStatus['DEEPGRAM_API_KEY'] = !!process.env.DEEPGRAM_API_KEY;
 
-    const isHealthy = missingRequired.length === 0;
+    const allPresent = missingVars.length === 0;
 
     res.json({
-      status: isHealthy ? 'healthy' : 'unhealthy',
+      status: allPresent ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      missing_required: missingRequired,
+      replit_domain: process.env.REPLIT_DEV_DOMAIN,
+      missing_variables: missingVars,
       variables_status: envStatus,
-      message: isHealthy 
-        ? 'Todas as variáveis obrigatórias estão configuradas' 
-        : `${missingRequired.length} variáveis obrigatórias faltando: ${missingRequired.join(', ')}`
+      message: allPresent 
+        ? 'Todas as variáveis estão configuradas' 
+        : `${missingVars.length} variáveis faltando: ${missingVars.join(', ')}`
     });
   });
 
@@ -80,7 +65,7 @@ export function setupHealthCheck(app: any) {
     }
 
 
-    // Teste Deepgram
+    // Teste Deepgram (opcional)
     try {
       const deepgramKey = process.env.DEEPGRAM_API_KEY;
       if (!deepgramKey) {
@@ -101,7 +86,29 @@ export function setupHealthCheck(app: any) {
       };
     }
 
-    const allValid = Object.values(results).every(result => result.valid);
+    // Teste OpenAI
+    try {
+      const openaiKey = process.env.OPENAI_API_KEY;
+      if (!openaiKey) {
+        results.openai = { valid: false, error: 'API key not found' };
+      } else {
+        const response = await fetch('https://api.openai.com/v1/models', {
+          headers: { 'Authorization': `Bearer ${openaiKey}` }
+        });
+        results.openai = { 
+          valid: response.ok,
+          error: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`
+        };
+      }
+    } catch (error) {
+      results.openai = { 
+        valid: false, 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+
+    const allValid = ['elevenlabs', 'openai']
+      .every((k) => results[k]?.valid === true);
 
     res.json({
       status: allValid ? 'all_valid' : 'some_invalid',

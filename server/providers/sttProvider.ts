@@ -8,6 +8,9 @@ export class STTProvider extends EventEmitter {
   constructor() {
     super();
     this.apiKey = process.env.DEEPGRAM_API_KEY || process.env.DEEPGRAM_KEY || "";
+    if (!this.apiKey) {
+      console.warn('[STT] Deepgram API key not found - STT will be limited to ElevenLabs only');
+    }
   }
 
   async startStreaming(callId: string): Promise<void> {

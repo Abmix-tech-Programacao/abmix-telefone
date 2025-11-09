@@ -1,7 +1,6 @@
 import WebSocket from 'ws';
 import { EventEmitter } from 'events';
 import { queries } from './database';
-import fetch from 'node-fetch';
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const ELEVENLABS_WS_URL = 'wss://api.elevenlabs.io/v1/text-to-speech';
@@ -24,28 +23,21 @@ class ElevenLabsService extends EventEmitter {
   }
 
   // Get voice configuration from database
-  private getVoiceConfig(voiceType: 'masc' | 'fem' | 'natural') {
-    const voiceIdKey = voiceType === 'masc' ? 'VOZ_MASC_ID' : 
-                        voiceType === 'fem' ? 'VOZ_FEM_ID' : 'VOZ_NATURAL_ID';
+  private getVoiceConfig(voiceType: 'masc' | 'fem') {
+    const voiceIdKey = voiceType === 'masc' ? 'VOZ_MASC_ID' : 'VOZ_FEM_ID';
     const modelKey = 'MODELO';
     
     const voiceIdResult = queries.getSetting.get(voiceIdKey) as { value: string } | undefined;
     const modelResult = queries.getSetting.get(modelKey) as { value: string } | undefined;
     
-    const defaultVoices = {
-      masc: 'pNInz6obpgDQGcFmaJgB',
-      fem: 'EXAVITQu4vr4xnSDxMaL',
-      natural: 'onwK4e9ZLuTAKqWW03F9' // Daniel - neutral natural voice
-    };
-    
-    const voiceId = voiceIdResult?.value || defaultVoices[voiceType];
+    const voiceId = voiceIdResult?.value || 'pNInz6obpgDQGcFmaJgB';
     const model = modelResult?.value || 'eleven_multilingual_v2'; // Modelo mais natural
     
     return { voiceId, model };
   }
 
   // Start TTS session
-  async startTTSSession(sessionId: string, voiceType: 'masc' | 'fem' | 'natural'): Promise<boolean> {
+  async startTTSSession(sessionId: string, voiceType: 'masc' | 'fem'): Promise<boolean> {
     try {
       const { voiceId, model } = this.getVoiceConfig(voiceType);
       
@@ -74,17 +66,17 @@ class ElevenLabsService extends EventEmitter {
         ws.send(JSON.stringify({
           text: " ",
           voice_settings: {
-            stability: 0.35,
-            similarity_boost: 0.95,
-            style: 0.15,
-            use_speaker_boost: true
+            stability: 0.35,        // Mais emotivo e natural
+            similarity_boost: 0.95, // Máxima similaridade
+            style: 0.15,           // Estilo sutil para naturalidade  
+            use_speaker_boost: true // Para clareza máxima
           },
           generation_config: {
             chunk_length_schedule: [120, 160, 250, 290]
           },
-          optimize_streaming_latency: 0,
-          // Alinha com Twilio Media Stream (8kHz μ-law/PCM)
-          output_format: "pcm_8000"
+          // Configurações adicionais para reduzir robotização
+          optimize_streaming_latency: 0, // Prioriza qualidade sobre velocidade
+          output_format: "pcm_22050"     // Formato otimizado para streaming
         }));
 
         this.emit('tts-session-ready', sessionId);
@@ -102,7 +94,7 @@ class ElevenLabsService extends EventEmitter {
             const latency = Date.now() - startTime;
             this.recordLatency(latency);
             
-            // Emit audio data for Twilio
+            // Emit audio data for VoIP providers
             this.emit('tts-audio', sessionId, Buffer.from(message.audio, 'base64'));
           }
           
@@ -182,45 +174,14 @@ class ElevenLabsService extends EventEmitter {
     }
   }
 
-  // Generate ElevenLabs WebSocket token
-  private async generateElevenLabsToken(): Promise<string | null> {
-    try {
-      const response = await fetch('https://api.elevenlabs.io/v1/convai/conversation/token', {
-        method: 'POST',
-        headers: {
-          'xi-api-key': ELEVENLABS_API_KEY!,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        console.error(`[ELEVENLABS] Failed to generate token: ${response.status}`);
-        return null;
-      }
-
-      const data: any = await response.json();
-      return data.token;
-    } catch (error) {
-      console.error('[ELEVENLABS] Error generating ElevenLabs token:', error);
-      return null;
-    }
-  }
-
   // Start STT session for captions
   async startSTTSession(): Promise<WebSocket | null> {
     try {
       console.log('[ELEVENLABS] Starting STT session for captions');
       
-      // Generate token for STT authentication
-      const sttToken = await this.generateElevenLabsToken();
-      if (!sttToken) {
-        console.error('[ELEVENLABS] Failed to get STT token');
-        return null;
-      }
-      
       const sttWs = new WebSocket('wss://api.elevenlabs.io/v1/speech-to-text/stream', {
         headers: {
-          'Authorization': `Bearer ${sttToken}`
+          'xi-api-key': ELEVENLABS_API_KEY
         }
       });
 
@@ -287,7 +248,7 @@ class ElevenLabsService extends EventEmitter {
         throw new Error(`ElevenLabs API error: ${response.status}`);
       }
 
-      const data: any = await response.json();
+      const data = await response.json();
       return data.voices || [];
 
     } catch (error) {

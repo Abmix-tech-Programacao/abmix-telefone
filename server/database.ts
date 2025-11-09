@@ -34,15 +34,33 @@ export function initDatabase() {
     )
   `);
 
+  // VoIP Numbers table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS voip_numbers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      number TEXT NOT NULL UNIQUE,
+      provider TEXT NOT NULL,
+      name TEXT NOT NULL,
+      account_id TEXT,
+      password TEXT,
+      server TEXT,
+      is_active BOOLEAN DEFAULT true,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Calls table
   db.exec(`
     CREATE TABLE IF NOT EXISTS calls (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       to_number TEXT NOT NULL,
       from_number TEXT,
+      from_number_id INTEGER,
       started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       ended_at DATETIME,
-      status TEXT DEFAULT 'initiated'
+      status TEXT DEFAULT 'initiated',
+      FOREIGN KEY (from_number_id) REFERENCES voip_numbers(id)
     )
   `);
 
@@ -52,7 +70,7 @@ export function initDatabase() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       phone_e164 TEXT NOT NULL,
-      voice_type TEXT DEFAULT 'masc' CHECK(voice_type IN ('masc', 'fem', 'natural')),
+      voice_type TEXT DEFAULT 'masc' CHECK(voice_type IN ('masc', 'fem')),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(phone_e164)
     )
@@ -78,80 +96,10 @@ export function initDatabase() {
     )
   `);
 
-  // VoIP Numbers table for managing multiple phone numbers
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS voip_numbers (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      number TEXT NOT NULL UNIQUE,
-      provider TEXT NOT NULL CHECK(provider IN ('falevono')),
-      sip_username TEXT,
-      sip_password TEXT,
-      sip_server TEXT,
-      sip_port INTEGER DEFAULT 5060,
-      sip_ips TEXT,
-      is_default BOOLEAN DEFAULT false,
-      status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Agent Sessions table for AI conversation sessions
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS agent_sessions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      call_id TEXT NOT NULL UNIQUE,
-      system_prompt TEXT NOT NULL,
-      temperature REAL DEFAULT 0.7,
-      max_tokens INTEGER DEFAULT 150,
-      status TEXT DEFAULT 'active' CHECK(status IN ('active', 'paused', 'ended')),
-      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      ended_at DATETIME
-    )
-  `);
-
-  // Agent Messages table for conversation history
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS agent_messages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id INTEGER NOT NULL,
-      role TEXT NOT NULL CHECK(role IN ('system', 'user', 'assistant')),
-      content TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (session_id) REFERENCES agent_sessions(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Effect Presets table for audio effects
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS effect_presets (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
-      noise_reduction BOOLEAN DEFAULT false,
-      equalization TEXT,
-      gain REAL DEFAULT 1.0,
-      normalization BOOLEAN DEFAULT false,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  // Codec Preferences table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS codec_preferences (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      codec_name TEXT NOT NULL UNIQUE,
-      priority INTEGER NOT NULL,
-      enabled BOOLEAN DEFAULT true,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
   // Insert default settings if they don't exist
   const defaultSettings = [
     { key: 'VOZ_MASC_ID', value: 'pNInz6obpgDQGcFmaJgB' }, // Default ElevenLabs voice
     { key: 'VOZ_FEM_ID', value: 'EXAVITQu4vr4xnSDxMaL' }, // Default ElevenLabs voice
-    { key: 'VOZ_NATURAL_ID', value: 'onwK4e9ZLuTAKqWW03F9' }, // Natural voice - Daniel (neutral, clear)
     { key: 'MODELO', value: 'eleven_multilingual_v2' }, // Modelo mais natural
     { key: 'VELOCIDADE', value: '1.0' },
     { key: 'ESTILO', value: 'neutro' },
@@ -170,36 +118,31 @@ export function initDatabase() {
     insertSetting.run(setting.key, setting.value);
   }
 
-  // Insert default FaleVono number from environment variables
-  const faleVonoPassword = process.env.FALEVONO_PASSWORD;
-  const sipUsername = process.env.SIP_USERNAME || 'Felipe_Manieri';
-  const voipNumber = process.env.VOIP_NUMBER || '+5511920838833';
+  // Add default SobreIP number for user
+  const insertNumber = db.prepare('INSERT OR IGNORE INTO voip_numbers (number, provider, name, account_id, password, server, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)');
   
-  if (faleVonoPassword) {
-    const insertVoipNumber = db.prepare(`
-      INSERT OR IGNORE INTO voip_numbers 
-      (name, number, provider, sip_username, sip_password, sip_server, is_default, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    
-    try {
-      insertVoipNumber.run(
-        'FaleVono - SP',
-        voipNumber,
-        'falevono',
-        sipUsername,
-        faleVonoPassword,
-        'vono2.me',
-        true,
-        'active'
-      );
-      console.log('[DB] FaleVono number configured');
-    } catch (error) {
-      console.log('[DB] FaleVono number already exists');
-    }
-  }
+  const defaultNumber = {
+    number: '+5511951944022',
+    provider: 'sobreip',
+    name: 'SP Principal',
+    account_id: '1151944022',
+    password: '3yxnn',
+    server: 'voz.sobreip.com.br',
+    is_active: true
+  };
+
+  insertNumber.run(
+    defaultNumber.number,
+    defaultNumber.provider, 
+    defaultNumber.name,
+    defaultNumber.account_id,
+    defaultNumber.password,
+    defaultNumber.server,
+    defaultNumber.is_active ? 1 : 0
+  );
 
   console.log('[DB] Database initialized successfully');
+  console.log('[DB] Default SobreIP number added: +5511951944022');
 }
 
 // Initialize on import
@@ -215,7 +158,6 @@ export const queries = {
   // Favorites
   getAllFavorites: db.prepare('SELECT * FROM favorites ORDER BY name ASC'),
   addFavorite: db.prepare('INSERT INTO favorites (name, phone_e164, voice_type) VALUES (?, ?, ?)'),
-  updateFavorite: db.prepare('UPDATE favorites SET name = ?, phone_e164 = ?, voice_type = ? WHERE id = ?'),
   removeFavorite: db.prepare('DELETE FROM favorites WHERE id = ?'),
   
   // Recordings
@@ -228,38 +170,20 @@ export const queries = {
   deleteRecording: db.prepare('DELETE FROM recordings WHERE id = ?'),
   
   // Calls
-  addCall: db.prepare('INSERT INTO calls (to_number, from_number, status) VALUES (?, ?, ?)'),
+  addCall: db.prepare('INSERT INTO calls (to_number, from_number, status, from_number_id) VALUES (?, ?, ?, ?)'),
   updateCallStatus: db.prepare('UPDATE calls SET status = ?, ended_at = CURRENT_TIMESTAMP WHERE id = ?'),
   
   // Prompts
   addPrompt: db.prepare('INSERT INTO prompts (call_sid, prompt_text, applied) VALUES (?, ?, ?)'),
   getPromptsByCallSid: db.prepare('SELECT * FROM prompts WHERE call_sid = ? ORDER BY created_at DESC'),
-  
+
   // VoIP Numbers
-  getAllVoipNumbers: db.prepare('SELECT * FROM voip_numbers ORDER BY is_default DESC, name ASC'),
-  getVoipNumberById: db.prepare('SELECT * FROM voip_numbers WHERE id = ?'),
+  getAllVoipNumbers: db.prepare('SELECT * FROM voip_numbers ORDER BY name ASC'),
+  getActiveVoipNumbers: db.prepare('SELECT * FROM voip_numbers WHERE is_active = 1 ORDER BY name ASC'),
+  getVoipNumber: db.prepare('SELECT * FROM voip_numbers WHERE id = ?'),
   getVoipNumberByNumber: db.prepare('SELECT * FROM voip_numbers WHERE number = ?'),
-  getDefaultVoipNumber: db.prepare('SELECT * FROM voip_numbers WHERE is_default = true LIMIT 1'),
-  addVoipNumber: db.prepare('INSERT INTO voip_numbers (name, number, provider, sip_username, sip_password, sip_server, is_default, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'),
-  updateVoipNumber: db.prepare('UPDATE voip_numbers SET name = ?, number = ?, provider = ?, sip_username = ?, sip_password = ?, sip_server = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'),
-  setDefaultVoipNumber: db.prepare('UPDATE voip_numbers SET is_default = CASE WHEN id = ? THEN true ELSE false END'),
+  addVoipNumber: db.prepare('INSERT INTO voip_numbers (number, provider, name, account_id, password, server, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)'),
+  updateVoipNumber: db.prepare('UPDATE voip_numbers SET number = ?, provider = ?, name = ?, account_id = ?, password = ?, server = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'),
   deleteVoipNumber: db.prepare('DELETE FROM voip_numbers WHERE id = ?'),
-
-  // Agent Sessions
-  createAgentSession: db.prepare('INSERT INTO agent_sessions (call_id, system_prompt, temperature, max_tokens, status) VALUES (?, ?, ?, ?, ?)'),
-  getAgentSessionByCallId: db.prepare('SELECT * FROM agent_sessions WHERE call_id = ?'),
-  updateAgentSessionStatus: db.prepare('UPDATE agent_sessions SET status = ?, ended_at = CURRENT_TIMESTAMP WHERE call_id = ?'),
-  updateAgentSessionPrompt: db.prepare('UPDATE agent_sessions SET system_prompt = ? WHERE call_id = ?'),
-
-  // Agent Messages
-  addAgentMessage: db.prepare('INSERT INTO agent_messages (session_id, role, content) VALUES (?, ?, ?)'),
-  getAgentMessagesBySessionId: db.prepare('SELECT * FROM agent_messages WHERE session_id = ? ORDER BY created_at ASC'),
-  
-  // Effect Presets
-  getAllEffectPresets: db.prepare('SELECT * FROM effect_presets ORDER BY name ASC'),
-  addEffectPreset: db.prepare('INSERT INTO effect_presets (name, noise_reduction, equalization, gain, normalization) VALUES (?, ?, ?, ?, ?)'),
-  
-  // Codec Preferences
-  getAllCodecPreferences: db.prepare('SELECT * FROM codec_preferences ORDER BY priority ASC'),
-  addCodecPreference: db.prepare('INSERT INTO codec_preferences (codec_name, priority, enabled) VALUES (?, ?, ?)')
+  toggleVoipNumberStatus: db.prepare('UPDATE voip_numbers SET is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
 };

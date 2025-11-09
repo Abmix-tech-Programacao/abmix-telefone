@@ -11,7 +11,23 @@ export function LivePrompt() {
   const { livePrompt, setLivePrompt, currentCallId } = useCallStore();
 
   const applyPromptMutation = useMutation({
-    mutationFn: () => api.injectPrompt(currentCallId!, livePrompt),
+    mutationFn: async () => {
+      const response = await fetch('/api/ai/prompt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: livePrompt,
+          type: 'direct'
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to send prompt');
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "Prompt aplicado",
@@ -29,15 +45,6 @@ export function LivePrompt() {
   });
 
   const handleApplyPrompt = () => {
-    if (!currentCallId) {
-      toast({
-        title: "Nenhuma chamada ativa",
-        description: "Inicie uma chamada para aplicar prompts",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!livePrompt.trim()) {
       toast({
         title: "Prompt vazio",
@@ -47,6 +54,7 @@ export function LivePrompt() {
       return;
     }
 
+    // Prompt funciona mesmo sem chamada ativa (para teste)
     applyPromptMutation.mutate();
   };
 
@@ -78,8 +86,8 @@ export function LivePrompt() {
         <div className="space-y-3">
           <Button
             onClick={handleApplyPrompt}
-            disabled={!currentCallId || !livePrompt.trim() || applyPromptMutation.isPending}
-            className="w-full bg-abmix-green text-black font-semibold py-3 rounded-lg hover:bg-abmix-green/90 transition-colors"
+            disabled={!livePrompt.trim() || applyPromptMutation.isPending}
+            className="w-full"
             data-testid="apply-prompt-button"
           >
             <i className="fas fa-magic mr-2"></i>

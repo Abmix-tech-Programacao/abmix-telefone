@@ -6,11 +6,10 @@ interface CallState {
   callState: 'IDLE' | 'RINGING' | 'CONNECTED' | 'ENDED';
   currentCallId: string | null;
   recordingSid: string | null;
-  voiceType: 'masc' | 'fem' | 'natural' | 'none';
+  voiceType: string;
   aiActive: boolean;
   latency: number;
-  micLevel: number;
-  speakerLevel: number;
+  audioLevel: number;
   phoneNumber: string;
   
   // Transcripts
@@ -23,17 +22,16 @@ interface CallState {
   isRecording: boolean;
   livePrompt: string;
   selectedProvider: string;
-  activeView: 'discagem' | 'vozes' | 'chamadas' | 'favoritos' | 'gravacoes' | 'configuracoes' | 'numeros';
+  activeView: 'discagem' | 'vozes' | 'enhancer' | 'audio' | 'chamadas' | 'favoritos' | 'gravacoes' | 'configuracoes';
   
   // Actions
   setCallState: (state: 'IDLE' | 'RINGING' | 'CONNECTED' | 'ENDED') => void;
   setCurrentCallId: (callId: string | null) => void;
   setRecordingSid: (sid: string | null) => void;
-  setVoiceType: (type: 'masc' | 'fem' | 'natural' | 'none') => void;
+  setVoiceType: (type: string) => void;
   setAiActive: (active: boolean) => void;
   setLatency: (latency: number) => void;
-  setMicLevel: (level: number) => void;
-  setSpeakerLevel: (level: number) => void;
+  setAudioLevel: (level: number) => void;
   setPhoneNumber: (number: string) => void;
   appendToPhoneNumber: (digit: string) => void;
   clearPhoneNumber: () => void;
@@ -44,7 +42,7 @@ interface CallState {
   setIsRecording: (recording: boolean) => void;
   setLivePrompt: (prompt: string) => void;
   setSelectedProvider: (provider: string) => void;
-  setActiveView: (view: 'discagem' | 'vozes' | 'chamadas' | 'favoritos' | 'gravacoes' | 'configuracoes' | 'numeros') => void;
+  setActiveView: (view: 'discagem' | 'vozes' | 'enhancer' | 'audio' | 'chamadas' | 'favoritos' | 'gravacoes' | 'configuracoes') => void;
 }
 
 export const useCallStore = create<CallState>((set, get) => ({
@@ -52,17 +50,16 @@ export const useCallStore = create<CallState>((set, get) => ({
   callState: 'IDLE',
   currentCallId: null,
   recordingSid: null,
-  voiceType: 'none',
+  voiceType: 'masc',
   aiActive: false,
   latency: 0,
-  micLevel: 0,
-  speakerLevel: 0,
+  audioLevel: 0,
   phoneNumber: '',
   transcripts: [],
   favorites: [],
   isRecording: false,
   livePrompt: '',
-  selectedProvider: 'falevono',
+  selectedProvider: 'voip',
   activeView: 'discagem',
   
   // Actions
@@ -72,8 +69,7 @@ export const useCallStore = create<CallState>((set, get) => ({
   setVoiceType: (type) => set({ voiceType: type }),
   setAiActive: (active) => set({ aiActive: active }),
   setLatency: (latency) => set({ latency }),
-  setMicLevel: (level) => set({ micLevel: level }),
-  setSpeakerLevel: (level) => set({ speakerLevel: level }),
+  setAudioLevel: (level) => set({ audioLevel: level }),
   setPhoneNumber: (number) => set({ phoneNumber: number }),
   appendToPhoneNumber: (digit) => set(state => ({ 
     phoneNumber: state.phoneNumber + digit 

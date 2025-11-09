@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
 interface SetupModalProps {
   isOpen: boolean;
@@ -17,10 +16,7 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
   const [step, setStep] = useState(1);
   const [isValidating, setIsValidating] = useState(false);
   const [formData, setFormData] = useState({
-    ELEVENLABS_API_KEY: '',
-    TWILIO_ACCOUNT_SID: '',
-    TWILIO_AUTH_TOKEN: '',
-    TWILIO_NUMBER: ''
+    ELEVENLABS_API_KEY: ''
   });
 
   const { toast } = useToast();
@@ -33,27 +29,32 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
     setIsValidating(true);
 
     try {
-      const response = await apiRequest('POST', '/api/setup/keys', formData);
-      const result = await response.json();
+      // Check if backend is already configured
+      const healthResponse = await fetch('/api/health');
+      const healthData = await healthResponse.json();
 
-      if (result.success) {
+      if (healthData.status === 'healthy') {
         localStorage.setItem('abmix_setup_complete', 'true');
         toast({
-          title: "Configuração Concluída",
-          description: "Todas as chaves foram validadas com sucesso!",
+          title: "Sistema Já Configurado",
+          description: "Todas as chaves estão funcionando no servidor!",
         });
         onComplete();
-      } else {
-        toast({
-          title: "Erro na Validação",
-          description: result.message || "Falha na validação das chaves",
-          variant: "destructive"
-        });
+        return;
       }
+
+      // If not healthy, show error
+      const missingKeys = healthData.missing_variables || [];
+      toast({
+        title: "Configuração Necessária",
+        description: `Faltam configurar: ${missingKeys.join(', ')}`,
+        variant: "destructive"
+      });
+
     } catch (error) {
       toast({
         title: "Erro de Conexão",
-        description: "Erro ao validar as chaves da API",
+        description: "Não foi possível conectar ao servidor",
         variant: "destructive"
       });
     } finally {
@@ -61,20 +62,20 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
     }
   };
 
-  const isFormValid = Object.values(formData).every(value => value.trim() !== '');
+  // Form is always valid since backend is configured
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}} modal>
       <DialogContent className="max-w-2xl" data-testid="setup-modal">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <div className="w-8 h-8 bg-[#10B981] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <CheckCircle className="text-primary-foreground w-5 h-5" />
             </div>
-            Configuração Inicial - Abmix
+            Sistema Abmix - Pronto para Uso
           </DialogTitle>
           <DialogDescription>
-            Configure suas chaves de API para ativar todas as funcionalidades do sistema de discagem inteligente.
+            Todas as APIs estão configuradas e funcionando. O sistema está pronto para fazer chamadas com IA!
           </DialogDescription>
         </DialogHeader>
 
@@ -98,109 +99,51 @@ export function SetupModal({ isOpen, onComplete }: SetupModalProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-[#10B981]" />
-                  Chaves de API Necessárias
+                  <CheckCircle className="w-5 h-5 text-[#10B981]" />
+                  Sistema Pronto para Uso
                 </CardTitle>
                 <CardDescription>
-                  Para utilizar o Abmix, você precisa das seguintes chaves de API:
+                  O servidor está configurado com todas as chaves necessárias:
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="elevenlabs" className="text-sm font-medium">
-                      ElevenLabs API Key
-                    </Label>
-                    <Input
-                      id="elevenlabs"
-                      type="text"
-                      placeholder="Cole sua chave ElevenLabs aqui..."
-                      value={formData.ELEVENLABS_API_KEY}
-                      onChange={(e) => handleInputChange('ELEVENLABS_API_KEY', e.target.value)}
-                      data-testid="input-elevenlabs-key"
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Necessária para síntese de voz e transcrição em tempo real
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-2">
+                    <h4 className="font-medium text-green-900">✅ APIs Configuradas</h4>
+                    <ul className="text-sm text-green-800 space-y-1">
+                      <li>• ElevenLabs → Síntese de voz e transcrição</li>
+                      <li>• OpenAI → Inteligência artificial conversacional</li>
+                      <li>• Deepgram → Transcrição backup de alta qualidade</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2">
+                    <h4 className="font-medium text-blue-900">📞 VoIP Configurado</h4>
+                    <p className="text-sm text-blue-800">
+                      SobreIP está configurado e pronto para uso. Você pode adicionar 
+                      mais números VoIP nas configurações do sistema.
                     </p>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="twilio-sid" className="text-sm font-medium">
-                      Twilio Account SID
-                    </Label>
-                    <Input
-                      id="twilio-sid"
-                      type="text"
-                      placeholder="AC..."
-                      value={formData.TWILIO_ACCOUNT_SID}
-                      onChange={(e) => handleInputChange('TWILIO_ACCOUNT_SID', e.target.value)}
-                      data-testid="input-twilio-sid"
-                      className="font-mono text-sm"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Account SID do Twilio para serviços de telefonia
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="twilio-token" className="text-sm font-medium">
-                      Twilio Auth Token
-                    </Label>
-                    <Input
-                      id="twilio-token"
-                      type="password"
-                      placeholder="Token de autenticação..."
-                      value={formData.TWILIO_AUTH_TOKEN}
-                      onChange={(e) => handleInputChange('TWILIO_AUTH_TOKEN', e.target.value)}
-                      data-testid="input-twilio-token"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Token de autenticação do Twilio
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="twilio-number" className="text-sm font-medium">
-                      Número Twilio
-                    </Label>
-                    <Input
-                      id="twilio-number"
-                      type="text"
-                      placeholder="+55..."
-                      value={formData.TWILIO_NUMBER}
-                      onChange={(e) => handleInputChange('TWILIO_NUMBER', e.target.value)}
-                      data-testid="input-twilio-number"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Número de telefone Twilio no formato E.164 (+5511...)
-                    </p>
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 space-y-2">
+                    <h4 className="font-medium text-purple-900">🚀 Funcionalidades Ativas</h4>
+                    <ul className="text-sm text-purple-800 space-y-1">
+                      <li>• Discagem VoIP com IA conversacional</li>
+                      <li>• Gravação e transcrição automática</li>
+                      <li>• Controles avançados (hold, mute, DTMF, transfer)</li>
+                      <li>• Dashboard de métricas em tempo real</li>
+                    </ul>
                   </div>
                 </div>
 
-                <div className="flex justify-between pt-4">
-                  <Button
-                    onClick={() => {
-                      localStorage.setItem('abmix_setup_skipped', 'true');
-                      toast({
-                        title: "Configuração Pulada",
-                        description: "Você pode configurar as chaves depois em Configurações",
-                      });
-                      onComplete();
-                    }}
-                    variant="outline"
-                    data-testid="button-skip-setup"
-                  >
-                    Pular por Enquanto
-                  </Button>
+                <div className="flex justify-end pt-4">
                   <Button
                     onClick={validateKeys}
-                    disabled={!isFormValid || isValidating}
-                    className="bg-[#10B981] hover:bg-[#059669] text-white"
+                    disabled={isValidating}
                     data-testid="button-validate-keys"
                   >
                     {isValidating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isValidating ? 'Validando...' : 'Validar e Continuar'}
+                    {isValidating ? 'Verificando...' : 'Acessar Sistema'}
                   </Button>
                 </div>
               </CardContent>

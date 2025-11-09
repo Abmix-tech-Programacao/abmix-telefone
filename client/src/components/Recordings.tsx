@@ -27,9 +27,9 @@ export function Recordings() {
 
   // Fetch recordings list
   const { data: recordings = [], isLoading } = useQuery({
-    queryKey: ['/api/recordings/list'],
+    queryKey: ['/api/recordings'],
     queryFn: async () => {
-      const response = await fetch('/api/recordings/list');
+      const response = await fetch('/api/recordings');
       if (!response.ok) throw new Error('Failed to fetch recordings');
       return response.json();
     },
@@ -39,11 +39,11 @@ export function Recordings() {
   // Start recording mutation
   const startRecordingMutation = useMutation({
     mutationFn: async (phoneNumber: string) => {
-      const response = await fetch('/api/recordings/start', {
+      const callId = currentCallId || `call-${Date.now()}`;
+      const response = await fetch(`/api/recording/${callId}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          callSid: currentCallId || `call-${Date.now()}`,
           phoneNumber: phoneNumber
         })
       });
@@ -95,7 +95,7 @@ export function Recordings() {
   const handleStartRecording = async () => {
     try {
       if (currentCallId) {
-        // Recording during a call - use Twilio recording
+        // Recording during a call - use VoIP recording
         const phoneNumber = "11999887766";
         startRecordingMutation.mutate(phoneNumber);
         toast({
@@ -207,7 +207,7 @@ export function Recordings() {
         description: "Microfone pausado temporariamente",
       });
     } else if (currentRecordingId) {
-      // Pause Twilio call recording
+      // Pause VoIP call recording
       pauseRecordingMutation.mutate();
     } else {
       toast({
@@ -226,7 +226,7 @@ export function Recordings() {
         description: "Microfone retomado",
       });
     } else if (currentRecordingId) {
-      // Resume Twilio call recording
+      // Resume VoIP call recording
       resumeRecordingMutation.mutate();
     } else {
       toast({
@@ -238,7 +238,7 @@ export function Recordings() {
 
   const handleStopRecording = () => {
     if (currentRecordingId && currentCallId) {
-      // Stop Twilio call recording
+      // Stop VoIP call recording
       stopRecordingMutation.mutate();
     } else if (mediaRecorder && mediaRecorder.state === 'recording') {
       // Stop microphone recording
