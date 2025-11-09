@@ -25,9 +25,16 @@ export function AudioPlayer() {
     try {
       console.log('[AUDIO_PLAYER] 🔊 Conectando para reproduzir áudio RTP');
 
+      // Feature-detect AudioContext (CORREÇÃO OPENAI)
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        console.error('[AUDIO_PLAYER] ❌ AudioContext não disponível no navegador');
+        return;
+      }
+
       // Criar AudioContext
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({
+        audioContextRef.current = new AudioContextClass({
           sampleRate: 8000
         });
       }

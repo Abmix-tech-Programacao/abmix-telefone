@@ -27,6 +27,13 @@ export function MicrophoneCapture() {
     try {
       console.log('[MIC_CAPTURE] 🎤 Iniciando captura de microfone');
 
+      // Feature-detect do microfone (CORREÇÃO OPENAI)
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('[MIC_CAPTURE] ❌ MediaDevices não disponível');
+        console.error('[MIC_CAPTURE] 🔒 Use HTTPS ou ative permissões de microfone');
+        return;
+      }
+
       // Capturar microfone
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
