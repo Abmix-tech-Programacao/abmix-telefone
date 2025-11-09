@@ -6,44 +6,48 @@ export interface VoIPNumberRecord {
   name: string;
   number: string;
   provider: string;
-  sip_username: string | null;
-  sip_password: string | null;
-  sip_server: string | null;
-  is_default: boolean;
-  status: string;
+  account_id: string | null; // username
+  server: string | null;     // sip server
+  is_active: number;         // 1 or 0
 }
 
 export class ProviderFactory {
   static createProvider(voipNumber: VoIPNumberRecord) {
     console.log(`[PROVIDER_FACTORY] Creating provider for ${voipNumber.name} (${voipNumber.provider})`);
-    
-    // Only FaleVono provider is supported
-    if (voipNumber.provider.toLowerCase() !== 'falevono') {
-      throw new Error(`Provedor não suportado: ${voipNumber.provider}. Apenas FaleVono é suportado.`);
+
+    const prov = (voipNumber.provider || '').toLowerCase();
+    if (prov !== 'falevono' && prov !== 'sobreip') {
+      throw new Error(`Provedor não suportado: ${voipNumber.provider}. Suportados: FaleVono, SobreIP.`);
     }
-    
-    if (!voipNumber.sip_username || !voipNumber.sip_server) {
-      throw new Error('Configuração SIP incompleta: faltam username ou servidor');
+
+    if (!voipNumber.account_id || !voipNumber.server) {
+      throw new Error('Configuração SIP incompleta: faltam username (account_id) ou servidor');
     }
-    
-    // SECURITY: Password must come from environment variable
+
+    // SECURITY: Password must come from environment variable (compartilhado para ambos provedores)
     if (!process.env.FALEVONO_PASSWORD) {
       throw new Error('FALEVONO_PASSWORD environment variable not configured');
     }
-    
+
     // Return FaleVono provider instance
     return new FaleVonoProviderImpl(
-      voipNumber.sip_username,
+      voipNumber.account_id,
       voipNumber.number,
-      voipNumber.sip_server,
+      voipNumber.server,
       5060
     );
   }
 
   static getDefaultNumber(): VoIPNumberRecord | null {
     try {
-      const defaultNumber = queries.getDefaultVoipNumber.get() as VoIPNumberRecord | undefined;
-      return defaultNumber || null;
+      const row = queries.getSetting.get('DEFAULT_VOIP_NUMBER_ID') as { value?: string } | undefined;
+      const defaultId = row?.value ? parseInt(String(row.value), 10) : undefined;
+      if (defaultId && !Number.isNaN(defaultId)) {
+        const n = queries.getVoipNumber.get(defaultId) as any;
+        if (n) return n as VoIPNumberRecord;
+      }
+      const list = (queries.getActiveVoipNumbers.all() as any[]) || [];
+      return (list[0] as VoIPNumberRecord) || null;
     } catch (error) {
       console.error('[PROVIDER_FACTORY] Error getting default number:', error);
       return null;
@@ -52,7 +56,7 @@ export class ProviderFactory {
 
   static getNumberById(id: number): VoIPNumberRecord | null {
     try {
-      const number = queries.getVoipNumberById.get(id) as VoIPNumberRecord | undefined;
+      const number = queries.getVoipNumber.get(id) as VoIPNumberRecord | undefined;
       return number || null;
     } catch (error) {
       console.error('[PROVIDER_FACTORY] Error getting number by id:', error);
@@ -85,7 +89,7 @@ export class ProviderFactory {
       throw new Error('Nenhum número VoIP configurado. Por favor, cadastre um número primeiro.');
     }
 
-    if (voipNumber.status !== 'active') {
+    if (!voipNumber.is_active) {
       throw new Error(`O número ${voipNumber.name} está inativo`);
     }
 
