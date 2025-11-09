@@ -290,6 +290,29 @@ export function setupTelephony(app: Express, httpServer: Server) {
     onMediaConnection(ws, req);
   });
 
+  // Manual upgrade fallback: aceita WS mesmo se o path-based não interceptar
+  const manualWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  httpServer.on('upgrade', (req: any, socket: any, head: any) => {
+    try {
+      const url = (req?.url || '') as string;
+      const isMedia =
+        url === mediaAltPath ||
+        url === mediaPath ||
+        url.startsWith(`${mediaAltPath}?`) ||
+        url.startsWith(`${mediaPath}?`);
+      if (!isMedia) {
+        socket.destroy();
+        return;
+      }
+      manualWss.handleUpgrade(req, socket, head, (ws) => {
+        console.log('[MEDIA_UPGRADE] Manual upgrade accepted for', url);
+        onMediaConnection(ws, req);
+      });
+    } catch {
+      try { socket.destroy(); } catch {}
+    }
+  });
+
   // Forward STT results to captions WebSocket
   elevenLabsService.on('stt-transcript', (transcript) => {
     captionsWss.clients.forEach((client) => {
