@@ -37,11 +37,11 @@ export function useCallSync() {
       }
     };
 
-    // Verificar estado a cada 2 segundos durante chamada ativa
-    const interval = setInterval(checkCallState, 2000);
+    // Verificar estado a cada 3 segundos durante chamada ativa (menos agressivo)
+    const interval = setInterval(checkCallState, 3000);
 
-    // Verificação inicial imediata
-    checkCallState();
+    // Verificação inicial após 1 segundo (não imediata)
+    setTimeout(checkCallState, 1000);
 
     return () => {
       clearInterval(interval);
