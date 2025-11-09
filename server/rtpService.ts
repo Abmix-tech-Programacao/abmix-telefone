@@ -1,5 +1,6 @@
 import dgram from 'dgram';
 import { EventEmitter } from 'events';
+import { RtpPacket } from 'rtp.js/packets';
 
 /**
  * RTP Media Server
@@ -132,15 +133,16 @@ class RTPService extends EventEmitter {
    */
   private handleIncomingRTP(msg: Buffer, rinfo: dgram.RemoteInfo): void {
     try {
-      // Parse RTP packet manually (SEM rtp.js)
-      // Validação básica sem usar rtp.js
+      // CORREÇÃO OPENAI: Converter Buffer para DataView
+      const dv = new DataView(msg.buffer, msg.byteOffset, msg.byteLength);
+      const packet = new RtpPacket(dv as any);
+      
+      // Validação básica
       if (!msg || msg.length < 12) {
         return; // Silently ignore invalid packets
       }
-
-      // Parse RTP header manualmente
-      const version = (msg[0] >> 6) & 0x03;
-      const payloadType = msg[1] & 0x7F;
+      
+      const payloadType = packet.getPayloadType();
       
       // Find session by remote address/port
       const session = Array.from(this.sessions.values()).find(
@@ -162,7 +164,7 @@ class RTPService extends EventEmitter {
         return;
       }
 
-      this.processAudioPacket(session, msg, payloadType);
+      this.processAudioPacket(session, packet);
 
     } catch (err) {
       console.error('[RTP] Failed to parse RTP packet:', err);
@@ -172,22 +174,25 @@ class RTPService extends EventEmitter {
   /**
    * Process audio from RTP packet
    */
-  private processAudioPacket(session: RTPSession, msg: Buffer, payloadType: number): void {
-    // Extract payload (skip 12-byte RTP header)
-    const payloadData = msg.slice(12);
-    if (!payloadData || payloadData.length === 0) {
+  private processAudioPacket(session: RTPSession, packet: RtpPacket): void {
+    const payloadData = packet.getPayload();
+    if (!payloadData || payloadData.byteLength === 0) {
       return;
     }
 
-    // Decode audio based on payload type (payloadData já é Buffer)
+    // Convert DataView to Buffer
+    const payloadBuffer = Buffer.from(payloadData.buffer, payloadData.byteOffset, payloadData.byteLength);
+
+    // Decode audio based on payload type
     let audioData: Buffer;
+    const payloadType = packet.getPayloadType();
     
     if (payloadType === 0) {
       // PCMU (G.711 μ-law)
-      audioData = this.decodePCMU(payloadData);
+      audioData = this.decodePCMU(payloadBuffer);
     } else if (payloadType === 8) {
       // PCMA (G.711 A-law)
-      audioData = this.decodePCMA(payloadData);
+      audioData = this.decodePCMA(payloadBuffer);
     } else {
       console.log(`[RTP] Unsupported payload type: ${payloadType}`);
       return;
@@ -226,22 +231,27 @@ class RTPService extends EventEmitter {
         return false;
       }
 
-      // Create RTP header manually (12 bytes) - SEM rtp.js
-      const header = Buffer.alloc(12);
-      header[0] = 0x80; // Version 2, no padding, no extension, no CSRC
-      header[1] = session.payloadType; // Payload type
-      header.writeUInt16BE(session.sequenceNumber++, 2);
-      header.writeUInt32BE(session.timestamp, 4);
-      header.writeUInt32BE(session.ssrc, 8);
+      // Create RTP packet using rtp.js (CORREÇÃO OPENAI)
+      const packet = new RtpPacket();
+      
+      // Set packet properties
+      packet.setPayloadType(session.payloadType);
+      packet.setSequenceNumber(session.sequenceNumber++);
+      packet.setTimestamp(session.timestamp);
+      packet.setSsrc(session.ssrc);
+      packet.setMarker(false);
+      packet.setPayload(encodedAudio as any);
 
       // Update timestamp (160 samples per packet for 20ms at 8kHz)
       session.timestamp += 160;
 
-      // Combine header + payload
-      const packet = Buffer.concat([header, encodedAudio]);
-
+      // Serialize packet
+      const byteLength = packet.getByteLength();
+      const buffer = Buffer.alloc(byteLength);
+      packet.serialize(buffer.buffer);
+      
       // Send packet
-      this.socket.send(packet, session.remotePort, session.remoteAddress, (err) => {
+      this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
         if (err) {
           console.error('[RTP] Error sending packet:', err);
         }
