@@ -41,9 +41,23 @@ export function AudioPlayer() {
 
       const audioContext = audioContextRef.current;
 
-      // Ativar AudioContext
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
+      // Ativar AudioContext (autoplay policy): tenta e, se ficar suspenso, reativa no primeiro gesto do usuário
+      const resumeAudioContext = async () => {
+        try {
+          if (audioContext.state !== 'running') {
+            await audioContext.resume();
+          }
+        } catch {}
+      };
+      await resumeAudioContext();
+      if (audioContext.state !== 'running') {
+        const onUserInteract = async () => {
+          await resumeAudioContext();
+          document.removeEventListener('click', onUserInteract);
+          document.removeEventListener('touchstart', onUserInteract);
+        };
+        document.addEventListener('click', onUserInteract, { once: true });
+        document.addEventListener('touchstart', onUserInteract, { once: true });
       }
 
       // Conectar WebSocket para receber áudio RTP

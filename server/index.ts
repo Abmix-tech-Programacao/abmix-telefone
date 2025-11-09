@@ -23,6 +23,15 @@ app.set('trust proxy', true);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Headers para permitir microfone em iframe e melhorar compatibilidade
+app.use((_req, res, next) => {
+  // Permite uso de microfone quando embutido (iframe com allow="microphone; autoplay")
+  res.setHeader('Permissions-Policy', 'microphone=(self)');
+  // Melhora comportamento de mídia inline em alguns navegadores
+  res.setHeader('Accept-CH', 'Sec-CH-UA-Platform');
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
