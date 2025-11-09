@@ -69,6 +69,11 @@ export function AudioPlayer() {
 
       ws.onopen = () => {
         console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP');
+        (window as any).__mediaOpen = true;
+      };
+
+      ws.onclose = () => {
+        (window as any).__mediaOpen = false;
       };
 
       ws.onmessage = async (event) => {
@@ -125,6 +130,7 @@ export function AudioPlayer() {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
+      (window as any).__mediaOpen = false;
     }
 
     if (audioContextRef.current) {

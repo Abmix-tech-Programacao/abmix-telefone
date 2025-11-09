@@ -34,20 +34,13 @@ export function useCallSync() {
           };
 
           const newState = stateMap[data.status] || 'IDLE';
-          
-          // Não sobrescrever RINGING com CONNECTED muito rápido
-          const currentState = useCallStore.getState().callState;
-          if (currentState === 'RINGING' && newState === 'CONNECTED') {
-            // Dar tempo para ringtone tocar antes de mudar para CONNECTED
-            console.log(`[CALL_SYNC] Aguardando ringtone... (${data.status} → ${newState})`);
-            setTimeout(() => {
-              setCallState(newState);
-              console.log(`[CALL_SYNC] State updated after delay: ${data.status} → ${newState}`);
-            }, 2000); // 2 segundos de delay
-          } else {
-            setCallState(newState);
-            console.log(`[CALL_SYNC] State updated: ${data.status} → ${newState}`);
-          }
+
+          // Gate: não mudar para CONNECTED até mídia /media abrir
+          const mediaOpen = (window as any).__mediaOpen === true;
+          const effectiveState = (newState === 'CONNECTED' && !mediaOpen) ? 'RINGING' : newState;
+
+          setCallState(effectiveState);
+          console.log(`[CALL_SYNC] State updated: ${data.status} → ${effectiveState} (mediaOpen=${mediaOpen})`);
         }
       } catch (error) {
         console.warn('[CALL_SYNC] Failed to check call state:', error);

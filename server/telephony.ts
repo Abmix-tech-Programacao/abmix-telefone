@@ -160,6 +160,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
   const captionsWss = new WebSocketServer({ 
     server: httpServer, 
     path: captionsPath,
+    perMessageDeflate: false,
     verifyClient: (info: any) => {
       console.log('[CAPTIONS_WS] Connection attempt from:', info.origin);
       return true; // Aceitar todas as conexões
@@ -169,6 +170,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
   const mediaWss = new WebSocketServer({ 
     server: httpServer, 
     path: mediaPath,
+    perMessageDeflate: false,
     verifyClient: (info: any) => {
       console.log('[MEDIA_WS] Connection attempt from:', info.origin);
       console.log('[MEDIA_WS] Headers:', info.req.headers);
