@@ -117,17 +117,16 @@ export function initDatabase() {
   for (const setting of defaultSettings) {
     insertSetting.run(setting.key, setting.value);
   }
-
-  // Add default SobreIP number for user
+  // Add default FaleVono number (no password stored; uses FALEVONO_PASSWORD from env)
   const insertNumber = db.prepare('INSERT OR IGNORE INTO voip_numbers (number, provider, name, account_id, password, server, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)');
   
   const defaultNumber = {
-    number: '+5511951944022',
-    provider: 'sobreip',
-    name: 'SP Principal',
-    account_id: '1151944022',
-    password: '3yxnn',
-    server: 'voz.sobreip.com.br',
+    number: '+5511920838833',
+    provider: 'falevono',
+    name: 'FaleVono',
+    account_id: '11920838833',
+    password: null,
+    server: 'vono2.me',
     is_active: true
   };
 
@@ -141,8 +140,19 @@ export function initDatabase() {
     defaultNumber.is_active ? 1 : 0
   );
 
+  // Ensure DEFAULT_VOIP_NUMBER_ID points to the inserted FaleVono number
+  try {
+    const row = db.prepare('SELECT id FROM voip_numbers WHERE number = ?').get(defaultNumber.number) as { id?: number } | undefined;
+    if (row?.id) {
+      db.prepare('INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)')
+        .run('DEFAULT_VOIP_NUMBER_ID', String(row.id));
+      console.log(`[DB] Default FaleVono number added and set as default (id=${row.id})`);
+    }
+  } catch (e) {
+    console.warn('[DB] Could not set DEFAULT_VOIP_NUMBER_ID for FaleVono seed:', e);
+  }
+
   console.log('[DB] Database initialized successfully');
-  console.log('[DB] Default SobreIP number added: +5511951944022');
 }
 
 // Initialize on import

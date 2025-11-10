@@ -54,16 +54,35 @@ export function MicrophoneCapture() {
       });
       audioContextRef.current = audioContext;
 
-      // Conectar WebSocket
+      // Conectar WebSocket com fallback (/ws-media, depois /media)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/media`;
-      
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+      const tryPaths = ['/ws-media', '/media'];
 
-      ws.onopen = () => {
-        console.log('[MIC_CAPTURE] ✅ WebSocket conectado para envio de microfone');
+      const openWithFallback = (paths: string[]) => {
+        if (paths.length === 0) {
+          console.error('[MIC_CAPTURE] ❌ Falha ao abrir WS de microfone em todas as rotas');
+          return;
+        }
+        const path = paths.shift()!;
+        const wsUrl = `${protocol}//${window.location.host}${path}`;
+        console.log('[MIC_CAPTURE] 🌐 Tentando WS de microfone em', wsUrl);
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          console.log('[MIC_CAPTURE] ✅ WebSocket conectado para envio de microfone em', path);
+        };
+        ws.onclose = () => {
+          if (paths.length > 0) {
+            openWithFallback(paths);
+          }
+        };
+        ws.onerror = () => {
+          console.warn('[MIC_CAPTURE] WS erro em', path);
+        };
       };
+
+      openWithFallback([...tryPaths]);
 
       // Processar áudio do microfone
       const source = audioContext.createMediaStreamSource(stream);

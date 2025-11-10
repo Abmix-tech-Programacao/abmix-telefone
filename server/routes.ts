@@ -27,27 +27,7 @@ const upload = multer({
 export async function registerRoutes(app: Express) {
   // Initialize database
   initDatabase();
-  
-  // Auto-cadastrar número FaleVono se não existir
-  try {
-    const numbers = queries.getAllVoipNumbers.all();
-    if (numbers.length === 0) {
-      console.log('[ROUTES] Auto-cadastrando número FaleVono...');
-      queries.addVoipNumber.run(
-        'Cel _Sp',
-        '11920838833',
-        'falevono',
-        'Felipe_Manieri',
-        null, // password vem de env
-        'vono2.me',
-        1, // is_default
-        'active'
-      );
-      console.log('[ROUTES] ✅ Número FaleVono cadastrado automaticamente!');
-    }
-  } catch (error) {
-    console.error('[ROUTES] Erro ao cadastrar número:', error);
-  }
+
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {
@@ -527,23 +507,22 @@ Mantenha respostas concisas e diretas ao ponto.`;
         }
       }
 
-      // If this is marked as default, unset any other default
-      if (isDefault) {
-        queries.setDefaultVoipNumber.run(-1); // Unset all defaults first
-      }
-
       const info = queries.addVoipNumber.run(
         name, 
         number, 
         provider, 
-        sipUsername || null, 
-        null, // Never store password in DB
-        sipServer || null, 
-        isDefault ? 1 : 0,
-        'active'
+        sipUsername || null,
+        null,                // password nunca armazenada
+        sipServer || null,
+        1                    // ativo
       );
       
-      const newNumber = queries.getVoipNumberById.get(info.lastInsertRowid) as any;
+      const newNumber = queries.getVoipNumber.get(info.lastInsertRowid) as any;
+
+      // Se marcado como default, grava o ID na tabela de settings
+      if (isDefault && newNumber?.id) {
+        queries.setSetting.run('DEFAULT_VOIP_NUMBER_ID', String(newNumber.id));
+      }
       
       // Remove sensitive fields before sending to client
       const safeNumber = {
@@ -551,10 +530,10 @@ Mantenha respostas concisas e diretas ao ponto.`;
         name: newNumber.name,
         number: newNumber.number,
         provider: newNumber.provider,
-        sip_username: newNumber.sip_username,
-        sip_server: newNumber.sip_server,
-        is_default: newNumber.is_default,
-        status: newNumber.status,
+        sip_username: newNumber.account_id,
+        sip_server: newNumber.server,
+        is_default: undefined,
+        status: newNumber.is_active ? 'active' : 'inactive',
         created_at: newNumber.created_at,
         updated_at: newNumber.updated_at
       };
@@ -572,8 +551,8 @@ Mantenha respostas concisas e diretas ao ponto.`;
     try {
       const { id } = req.params;
       
-      queries.setDefaultVoipNumber.run(parseInt(id));
-      const updatedNumber = queries.getVoipNumberById.get(parseInt(id));
+      queries.setSetting.run('DEFAULT_VOIP_NUMBER_ID', String(parseInt(id)));
+      const updatedNumber = queries.getVoipNumber.get(parseInt(id));
       
       console.log(`[VOIP_NUMBERS] Set default number: ${id}`);
       res.json(updatedNumber);
