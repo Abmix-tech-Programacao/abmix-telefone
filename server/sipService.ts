@@ -71,6 +71,16 @@ export class SIPService {
   private registrationResolve: (() => void) | null = null;
   private registrationReject: ((error: Error) => void) | null = null;
 
+  /**
+   * Get authentication username for Digest auth.
+   * Some providers require an auth-username different from SIP Username/From.
+   * This allows overriding via environment variable SIP_AUTH_USER.
+   */
+  private getAuthUsername(): string {
+    const override = process.env.SIP_AUTH_USER;
+    return (override && override.trim().length > 0) ? override.trim() : this.sipUsername;
+  }
+
   private constructor(
     sipUsername: string,
     sipPassword: string,
@@ -309,9 +319,10 @@ export class SIPService {
         console.log('[SIP_SERVICE] Auth session state:', JSON.stringify(this.authSession, null, 2));
         
         const credentials = {
-          user: this.sipUsername,
+          user: this.getAuthUsername(),
           password: this.sipPassword
         };
+        console.log('[SIP_SERVICE] Using auth user for REGISTER:', credentials.user);
         
         try {
           // CRITICAL: signRequest needs 4 parameters: (session, request, challenge, credentials)
@@ -474,9 +485,10 @@ export class SIPService {
       
       // Add digest authentication
       const credentials = {
-        user: this.sipUsername,
+        user: this.getAuthUsername(),
         password: this.sipPassword
       };
+      console.log('[SIP_SERVICE] Using auth user for INVITE:', credentials.user);
       
       // CRITICAL: signRequest needs 4 parameters: (session, request, challenge, credentials)
       digest.signRequest(callAuthSession, reInviteRequest, authResponse, credentials);
