@@ -124,7 +124,8 @@ docker exec -it "$APP_CID" sh -lc 'grep -r "upgrade.*websocket" /app/dist 2>/dev
 
 ## Resumo dos Problemas Corrigidos
 
-✅ **Middleware Express** - Agora ignora requisições de upgrade WebSocket antes de processar
+✅ **Catch-all Routes** - `app.get("*")` e `app.use("*")` agora ignoram requisições de upgrade WebSocket (CAUSA DO 400)
+✅ **Middleware Express** - Ignora requisições de upgrade WebSocket antes de processar
 ✅ **Ringtone** - Para automaticamente quando `window.__mediaOpen` fica `true`
 ✅ **AudioMonitor** - Tratamento de erro melhorado para evitar "e is not a function"
 ✅ **WebSocket Upgrade** - Handler único `noServer` para `/media`, `/ws-media` e `/captions`
