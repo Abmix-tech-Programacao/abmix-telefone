@@ -165,7 +165,7 @@ class RealtimeVoiceService extends EventEmitter {
             chunk_length_schedule: [120, 160, 250, 290]
           },
           optimize_streaming_latency: 1,
-          output_format: "pcm_8000" // Compatible with Twilio
+          output_format: "pcm_8000" // Compatible with RTP
         }));
 
         session.isConnected = true;
@@ -179,7 +179,7 @@ class RealtimeVoiceService extends EventEmitter {
           const message = JSON.parse(data.toString());
           
           if (message.audio) {
-            // Emit converted audio for Twilio
+            // Emit converted audio for RTP
             this.emit('converted-voice-audio', callSid, Buffer.from(message.audio, 'base64'));
           }
         } catch (error) {

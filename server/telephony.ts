@@ -185,12 +185,12 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
   });
 
-  // Handle media WebSocket connections from browser/Twilio
+  // Handle media WebSocket connections from browser
   const onMediaConnection = (ws: any, req: any) => {
-    console.log('[MEDIA] Twilio media stream connected');
+    console.log('[MEDIA] Browser media stream connected');
     
-    let callSid: string | null = null;
-    let streamSid: string | null = null;
+    let callId: string | null = null;
+    let streamId: string | null = null;
 
     ws.on('message', (message: any) => {
       try {
@@ -200,30 +200,30 @@ export function setupTelephony(app: Express, httpServer: Server) {
           console.log('[MEDIA] Media stream connected');
           
         } else if (data.event === 'start') {
-          // Capture identifiers from Twilio
-          callSid = data.start?.callSid;
-          streamSid = data.start?.streamSid;
+          // Capture identifiers from browser
+          callId = data.callId || data.start?.callSid;
+          streamId = data.streamId || data.start?.streamSid;
           
-          console.log(`[MEDIA] Stream started for call: ${callSid}, stream: ${streamSid}`);
+          console.log(`[MEDIA] Stream started for call: ${callId}, stream: ${streamId}`);
           
-          if (callSid && streamSid) {
-            mediaStreams.set(callSid, { ws, streamSid });
+          if (callId && streamId) {
+            mediaStreams.set(callId, { ws, streamId });
             
             // Get call configuration
-            const callInfo = activeCalls.get(callSid);
+            const callInfo = activeCalls.get(callId);
             const voiceType = (callInfo?.voiceType as 'masc' | 'fem') || 'masc';
             
-            console.log(`[MEDIA] Starting voice processing for ${callSid} with voice type: ${voiceType}`);
+            console.log(`[MEDIA] Starting voice processing for ${callId} with voice type: ${voiceType}`);
             
             // Start real-time voice conversion session
-            realtimeVoiceService.startRealtimeVoice(callSid, voiceType).then((success) => {
+            realtimeVoiceService.startRealtimeVoice(callId, voiceType).then((success) => {
               if (success) {
-                console.log(`[REALTIME_VOICE] Session started successfully for ${callSid}`);
+                console.log(`[REALTIME_VOICE] Session started successfully for ${callId}`);
               } else {
-                console.error(`[REALTIME_VOICE] Failed to start session for ${callSid}`);
+                console.error(`[REALTIME_VOICE] Failed to start session for ${callId}`);
               }
             }).catch((error) => {
-              console.error(`[REALTIME_VOICE] Error starting session for ${callSid}:`, error);
+              console.error(`[REALTIME_VOICE] Error starting session for ${callId}:`, error);
             });
           }
           
@@ -245,14 +245,14 @@ export function setupTelephony(app: Express, httpServer: Server) {
             }
           }
         } else if (data.event === 'media') {
-          // Process incoming audio from caller (user's voice) - Twilio legacy
-          if (data.media && data.media.payload && callSid && streamSid) {
-            console.log(`[MEDIA] Processing audio chunk for call: ${callSid}`);
-            processUserAudio(callSid, data.media.payload, streamSid, ws);
+          // Process incoming audio from caller (user's voice)
+          if (data.media && data.media.payload && callId && streamId) {
+            console.log(`[MEDIA] Processing audio chunk for call: ${callId}`);
+            processUserAudio(callId, data.media.payload, streamId, ws);
           }
           
         } else if (data.event === 'stop') {
-          console.log(`[MEDIA] Stream stopped for call: ${callSid}`);
+          console.log(`[MEDIA] Stream stopped for call: ${callId}`);
         }
         
       } catch (error) {
@@ -261,10 +261,10 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
 
     ws.on('close', () => {
-      console.log(`[MEDIA] Media stream disconnected for call: ${callSid}`);
-      if (callSid) {
-        mediaStreams.delete(callSid);
-        realtimeVoiceService.stopRealtimeVoice(callSid);
+      console.log(`[MEDIA] Media stream disconnected for call: ${callId}`);
+      if (callId) {
+        mediaStreams.delete(callId);
+        realtimeVoiceService.stopRealtimeVoice(callId);
       }
     });
 
