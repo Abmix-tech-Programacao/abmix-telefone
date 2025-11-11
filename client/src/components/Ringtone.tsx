@@ -33,13 +33,23 @@ export function Ringtone() {
 
         // Padrão de ringtone brasileiro: 2 toques + pausa
         const playPattern = () => {
+          // Verifica se deve parar (mídia abriu ou estado mudou)
+          const mediaOpen = (window as any).__mediaOpen === true;
+          if (mediaOpen || callState !== 'RINGING') {
+            stopRingtone();
+            return;
+          }
+
           playTone(440, 0.4); // Primeira nota
           setTimeout(() => playTone(554, 0.4), 500); // Segunda nota
           
           // Repetir a cada 2 segundos
           timeoutRef.current = setTimeout(() => {
-            if (callState === 'RINGING') {
+            const stillRinging = callState === 'RINGING' && !(window as any).__mediaOpen;
+            if (stillRinging) {
               playPattern();
+            } else {
+              stopRingtone();
             }
           }, 2000);
         };
@@ -72,7 +82,11 @@ export function Ringtone() {
 
     console.log(`[RINGTONE] Call state changed to: ${callState}`);
     
-    if (callState === 'RINGING') {
+    // Para o ringtone se mídia abriu OU estado não é RINGING
+    const mediaOpen = (window as any).__mediaOpen === true;
+    const shouldStop = mediaOpen || callState !== 'RINGING';
+    
+    if (callState === 'RINGING' && !mediaOpen) {
       console.log('[RINGTONE] Starting ringtone...');
       playRingtone();
     } else {
@@ -80,7 +94,17 @@ export function Ringtone() {
       stopRingtone();
     }
 
+    // Monitora mudanças no mediaOpen
+    const checkMediaOpen = setInterval(() => {
+      const nowOpen = (window as any).__mediaOpen === true;
+      if (nowOpen && callState === 'RINGING') {
+        console.log('[RINGTONE] Media opened, stopping ringtone');
+        stopRingtone();
+      }
+    }, 500);
+
     return () => {
+      clearInterval(checkMediaOpen);
       stopRingtone();
     };
   }, [callState]);

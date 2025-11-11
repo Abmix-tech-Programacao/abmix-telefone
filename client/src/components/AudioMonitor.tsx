@@ -21,8 +21,16 @@ export function AudioMonitor() {
     const setupAudioMonitoring = async () => {
       try {
         // Create/Reuse shared AudioContext
-        const audioContext = (audioContextRef.current ||= getAudioContext());
-        (window as any).audioContext = audioContextRef.current;
+        if (!audioContextRef.current) {
+          try {
+            audioContextRef.current = getAudioContext();
+            (window as any).audioContext = audioContextRef.current;
+          } catch (error) {
+            console.error('[AUDIO_MONITOR] Failed to create AudioContext:', error);
+            return;
+          }
+        }
+        const audioContext = audioContextRef.current;
 
         // Tentar retomar contexto de áudio (autoplay policy)
         const resume = async () => {

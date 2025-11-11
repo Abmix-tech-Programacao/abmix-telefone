@@ -20,6 +20,16 @@ const app = express();
 // Configure trust proxy for subpath deployment
 app.set('trust proxy', true);
 
+// IMPORTANTE: Middleware para ignorar requisições de upgrade WebSocket
+// Deve vir ANTES de qualquer outro middleware que possa interceptar
+app.use((req, res, next) => {
+  // Se for requisição de upgrade WebSocket, deixa passar sem processar
+  if (req.headers.upgrade === 'websocket' || req.headers.connection?.toLowerCase().includes('upgrade')) {
+    return next(); // Não processa, deixa para o handler de upgrade do httpServer
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
