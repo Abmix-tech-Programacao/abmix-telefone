@@ -20,6 +20,8 @@ import { Ringtone } from './Ringtone';
 import { AudioPlayer } from './AudioPlayer';
 import { MicrophoneCapture } from './MicrophoneCapture';
 import { AudioSettings } from './AudioSettings';
+import { useEffect } from 'react';
+import { unlockAudioOnce } from '@/lib/audio/unlockAudio';
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -115,6 +117,16 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
+      {/* Desbloqueio do áudio no primeiro gesto do usuário */}
+      {(() => {
+        // hook inline para não alterar a estrutura existente
+        // registra listeners apenas uma vez
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          unlockAudioOnce();
+        }, []);
+        return null;
+      })()}
       {/* Monitor de áudio global - invisível mas sempre ativo */}
       <AudioMonitor />
       

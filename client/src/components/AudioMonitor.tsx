@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
+import { getAudioContext } from '@/lib/audio/unlockAudio';
 
 /**
  * AudioMonitor - Componente invisível que monitora níveis de áudio globalmente
@@ -19,18 +20,9 @@ export function AudioMonitor() {
 
     const setupAudioMonitoring = async () => {
       try {
-        // Create AudioContext
-        if (!audioContextRef.current) {
-          const AC = (window.AudioContext || (window as any).webkitAudioContext);
-          if (!AC) {
-            console.warn('[AUDIO_MONITOR] AudioContext não disponível');
-            return;
-          }
-          audioContextRef.current = new AC();
-          (window as any).audioContext = audioContextRef.current;
-        }
-
-        const audioContext = audioContextRef.current;
+        // Create/Reuse shared AudioContext
+        const audioContext = (audioContextRef.current ||= getAudioContext());
+        (window as any).audioContext = audioContextRef.current;
 
         // Tentar retomar contexto de áudio (autoplay policy)
         const resume = async () => {
