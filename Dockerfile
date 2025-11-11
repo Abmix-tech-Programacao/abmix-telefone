@@ -1,6 +1,8 @@
 # --- BUILD ---
 FROM node:20-alpine AS build
 WORKDIR /app
+# FORCE REBUILD - NO TWILIO - ONLY RTP/SIP
+ENV REBUILD_TIMESTAMP="2025-11-11-23:25:00"
 COPY package*.json ./
 RUN npm install
 COPY . .
