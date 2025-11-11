@@ -187,7 +187,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
 
   // Handle media WebSocket connections from browser
   const onMediaConnection = (ws: any, req: any) => {
-    console.log('[MEDIA] Browser media stream connected');
+    console.log('[MEDIA] ✅ Browser RTP media stream connected - NO TWILIO');
     
     let callId: string | null = null;
     let streamId: string | null = null;
