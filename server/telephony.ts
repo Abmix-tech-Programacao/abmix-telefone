@@ -150,25 +150,16 @@ export function setupTelephony(app: Express, httpServer: Server) {
     rtpService.sendAudio(callId, audioBuffer, 8000);
   });
   
-  // WebSocket servers - com path (Traefik faz o upgrade automaticamente)
+  // WebSocket servers - caminhos fixos SEM prefixo
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
   const mediaAltPath = '/ws-media';
   console.log(`[TELEPHONY] WS paths -> captions=${captionsPath}, media=${mediaPath}, alt=${mediaAltPath}`);
 
-  const captionsWss = new WebSocketServer({
-    server: httpServer,
-    path: captionsPath,
-    perMessageDeflate: false
-  });
-
-  const mediaWss = new WebSocketServer({
-    server: httpServer,
-    path: mediaPath,
-    perMessageDeflate: false
-  });
-
-  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
+  // Um único modelo 'noServer' para evitar conflitos de múltiplos handlers
+  const captionsWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  const mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  console.log(`[TELEPHONY] WebSocket servers (noServer) preparados: ${captionsPath}, ${mediaPath}, alt=${mediaAltPath}`);
 
   // === WEBSOCKET HANDLERS ===
 
@@ -283,31 +274,44 @@ export function setupTelephony(app: Express, httpServer: Server) {
   };
   mediaWss.on('connection', onMediaConnection);
 
-  // Alternate WS path to avoid intermediaries eating '/media'
-  const mediaAltWss = new WebSocketServer({ server: httpServer, path: mediaAltPath, perMessageDeflate: false });
-  mediaAltWss.on('connection', (ws, req) => {
-    console.log('[MEDIA_ALT] Media alt path connected');
-    onMediaConnection(ws, req);
-  });
-
-  // Manual upgrade fallback: aceita WS mesmo se o path-based não interceptar
-  const manualWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  // Upgrade ÚNICO: aceita WS para /media, /ws-media e /captions
   httpServer.on('upgrade', (req: any, socket: any, head: any) => {
     try {
       const url = (req?.url || '') as string;
-      const isMedia =
-        url === mediaAltPath ||
-        url === mediaPath ||
-        url.startsWith(`${mediaAltPath}?`) ||
-        url.startsWith(`${mediaPath}?`);
-      if (!isMedia) {
-        socket.destroy();
+      const pathname = (() => {
+        try { return new URL(url, 'http://x').pathname; } catch { return url; }
+      })();
+      const origin = req.headers?.origin;
+      const ua = req.headers?.['user-agent'];
+
+      // Aceita todas as origens (Traefik já controla o host)
+      const acceptOrigin = true;
+      if (!acceptOrigin) {
+        try { socket.destroy(); } catch {}
         return;
       }
-      manualWss.handleUpgrade(req, socket, head, (ws) => {
-        console.log('[MEDIA_UPGRADE] Manual upgrade accepted for', url);
-        onMediaConnection(ws, req);
-      });
+
+      const isCaptions = pathname === captionsPath;
+      const isMedia = pathname === mediaPath || pathname === mediaAltPath;
+
+      if (isCaptions) {
+        captionsWss.handleUpgrade(req, socket, head, (ws) => {
+          console.log('[CAPTIONS_UPGRADE] Aceito upgrade para', pathname, 'origin=', origin, 'ua=', ua);
+          captionsWss.emit('connection', ws, req);
+        });
+        return;
+      }
+
+      if (isMedia) {
+        mediaWss.handleUpgrade(req, socket, head, (ws) => {
+          console.log('[MEDIA_UPGRADE] Aceito upgrade para', pathname, 'origin=', origin, 'ua=', ua);
+          mediaWss.emit('connection', ws, req);
+        });
+        return;
+      }
+
+      // Rejeita outros caminhos
+      try { socket.destroy(); } catch {}
     } catch {
       try { socket.destroy(); } catch {}
     }
