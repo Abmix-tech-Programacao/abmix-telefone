@@ -326,7 +326,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
   });
 
-  // Forward ElevenLabs TTS audio to the Twilio stream
+  // Forward ElevenLabs TTS audio to the RTP stream
   elevenLabsService.on('tts-audio', (sessionId: string, audioBuffer: Buffer) => {
     const entry = mediaStreams.get(sessionId) as any;
     if (!entry) return;
@@ -341,11 +341,11 @@ export function setupTelephony(app: Express, httpServer: Server) {
       };
       ws.send(JSON.stringify(message));
     } catch (e) {
-      console.error('[MEDIA] Failed to send TTS audio to Twilio:', e);
+      console.error('[MEDIA] Failed to send TTS audio to RTP:', e);
     }
   });
 
-  // Forward converted voice audio from real-time service to Twilio stream
+  // Forward converted voice audio from real-time service to RTP stream
   realtimeVoiceService.on('converted-voice-audio', (callSid: string, audioBuffer: Buffer) => {
     const entry = mediaStreams.get(callSid) as any;
     if (!entry) {
@@ -367,10 +367,10 @@ export function setupTelephony(app: Express, httpServer: Server) {
         media: { payload }
       };
       
-      console.log(`[MEDIA] Sending converted audio to Twilio for call: ${callSid}`);
+      console.log(`[MEDIA] Sending converted audio to RTP for call: ${callSid}`);
       ws.send(JSON.stringify(message));
     } catch (e) {
-      console.error('[MEDIA] Failed to send converted audio to Twilio:', e);
+      console.error('[MEDIA] Failed to send converted audio to RTP:', e);
     }
   });
 
