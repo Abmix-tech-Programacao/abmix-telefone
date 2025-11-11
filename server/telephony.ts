@@ -305,7 +305,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
       if (isMedia) {
         mediaWss.handleUpgrade(req, socket, head, (ws) => {
           console.log('[MEDIA_UPGRADE] Aceito upgrade para', pathname, 'origin=', origin, 'ua=', ua);
-          mediaWss.emit('connection', ws, req);
+          onMediaConnection(ws, req);
         });
         return;
       }
