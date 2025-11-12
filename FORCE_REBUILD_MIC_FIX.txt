@@ -1,0 +1,5 @@
+FORCE REBUILD - MIC CAPTURE FIX
+Timestamp: 2025-11-12-09:00:00
+Fix: Microfone parava imediatamente - useEffect re-executando
+Commit: FIX CRÍTICO: Microfone parava imediatamente - useEffect re-executando
+
