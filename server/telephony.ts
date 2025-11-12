@@ -224,22 +224,26 @@ export function setupTelephony(app: Express, httpServer: Server) {
           if (callId && streamId) {
             mediaStreams.set(callId, { ws, streamId });
             
+            console.log(`[MEDIA] Stream started for ${callId} - VOICE CONVERSION DISABLED (pass-through mode)`);
+            
+            // CORREÇÃO: NÃO INICIAR ElevenLabs (causa problemas 403/403)
+            // Áudio passa direto sem conversão de voz
             // Get call configuration
-            const callInfo = activeCalls.get(callId);
-            const voiceType = (callInfo?.voiceType as 'masc' | 'fem') || 'masc';
+            // const callInfo = activeCalls.get(callId);
+            // const voiceType = (callInfo?.voiceType as 'masc' | 'fem') || 'masc';
             
-            console.log(`[MEDIA] Starting voice processing for ${callId} with voice type: ${voiceType}`);
+            // console.log(`[MEDIA] Starting voice processing for ${callId} with voice type: ${voiceType}`);
             
-            // Start real-time voice conversion session
-            realtimeVoiceService.startRealtimeVoice(callId, voiceType).then((success) => {
-              if (success) {
-                console.log(`[REALTIME_VOICE] Session started successfully for ${callId}`);
-              } else {
-                console.error(`[REALTIME_VOICE] Failed to start session for ${callId}`);
-              }
-            }).catch((error) => {
-              console.error(`[REALTIME_VOICE] Error starting session for ${callId}:`, error);
-            });
+            // Start real-time voice conversion session - DESABILITADO
+            // realtimeVoiceService.startRealtimeVoice(callId, voiceType).then((success) => {
+            //   if (success) {
+            //     console.log(`[REALTIME_VOICE] Session started successfully for ${callId}`);
+            //   } else {
+            //     console.error(`[REALTIME_VOICE] Failed to start session for ${callId}`);
+            //   }
+            // }).catch((error) => {
+            //   console.error(`[REALTIME_VOICE] Error starting session for ${callId}:`, error);
+            // });
           }
           
         } else if (data.event === 'microphone-audio') {
