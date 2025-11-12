@@ -242,45 +242,62 @@ class RTPService extends EventEmitter {
     }
 
     try {
-      // Encode audio to G.711
-      let encodedAudio: Buffer;
-      if (session.payloadType === 0) {
-        encodedAudio = this.encodePCMU(audioBuffer);
-      } else if (session.payloadType === 8) {
-        encodedAudio = this.encodePCMA(audioBuffer);
-      } else {
-        console.log(`[RTP] Unsupported payload type for encoding: ${session.payloadType}`);
-        return false;
-      }
-
-      // Create RTP packet using rtp.js (CORREÇÃO OPENAI)
-      const packet = new RtpPacket();
+      // CORREÇÃO: Dividir buffer em chunks de 160 bytes (20ms a 8kHz)
+      // PCM16 = 2 bytes por sample, então 160 samples = 320 bytes
+      const CHUNK_SIZE = 320; // 160 samples * 2 bytes
       
-      // Set packet properties
-      packet.setPayloadType(session.payloadType);
-      packet.setSequenceNumber(session.sequenceNumber++);
-      packet.setTimestamp(session.timestamp);
-      packet.setSsrc(session.ssrc);
-      packet.setMarker(false);
-      packet.setPayload(encodedAudio as any);
-
-      // Update timestamp (160 samples per packet for 20ms at 8kHz)
-      session.timestamp += 160;
-
-      // Serialize packet
-      const byteLength = packet.getByteLength();
-      const buffer = Buffer.alloc(byteLength);
-      packet.serialize(buffer.buffer);
+      let sentPackets = 0;
       
-      // Send packet
-      this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
-        if (err) {
-          console.error('[RTP] Error sending packet:', err);
+      for (let offset = 0; offset < audioBuffer.length; offset += CHUNK_SIZE) {
+        const chunk = audioBuffer.slice(offset, Math.min(offset + CHUNK_SIZE, audioBuffer.length));
+        
+        // Se chunk muito pequeno, pular (evitar ruído no final)
+        if (chunk.length < 160) {
+          continue;
         }
-      });
+        
+        // Encode audio to G.711
+        let encodedAudio: Buffer;
+        if (session.payloadType === 0) {
+          encodedAudio = this.encodePCMU(chunk);
+        } else if (session.payloadType === 8) {
+          encodedAudio = this.encodePCMA(chunk);
+        } else {
+          console.log(`[RTP] Unsupported payload type for encoding: ${session.payloadType}`);
+          return false;
+        }
 
-      this.outRtpCount++;
-      return true;
+        // Create RTP packet
+        const packet = new RtpPacket();
+        
+        // Set packet properties
+        packet.setPayloadType(session.payloadType);
+        packet.setSequenceNumber(session.sequenceNumber++);
+        packet.setTimestamp(session.timestamp);
+        packet.setSsrc(session.ssrc);
+        packet.setMarker(false);
+        packet.setPayload(encodedAudio as any);
+
+        // Update timestamp (160 samples per packet for 20ms at 8kHz)
+        session.timestamp += 160;
+
+        // Serialize packet
+        const byteLength = packet.getByteLength();
+        const buffer = Buffer.alloc(byteLength);
+        packet.serialize(buffer.buffer);
+        
+        // Send packet
+        this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
+          if (err) {
+            console.error('[RTP] Error sending packet:', err);
+          }
+        });
+
+        this.outRtpCount++;
+        sentPackets++;
+      }
+      
+      return sentPackets > 0;
 
     } catch (err) {
       console.error('[RTP] Error encoding/sending audio:', err);
