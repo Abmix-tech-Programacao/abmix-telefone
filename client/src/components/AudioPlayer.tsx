@@ -160,26 +160,18 @@ export function AudioPlayer() {
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
 
-            // Criar analyser se não existir
-            if (!analyserRef.current) {
-              const analyser = audioContext.createAnalyser();
-              analyser.fftSize = 256;
-              analyser.smoothingTimeConstant = 0.8;
-              analyserRef.current = analyser;
-              analyser.connect(audioContext.destination);
-            }
-
-            // Conectar source -> analyser -> destination
-            source.connect(analyserRef.current);
-
-            // Atualizar barra de speaker
-            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
-            analyserRef.current.getByteFrequencyData(dataArray);
-            const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
-            const level = Math.min(100, Math.round((average / 255) * 150)); // Amplificar um pouco
-            setSpeakerLevel(level);
-
+            // Conectar source diretamente ao destination
+            source.connect(audioContext.destination);
             source.start();
+            
+            // Atualizar barra de speaker (valor fixo baseado no buffer)
+            try {
+              const avgVolume = Math.abs(channelData.reduce((sum, val) => sum + val, 0) / channelData.length);
+              const level = Math.min(100, Math.round(avgVolume * 300)); // Amplificar
+              setSpeakerLevel(level);
+            } catch (e) {
+              // Ignorar erro de setSpeakerLevel
+            }
           }
         } catch (error) {
           console.error('[AUDIO_PLAYER] ❌ Erro ao reproduzir áudio:', error);

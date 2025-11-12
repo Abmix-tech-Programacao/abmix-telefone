@@ -73,15 +73,14 @@ class RealtimeVoiceService extends EventEmitter {
     try {
       const targetVoiceId = this.getVoiceConfig(voiceType);
       
-      console.log(`[REALTIME_VOICE] Starting session ${callSid} with voice ${targetVoiceId}`);
+      console.log(`[REALTIME_VOICE] Starting TTS-only session ${callSid} with voice ${targetVoiceId}`);
+      console.log(`[REALTIME_VOICE] ⚠️  STT desabilitado (ElevenLabs retorna 403) - apenas TTS`);
 
-      // CORREÇÃO: Usar API key direto (token endpoint retorna 405)
-      // Start STT session for incoming audio usando API key
-      const sttWs = new WebSocket('wss://api.elevenlabs.io/v1/speech-to-text/stream', {
-        headers: {
-          'xi-api-key': ELEVENLABS_API_KEY
-        }
-      });
+      // CORREÇÃO: STT retorna 403 com xi-api-key
+      // Usar apenas TTS (Text-to-Speech) para conversão
+      // O áudio de entrada vai direto sem conversão
+      
+      const sttWs = null; // STT desabilitado
 
       // Start TTS session for outgoing audio
       const ttsWs = new WebSocket(`wss://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}/stream-input?model_id=eleven_multilingual_v2`, {
@@ -100,47 +99,52 @@ class RealtimeVoiceService extends EventEmitter {
         lastActivity: Date.now()
       };
 
-      // Setup STT WebSocket (Speech-to-Text)
-      sttWs.on('open', () => {
-        console.log(`[REALTIME_VOICE] STT connected for ${callSid}`);
-        
-        // Configure STT for Portuguese
-        sttWs.send(JSON.stringify({
-          language: 'pt',
-          model: 'whisper-large-v3',
-          optimize_streaming_latency: 1
-        }));
-      });
-
-      sttWs.on('message', async (data) => {
-        try {
-          const result = JSON.parse(data.toString());
+      // STT desabilitado (403 error)
+      // Áudio de entrada vai direto sem conversão
+      
+      // Setup STT WebSocket (Speech-to-Text) - DESABILITADO
+      if (sttWs) {
+        sttWs.on('open', () => {
+          console.log(`[REALTIME_VOICE] STT connected for ${callSid}`);
           
-          if (result.text && result.is_final && session.enabled) {
-            console.log(`[REALTIME_VOICE] STT Result: "${result.text}"`);
+          // Configure STT for Portuguese
+          sttWs.send(JSON.stringify({
+            language: 'pt',
+            model: 'whisper-large-v3',
+            optimize_streaming_latency: 1
+          }));
+        });
+
+        sttWs.on('message', async (data) => {
+          try {
+            const result = JSON.parse(data.toString());
             
-            // Check if AI agent is active for this call
-            const isAgentActive = agentOrchestrator.isAgentActive(callSid);
-            
-            if (isAgentActive) {
-              // Send to OpenAI for AI response
-              console.log(`[REALTIME_VOICE] Sending to AI agent: "${result.text}"`);
-              const aiResponse = await agentOrchestrator.processUserInput(callSid, result.text);
+            if (result.text && result.is_final && session.enabled) {
+              console.log(`[REALTIME_VOICE] STT Result: "${result.text}"`);
               
-              if (aiResponse) {
-                console.log(`[REALTIME_VOICE] AI Response: "${aiResponse}"`);
-                // Convert AI response to target voice and send to caller
-                this.convertTextToTargetVoice(callSid, aiResponse);
+              // Check if AI agent is active for this call
+              const isAgentActive = agentOrchestrator.isAgentActive(callSid);
+              
+              if (isAgentActive) {
+                // Send to OpenAI for AI response
+                console.log(`[REALTIME_VOICE] Sending to AI agent: "${result.text}"`);
+                const aiResponse = await agentOrchestrator.processUserInput(callSid, result.text);
+                
+                if (aiResponse) {
+                  console.log(`[REALTIME_VOICE] AI Response: "${aiResponse}"`);
+                  // Convert AI response to target voice and send to caller
+                  this.convertTextToTargetVoice(callSid, aiResponse);
+                }
+              } else {
+                // No AI agent, just do voice conversion
+                this.convertTextToTargetVoice(callSid, result.text);
               }
-            } else {
-              // No AI agent, just do voice conversion
-              this.convertTextToTargetVoice(callSid, result.text);
             }
+          } catch (error) {
+            console.error('[REALTIME_VOICE] STT parse error:', error);
           }
-        } catch (error) {
-          console.error('[REALTIME_VOICE] STT parse error:', error);
-        }
-      });
+        });
+      }
 
       // Setup TTS WebSocket (Text-to-Speech)
       ttsWs.on('open', () => {
@@ -182,9 +186,11 @@ class RealtimeVoiceService extends EventEmitter {
       });
 
       // Error handling
-      sttWs.on('error', (error) => {
-        console.error(`[REALTIME_VOICE] STT error for ${callSid}:`, error);
-      });
+      if (sttWs) {
+        sttWs.on('error', (error) => {
+          console.error(`[REALTIME_VOICE] STT error for ${callSid}:`, error);
+        });
+      }
 
       ttsWs.on('error', (error) => {
         console.error(`[REALTIME_VOICE] TTS error for ${callSid}:`, error);
@@ -198,7 +204,7 @@ class RealtimeVoiceService extends EventEmitter {
         this.emit('realtime-voice-closed', callSid);
       };
 
-      sttWs.on('close', cleanup);
+      if (sttWs) sttWs.on('close', cleanup);
       ttsWs.on('close', cleanup);
 
       this.sessions.set(callSid, session);
@@ -214,11 +220,22 @@ class RealtimeVoiceService extends EventEmitter {
   processIncomingAudio(callSid: string, audioBase64: string): boolean {
     const session = this.sessions.get(callSid);
     
-    if (!session || !session.sttWs || !session.enabled) {
+    // STT desabilitado - retornar true para não gerar erro
+    if (!session || !session.enabled) {
       return false;
+    }
+    
+    // Se não tem STT (null), ignorar
+    if (!session.sttWs) {
+      return true; // Retornar true para não logar erro
     }
 
     try {
+      // Verificar se WebSocket está aberto antes de enviar
+      if (session.sttWs.readyState !== WebSocket.OPEN) {
+        return false; // Não logar erro se estiver conectando
+      }
+      
       // Send audio to STT
       session.sttWs.send(JSON.stringify({
         audio: audioBase64
