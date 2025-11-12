@@ -90,7 +90,7 @@ export function MicrophoneCapture() {
       processorRef.current = processor;
 
       processor.onaudioprocess = (event) => {
-        if (ws.readyState === WebSocket.OPEN) {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           const inputBuffer = event.inputBuffer.getChannelData(0);
           
           // Converter Float32 para PCM16
@@ -103,7 +103,7 @@ export function MicrophoneCapture() {
           const uint8Array = new Uint8Array(pcm16Buffer.buffer);
           const base64Audio = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
 
-          ws.send(JSON.stringify({
+          wsRef.current.send(JSON.stringify({
             event: 'microphone-audio',
             callId: currentCallId,
             audioData: base64Audio,
@@ -132,7 +132,13 @@ export function MicrophoneCapture() {
     }
 
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      try {
+        if (audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close();
+        }
+      } catch (e) {
+        // Já estava fechado, ignorar
+      }
       audioContextRef.current = null;
     }
 

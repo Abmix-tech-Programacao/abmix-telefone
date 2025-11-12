@@ -186,7 +186,13 @@ export function AudioPlayer() {
     }
 
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      try {
+        if (audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close();
+        }
+      } catch (e) {
+        // Já estava fechado, ignorar
+      }
       audioContextRef.current = null;
     }
 
