@@ -21,7 +21,7 @@ export function AudioMonitor() {
     const setupAudioMonitoring = async () => {
       try {
         // Create/Reuse shared AudioContext
-        if (!audioContextRef.current) {
+        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
           try {
             audioContextRef.current = getAudioContext();
             (window as any).audioContext = audioContextRef.current;
@@ -31,6 +31,11 @@ export function AudioMonitor() {
           }
         }
         const audioContext = audioContextRef.current;
+        
+        // Garantir que está running
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume().catch(() => {});
+        }
 
         // Tentar retomar contexto de áudio (autoplay policy)
         const resume = async () => {
