@@ -100,20 +100,44 @@ export function MicrophoneCapture() {
       const processor = audioContext.createScriptProcessor(1024, 1, 1);
       processorRef.current = processor;
 
+      let audioChunkCount = 0;
       processor.onaudioprocess = (event) => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          const inputBuffer = event.inputBuffer.getChannelData(0);
-          
-          // Converter Float32 para PCM16
-          const pcm16Buffer = new Int16Array(inputBuffer.length);
-          for (let i = 0; i < inputBuffer.length; i++) {
-            pcm16Buffer[i] = Math.max(-32768, Math.min(32767, inputBuffer[i] * 32768));
+        // DEBUG: Log a cada 50 chunks (não logar todos para não poluir)
+        audioChunkCount++;
+        if (audioChunkCount % 50 === 0) {
+          console.log(`[MIC_CAPTURE] 📊 Processando chunk ${audioChunkCount}, WS state: ${wsRef.current?.readyState}, callId: ${currentCallId}`);
+        }
+        
+        if (!wsRef.current) {
+          console.warn('[MIC_CAPTURE] ❌ wsRef.current is null');
+          return;
+        }
+        
+        if (wsRef.current.readyState !== WebSocket.OPEN) {
+          if (audioChunkCount % 50 === 0) {
+            console.warn(`[MIC_CAPTURE] ❌ WS not open: ${wsRef.current.readyState}`);
           }
+          return;
+        }
+        
+        if (!currentCallId) {
+          console.warn('[MIC_CAPTURE] ❌ No currentCallId');
+          return;
+        }
+        
+        const inputBuffer = event.inputBuffer.getChannelData(0);
+        
+        // Converter Float32 para PCM16
+        const pcm16Buffer = new Int16Array(inputBuffer.length);
+        for (let i = 0; i < inputBuffer.length; i++) {
+          pcm16Buffer[i] = Math.max(-32768, Math.min(32767, inputBuffer[i] * 32768));
+        }
 
-          // Enviar via WebSocket
-          const uint8Array = new Uint8Array(pcm16Buffer.buffer);
-          const base64Audio = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
+        // Enviar via WebSocket
+        const uint8Array = new Uint8Array(pcm16Buffer.buffer);
+        const base64Audio = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
 
+        try {
           wsRef.current.send(JSON.stringify({
             event: 'microphone-audio',
             callId: currentCallId,
@@ -121,6 +145,8 @@ export function MicrophoneCapture() {
             sampleRate: 8000,
             format: 'pcm16'
           }));
+        } catch (error) {
+          console.error('[MIC_CAPTURE] ❌ Erro ao enviar áudio:', error);
         }
       };
 
