@@ -75,17 +75,11 @@ class RealtimeVoiceService extends EventEmitter {
       
       console.log(`[REALTIME_VOICE] Starting session ${callSid} with voice ${targetVoiceId}`);
 
-      // Generate token for STT authentication
-      const sttToken = await this.generateElevenLabsToken();
-      if (!sttToken) {
-        console.error('[REALTIME_VOICE] Failed to get STT token');
-        return false;
-      }
-
-      // Start STT session for incoming audio
+      // CORREÇÃO: Usar API key direto (token endpoint retorna 405)
+      // Start STT session for incoming audio usando API key
       const sttWs = new WebSocket('wss://api.elevenlabs.io/v1/speech-to-text/stream', {
         headers: {
-          'Authorization': `Bearer ${sttToken}`
+          'xi-api-key': ELEVENLABS_API_KEY
         }
       });
 
