@@ -10,13 +10,12 @@ export function Ringtone() {
   useEffect(() => {
     const playRingtone = async () => {
       try {
-        // Cria novo AudioContext se necessário
-        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-          const AC = window.AudioContext || (window as any).webkitAudioContext;
-          audioContextRef.current = new AC();
-        }
+        // CORREÇÃO: SEMPRE criar novo AudioContext (fix ringtone 2ª chamada)
+        const AC = window.AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AC();
+        audioContextRef.current = audioContext;
         
-        const audioContext = audioContextRef.current;
+        console.log(`[RINGTONE] 🔊 AudioContext criado (state: ${audioContext.state})`);
         
         if (audioContext.state === 'suspended') {
           await audioContext.resume();
@@ -80,6 +79,12 @@ export function Ringtone() {
           // Oscillator already stopped
         }
         oscillatorRef.current = null;
+      }
+      
+      // CORREÇÃO: Fechar AudioContext após parar
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        audioContextRef.current.close();
+        console.log('[RINGTONE] AudioContext fechado');
       }
       
       console.log('[RINGTONE] Ringtone stopped');
