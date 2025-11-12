@@ -698,9 +698,11 @@ export class SIPService {
                 console.log(`[SIP_SERVICE] 🎵 Creating RTP session for call ${callId}`);
                 console.log(`[SIP_SERVICE] 🎵 Remote RTP: ${remoteAddress}:${remotePort}`);
                 console.log(`[SIP_SERVICE] 🎵 Local RTP: ${this.localIP}:10000`);
+                console.log(`[SIP_SERVICE] 🎵 Call ID para RTP: "${callId}"`);
                 
                 // Create RTP session for audio (payload type 0 = PCMU)
-                rtpService.createSession(callId, remoteAddress, remotePort, 0);
+                const rtpSession = rtpService.createSession(callId, remoteAddress, remotePort, 0);
+                console.log(`[SIP_SERVICE] 🎵 RTP Session created:`, rtpSession);
                 
                 // Start real-time voice conversion based on call configuration
                 const voiceType = call.voiceType || 'masc';

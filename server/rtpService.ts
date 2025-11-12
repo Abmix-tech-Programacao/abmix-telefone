@@ -173,10 +173,13 @@ class RTPService extends EventEmitter {
           // Update session with actual remote address/port
           activeSession.remoteAddress = rinfo.address;
           activeSession.remotePort = rinfo.port;
-          console.log(`[RTP] Updated session ${activeSession.callId} with remote ${rinfo.address}:${rinfo.port}`);
+          console.log(`[RTP] ✅ Updated session ${activeSession.callId} with remote ${rinfo.address}:${rinfo.port}`);
           this.processAudioPacket(activeSession, packet);
+          this.inRtpCount++;
         } else {
-          console.log(`[RTP] No active session found for packet from ${rinfo.address}:${rinfo.port}`);
+          // DEBUG: mostrar todas as sessões disponíveis
+          console.log(`[RTP] ❌ No active session for ${rinfo.address}:${rinfo.port}. Sessions:`, 
+            Array.from(this.sessions.entries()).map(([id, s]) => ({id, active: s.active, remote: `${s.remoteAddress}:${s.remotePort}`})));
         }
         return;
       }
