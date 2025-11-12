@@ -1,9 +1,9 @@
 # --- BUILD ---
 FROM node:20-alpine AS build
 WORKDIR /app
-# FORCE REBUILD - FIX MICROFONE PARAVA IMEDIATAMENTE - useEffect re-executando
-ENV REBUILD_TIMESTAMP="2025-11-12-09:00:00"
-ENV FORCE_REBUILD="mic_capture_fix_v1"
+# FORCE REBUILD - DEBUG: Logs detalhados MicrophoneCapture
+ENV REBUILD_TIMESTAMP="2025-11-12-09:10:00"
+ENV FORCE_REBUILD="mic_debug_v1"
 COPY package*.json ./
 RUN npm install
 COPY . .
