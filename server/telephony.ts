@@ -113,33 +113,27 @@ export function setupTelephony(app: Express, httpServer: Server) {
   rtpService.on('audio', (data: any) => {
     console.log(`[TELEPHONY] RTP audio received for call ${data.callId}`);
     
-    // Check if voice conversion is enabled for this call
-    if (realtimeVoiceService.isConversionEnabled(data.callId)) {
-      // Convert PCM16 to base64 for STT
-      const audioBase64 = data.audioData.toString('base64');
-      realtimeVoiceService.processIncomingAudio(data.callId, audioBase64);
-    } else {
-      // CORREÇÃO OPENAI: Pass-through quando conversão OFF - enviar áudio para navegador
-      console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para navegador (call ${data.callId})`);
-      
-      // Enviar áudio para todos os clientes WebSocket conectados
-      mediaWss.clients.forEach((client) => {
-        if (client.readyState === client.OPEN) {
-          try {
-            const audioBase64 = data.audioData.toString('base64');
-            client.send(JSON.stringify({
-              event: 'rtp-audio',
-              callId: data.callId,
-              audioData: audioBase64,
-              sampleRate: 8000,
-              format: 'pcm16'
-            }));
-          } catch (error) {
-            console.error('[TELEPHONY] ❌ Erro enviando áudio para navegador:', error);
-          }
+    // CORREÇÃO: SEMPRE enviar para navegador (pass-through)
+    // STT está desabilitado (403), então enviar direto
+    console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para navegador (call ${data.callId})`);
+    
+    // Enviar áudio para todos os clientes WebSocket conectados
+    mediaWss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        try {
+          const audioBase64 = data.audioData.toString('base64');
+          client.send(JSON.stringify({
+            event: 'rtp-audio',
+            callId: data.callId,
+            audioData: audioBase64,
+            sampleRate: 8000,
+            format: 'pcm16'
+          }));
+        } catch (error) {
+          console.error('[TELEPHONY] ❌ Erro enviando áudio para navegador:', error);
         }
-      });
-    }
+      }
+    });
   });
 
   // Handle converted audio from TTS -> send back via RTP
