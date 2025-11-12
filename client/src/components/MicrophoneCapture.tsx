@@ -10,27 +10,38 @@ export function MicrophoneCapture() {
   const wsRef = useRef<WebSocket | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const isCapturingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (callState === 'CONNECTED' && currentCallId) {
+    // CORREÇÃO: Só iniciar se não estiver capturando
+    if (callState === 'CONNECTED' && currentCallId && !isCapturingRef.current) {
       startMicrophoneCapture();
-    } else {
+    } 
+    // CORREÇÃO: Só parar se NÃO estiver CONNECTED/RINGING
+    else if (callState !== 'CONNECTED' && callState !== 'RINGING' && isCapturingRef.current) {
       stopMicrophoneCapture();
     }
 
+    // CORREÇÃO: Cleanup só ao desmontar o componente completamente
     return () => {
-      stopMicrophoneCapture();
+      if (callState === 'IDLE' || callState === 'ENDED') {
+        stopMicrophoneCapture();
+      }
     };
   }, [callState, currentCallId]);
 
   const startMicrophoneCapture = async () => {
     try {
       console.log('[MIC_CAPTURE] 🎤 Iniciando captura de microfone');
+      
+      // CORREÇÃO: Marcar como "capturando" ANTES de iniciar
+      isCapturingRef.current = true;
 
       // Feature-detect do microfone (CORREÇÃO OPENAI)
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error('[MIC_CAPTURE] ❌ MediaDevices não disponível');
         console.error('[MIC_CAPTURE] 🔒 Use HTTPS ou ative permissões de microfone');
+        isCapturingRef.current = false;
         return;
       }
 
@@ -120,11 +131,15 @@ export function MicrophoneCapture() {
 
     } catch (error) {
       console.error('[MIC_CAPTURE] ❌ Erro ao iniciar captura:', error);
+      isCapturingRef.current = false; // CORREÇÃO: Resetar flag em caso de erro
     }
   };
 
   const stopMicrophoneCapture = () => {
     console.log('[MIC_CAPTURE] 🛑 Parando captura de microfone');
+    
+    // CORREÇÃO: Marcar como "não capturando"
+    isCapturingRef.current = false;
 
     if (processorRef.current) {
       processorRef.current.disconnect();
