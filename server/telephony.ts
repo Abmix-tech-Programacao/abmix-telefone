@@ -249,18 +249,17 @@ export function setupTelephony(app: Express, httpServer: Server) {
         } else if (data.event === 'microphone-audio') {
           // CORREÇÃO OPENAI: Áudio do microfone para enviar via RTP
           if (data.callId && data.audioData) {
-            console.log(`[MEDIA] 🎤 Recebido áudio do microfone para call ${data.callId}`);
-            
             // Converter base64 para buffer
             const audioBuffer = Buffer.from(data.audioData, 'base64');
+            
+            // DEBUG: Log detalhado
+            console.log(`[MEDIA] 🎤 Mic audio: ${audioBuffer.length} bytes, sampleRate: ${data.sampleRate || 8000}Hz (call ${data.callId})`);
             
             // Enviar via RTP para a pessoa
             const success = rtpService.sendAudio(data.callId, audioBuffer, data.sampleRate || 8000);
             
-            if (success) {
-              console.log(`[MEDIA] ✅ Áudio do microfone enviado via RTP (call ${data.callId})`);
-            } else {
-              console.log(`[MEDIA] ❌ Falha ao enviar áudio via RTP (call ${data.callId})`);
+            if (!success) {
+              console.log(`[MEDIA] ❌ Falha RTP sendAudio para ${data.callId}`);
             }
           }
         } else if (data.event === 'media') {

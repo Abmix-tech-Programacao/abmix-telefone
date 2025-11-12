@@ -236,7 +236,8 @@ class RTPService extends EventEmitter {
     const session = this.sessions.get(callId);
     
     if (!session || !session.active || !this.socket) {
-      console.log(`[RTP] Cannot send audio - session not active for call ${callId}`);
+      // DEBUG: Log mais detalhado
+      console.log(`[RTP] ❌ sendAudio FAILED: session=${!!session}, active=${session?.active}, socket=${!!this.socket}, callId=${callId}`);
       return false;
     }
 
