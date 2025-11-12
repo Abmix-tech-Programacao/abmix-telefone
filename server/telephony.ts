@@ -110,15 +110,31 @@ export function setupTelephony(app: Express, httpServer: Server) {
   });
 
   // Handle RTP audio events -> send to STT AND browser
+  let mediaWss: any; // Será definido depois
+  
   rtpService.on('audio', (data: any) => {
     console.log(`[TELEPHONY] RTP audio received for call ${data.callId}`);
     
     // CORREÇÃO: SEMPRE enviar para navegador (pass-through)
     // STT está desabilitado (403), então enviar direto
-    console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para navegador (call ${data.callId})`);
+    
+    // Debug: verificar se mediaWss existe e tem clientes
+    if (!mediaWss) {
+      console.log(`[TELEPHONY] ⚠️  mediaWss ainda não inicializado!`);
+      return;
+    }
+    
+    const clientCount = mediaWss.clients ? mediaWss.clients.size : 0;
+    console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para ${clientCount} cliente(s) (call ${data.callId})`);
+    
+    if (clientCount === 0) {
+      console.log(`[TELEPHONY] ⚠️  Nenhum cliente WebSocket conectado!`);
+      return;
+    }
     
     // Enviar áudio para todos os clientes WebSocket conectados
-    mediaWss.clients.forEach((client) => {
+    let sentCount = 0;
+    mediaWss.clients.forEach((client: any) => {
       if (client.readyState === client.OPEN) {
         try {
           const audioBase64 = data.audioData.toString('base64');
@@ -129,11 +145,16 @@ export function setupTelephony(app: Express, httpServer: Server) {
             sampleRate: 8000,
             format: 'pcm16'
           }));
+          sentCount++;
         } catch (error) {
           console.error('[TELEPHONY] ❌ Erro enviando áudio para navegador:', error);
         }
       }
     });
+    
+    if (sentCount > 0) {
+      console.log(`[TELEPHONY] ✅ Áudio enviado para ${sentCount} cliente(s)`);
+    }
   });
 
   // Handle converted audio from TTS -> send back via RTP
@@ -152,7 +173,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
 
   // Um único modelo 'noServer' para evitar conflitos de múltiplos handlers
   const captionsWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
-  const mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false }); // Atribuir à variável externa
   console.log(`[TELEPHONY] WebSocket servers (noServer) preparados: ${captionsPath}, ${mediaPath}, alt=${mediaAltPath}`);
 
   // === WEBSOCKET HANDLERS ===
