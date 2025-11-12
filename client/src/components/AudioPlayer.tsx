@@ -6,10 +6,12 @@ import { useCallStore } from '@/stores/useCallStore';
  */
 export function AudioPlayer() {
   const { callState, currentCallId } = useCallStore();
+  const setSpeakerLevel = useCallStore(state => state.setSpeakerLevel);
   const audioContextRef = useRef<AudioContext | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const audioElRef = useRef<HTMLAudioElement | null>(null);
   const destNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
     // Conectar já em RINGING para que a mídia abra e possamos parar o ringtone na hora certa
@@ -155,16 +157,29 @@ export function AudioPlayer() {
             }
 
             // Reproduzir áudio nos autofalantes
-          const source = audioContext.createBufferSource();
-          source.buffer = audioBuffer;
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
 
-          // Se houver destino para <audio>, use-o; caso contrário, destination padrão
-          if (destNodeRef.current) {
-            source.connect(destNodeRef.current);
-          } else {
-            source.connect(audioContext.destination);
-          }
-          source.start();
+            // Criar analyser se não existir
+            if (!analyserRef.current) {
+              const analyser = audioContext.createAnalyser();
+              analyser.fftSize = 256;
+              analyser.smoothingTimeConstant = 0.8;
+              analyserRef.current = analyser;
+              analyser.connect(audioContext.destination);
+            }
+
+            // Conectar source -> analyser -> destination
+            source.connect(analyserRef.current);
+
+            // Atualizar barra de speaker
+            const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+            analyserRef.current.getByteFrequencyData(dataArray);
+            const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
+            const level = Math.min(100, Math.round((average / 255) * 150)); // Amplificar um pouco
+            setSpeakerLevel(level);
+
+            source.start();
           }
         } catch (error) {
           console.error('[AUDIO_PLAYER] ❌ Erro ao reproduzir áudio:', error);
