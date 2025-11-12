@@ -1,0 +1,6 @@
+FORCE REBUILD - 2025-11-12 02:15 UTC
+CRITICAL FIX: Audio bilateral não funciona
+Deploy anterior não atualizou código compilado
+Container está com código antigo (commit 69f6958 anterior)
+Necessário rebuild COMPLETO sem cache
+
