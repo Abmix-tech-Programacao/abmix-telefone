@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
-import { getAudioContext } from '@/lib/audio/unlockAudio';
 
 export function Ringtone() {
   const { callState } = useCallStore();
@@ -11,7 +10,13 @@ export function Ringtone() {
   useEffect(() => {
     const playRingtone = async () => {
       try {
-        const audioContext = (audioContextRef.current ||= getAudioContext());
+        // Cria novo AudioContext se necessário
+        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+          const AC = window.AudioContext || (window as any).webkitAudioContext;
+          audioContextRef.current = new AC();
+        }
+        
+        const audioContext = audioContextRef.current;
         
         if (audioContext.state === 'suspended') {
           await audioContext.resume();

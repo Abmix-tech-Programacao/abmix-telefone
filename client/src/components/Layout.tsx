@@ -21,7 +21,7 @@ import { AudioPlayer } from './AudioPlayer';
 import { MicrophoneCapture } from './MicrophoneCapture';
 import { AudioSettings } from './AudioSettings';
 import { useEffect } from 'react';
-import { unlockAudioOnce } from '@/lib/audio/unlockAudio';
+// unlockAudio removido - cada componente gerencia seu próprio AudioContext
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -123,7 +123,7 @@ export function Layout() {
         // registra listeners apenas uma vez
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useEffect(() => {
-          unlockAudioOnce();
+          // unlockAudio removido
         }, []);
         return null;
       })()}

@@ -19,28 +19,42 @@ export function AudioMonitor() {
 
     const setupAudioMonitoring = async () => {
       try {
-        // Create AudioContext
-        if (!audioContextRef.current) {
-          const AC = (window.AudioContext || (window as any).webkitAudioContext);
-          if (!AC) {
-            console.warn('[AUDIO_MONITOR] AudioContext não disponível');
-            return;
-          }
-          audioContextRef.current = new AC();
-          (window as any).audioContext = audioContextRef.current;
+        // Create AudioContext - SEMPRE CRIA NOVO
+        const AC = (window.AudioContext || (window as any).webkitAudioContext);
+        if (!AC) {
+          console.warn('[AUDIO_MONITOR] AudioContext não disponível');
+          return;
         }
+        
+        const audioContext = new AC();
+        audioContextRef.current = audioContext;
 
-        const audioContext = audioContextRef.current;
-
-        // Tentar retomar contexto de áudio (autoplay policy)
-        const resume = async () => {
-          try { if (audioContext.state !== 'running') { await audioContext.resume(); } } catch {}
+        // Resume após qualquer interação do usuário
+        const tryResume = async () => {
+          try {
+            if (audioContext.state !== 'running') {
+              await audioContext.resume();
+              console.log('[AUDIO_MONITOR] AudioContext resumed:', audioContext.state);
+            }
+          } catch (e) {
+            console.warn('[AUDIO_MONITOR] Failed to resume:', e);
+          }
         };
-        await resume();
-        if (audioContext.state !== 'running') {
-          const onInteract = async () => { await resume(); document.removeEventListener('click', onInteract); document.removeEventListener('touchstart', onInteract); };
-          document.addEventListener('click', onInteract, { once: true });
-          document.addEventListener('touchstart', onInteract, { once: true });
+
+        // Tenta resume imediatamente
+        await tryResume();
+
+        // Se ainda suspended, registra listeners
+        if (audioContext.state === 'suspended') {
+          const onInteract = async () => {
+            await tryResume();
+            ['click', 'touchstart', 'keydown'].forEach(e => 
+              document.removeEventListener(e, onInteract)
+            );
+          };
+          ['click', 'touchstart', 'keydown'].forEach(e => 
+            document.addEventListener(e, onInteract, { once: true, passive: true })
+          );
         }
 
         // Setup microphone monitoring

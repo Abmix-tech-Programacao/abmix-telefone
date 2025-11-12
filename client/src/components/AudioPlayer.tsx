@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
-import { getAudioContext } from '@/lib/audio/unlockAudio';
 
 /**
  * AudioPlayer - Reproduz áudio RTP recebido via WebSocket
@@ -29,15 +28,19 @@ export function AudioPlayer() {
     try {
       console.log('[AUDIO_PLAYER] 🔊 Conectando para reproduzir áudio RTP');
 
-      // Feature-detect AudioContext (CORREÇÃO OPENAI)
+      // Feature-detect AudioContext
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) {
         console.error('[AUDIO_PLAYER] ❌ AudioContext não disponível no navegador');
         return;
       }
 
-      // Criar/obter AudioContext compartilhado
-      const audioContext = (audioContextRef.current ||= getAudioContext());
+      // Criar novo AudioContext se necessário
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        audioContextRef.current = new AudioContextClass({ sampleRate: 8000 });
+      }
+      
+      const audioContext = audioContextRef.current;
 
       // Ativar AudioContext (autoplay policy): tenta e, se ficar suspenso, reativa no primeiro gesto do usuário
       const resumeAudioContext = async () => {
