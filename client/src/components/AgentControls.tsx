@@ -10,10 +10,13 @@ export function AgentControls() {
   const { aiActive, setAiActive, currentCallId } = useCallStore();
 
   const pauseAIMutation = useMutation({
-    mutationFn: () => fetch('/api/agent/disable', { 
+    mutationFn: () => fetch('/api/ai/prompt', { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callSid: currentCallId })
+      body: JSON.stringify({ 
+        text: "IA pausada - aguardando instruções do operador humano",
+        type: "system" 
+      })
     }).then(res => res.json()),
     onSuccess: () => {
       setAiActive(false);
@@ -32,10 +35,13 @@ export function AgentControls() {
   });
 
   const resumeAIMutation = useMutation({
-    mutationFn: () => fetch('/api/agent/enable', { 
+    mutationFn: () => fetch('/api/ai/prompt', { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callSid: currentCallId })
+      body: JSON.stringify({ 
+        text: "IA reativada - retomando conversação natural e prestativa",
+        type: "system" 
+      })
     }).then(res => res.json()),
     onSuccess: () => {
       setAiActive(true);

@@ -3,10 +3,11 @@ import { apiRequest } from '@/lib/queryClient';
 export const api = {
   // === TELEPHONY ENDPOINTS ===
   
-  startCall: async (provider: string, toNumber: string, voiceType: string = 'masc') => {
+  startCall: async (provider: string, toNumber: string, voiceType: string = 'masc', fromNumberId?: string) => {
     const response = await apiRequest('POST', '/api/call/dial', {
       to: toNumber,
       voiceType,
+      from_number_id: fromNumberId,
     });
     return response.json();
   },
@@ -90,13 +91,28 @@ export const api = {
     return response.json();
   },
 
-  testVoice: async (voiceId: string, text: string) => {
-    const response = await fetch('/api/voices/test', {
+  testVoice: async (voiceId: string, text: string = "Olá, esta é uma demonstração da voz.") => {
+    const response = await fetch('/api/voice/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ voiceId, text })
     });
     return response;
+  },
+
+  // Preview voice (returns audio blob)
+  previewVoice: async (voiceId: string, text: string = "Olá, esta é uma demonstração da voz.") => {
+    const response = await fetch('/api/voice/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ voiceId, text })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to generate voice preview');
+    }
+    
+    return response.blob();
   },
 
   // === FAVORITES ENDPOINTS ===
@@ -111,61 +127,8 @@ export const api = {
     return response.json();
   },
 
-  createFavorite: async (data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' | 'none' }) => {
-    const response = await apiRequest('POST', '/api/favorites', {
-      name: data.name,
-      phoneE164: data.number,
-      voiceType: data.voiceType || 'none'
-    });
-    return response.json();
-  },
-
-  updateFavorite: async (id: string, data: { name: string; number: string; voiceType?: 'masc' | 'fem' | 'natural' | 'none' }) => {
-    const response = await apiRequest('PUT', `/api/favorites/${id}`, {
-      name: data.name,
-      phoneE164: data.number,
-      voiceType: data.voiceType || 'none'
-    });
-    return response.json();
-  },
-
   removeFavorite: async (id: string) => {
     const response = await apiRequest('DELETE', `/api/favorites/${id}`);
-    return response.json();
-  },
-
-  // === VOIP NUMBERS ENDPOINTS ===
-  
-  getVoipNumbers: async () => {
-    const response = await apiRequest('GET', '/api/voip-numbers');
-    return response.json();
-  },
-
-  getDefaultVoipNumber: async () => {
-    const response = await apiRequest('GET', '/api/voip-numbers/default');
-    return response.json();
-  },
-
-  addVoipNumber: async (data: { 
-    name: string; 
-    number: string; 
-    provider: string; 
-    sipUsername?: string; 
-    sipPassword?: string; 
-    sipServer?: string; 
-    isDefault?: boolean;
-  }) => {
-    const response = await apiRequest('POST', '/api/voip-numbers', data);
-    return response.json();
-  },
-
-  setDefaultVoipNumber: async (id: number) => {
-    const response = await apiRequest('PUT', `/api/voip-numbers/${id}/default`, {});
-    return response.json();
-  },
-
-  deleteVoipNumber: async (id: number) => {
-    const response = await apiRequest('DELETE', `/api/voip-numbers/${id}`);
     return response.json();
   },
 
@@ -185,6 +148,71 @@ export const api = {
   
   getTranscripts: async (callId: string) => {
     const response = await apiRequest('GET', `/api/transcripts/${callId}`);
+    return response.json();
+  },
+
+  // === VOIP NUMBERS ENDPOINTS ===
+  
+  getVoipNumbers: async () => {
+    const response = await apiRequest('GET', '/api/voip-numbers');
+    return response.json();
+  },
+
+  getActiveVoipNumbers: async () => {
+    const response = await apiRequest('GET', '/api/voip-numbers/active');
+    return response.json();
+  },
+
+  addVoipNumber: async (numberData: {
+    number: string;
+    provider: string;
+    name: string;
+    account_id?: string;
+    password?: string;
+    server?: string;
+    is_active?: boolean;
+  }) => {
+    const response = await apiRequest('POST', '/api/voip-numbers', numberData);
+    return response.json();
+  },
+
+  updateVoipNumber: async (id: string, numberData: {
+    number: string;
+    provider: string;
+    name: string;
+    account_id?: string;
+    password?: string;
+    server?: string;
+    is_active?: boolean;
+  }) => {
+    const response = await apiRequest('PUT', `/api/voip-numbers/${id}`, numberData);
+    return response.json();
+  },
+
+  deleteVoipNumber: async (id: string) => {
+    const response = await apiRequest('DELETE', `/api/voip-numbers/${id}`);
+    return response.json();
+  },
+
+  toggleVoipNumber: async (id: string) => {
+    const response = await apiRequest('POST', `/api/voip-numbers/${id}/toggle`);
+    return response.json();
+  },
+
+  testVoipNumber: async (id: string) => {
+    const response = await apiRequest('POST', `/api/voip-numbers/${id}/test`);
+    return response.json();
+  },
+
+  testVoipCredentials: async (numberData: {
+    number: string;
+    provider: string;
+    name: string;
+    account_id?: string;
+    password?: string;
+    server?: string;
+  }) => {
+    const response = await apiRequest('POST', '/api/voip-numbers/test-credentials', numberData);
     return response.json();
   },
 

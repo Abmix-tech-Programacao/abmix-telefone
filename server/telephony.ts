@@ -60,11 +60,8 @@ function resolveWebSocketBasePath(): string {
   return candidate === '/' ? '' : candidate;
 }
 
-const WS_BASE_PATH = resolveWebSocketBasePath();
-const buildWsPath = (suffix: string) => {
-  const normalizedSuffix = suffix.startsWith('/') ? suffix : `/${suffix}`;
-  return WS_BASE_PATH ? `${WS_BASE_PATH}${normalizedSuffix}` : normalizedSuffix;
-};
+// Forçar caminhos WS SEM prefixo para evitar interferência de proxies/variáveis
+const buildWsPath = (suffix: string) => (suffix.startsWith('/') ? suffix : `/${suffix}`);
 
 // Active calls and sessions tracking
 const activeCalls = new Map();
@@ -104,41 +101,59 @@ export function setupTelephony(app: Express, httpServer: Server) {
   
   // Initialize RTP server for SIP audio
   rtpService.start(10000).then(() => {
-    console.log('[TELEPHONY] RTP server started on port 10000');
+    console.log('[TELEPHONY] ✅ RTP server started on port 10000');
+    console.log('[TELEPHONY] 🔊 UDP port 10000 MUST be open for audio to work');
+    console.log('[TELEPHONY] 📞 SIP port 6060 MUST be open for calls to work');
   }).catch((err) => {
-    console.error('[TELEPHONY] Failed to start RTP server:', err);
+    console.error('[TELEPHONY] ❌ CRITICAL: Failed to start RTP server:', err);
+    console.error('[TELEPHONY] 🚨 Check if UDP port 10000 is available!');
   });
 
   // Handle RTP audio events -> send to STT AND browser
+  let mediaWss: any; // Será definido depois
+  
   rtpService.on('audio', (data: any) => {
     console.log(`[TELEPHONY] RTP audio received for call ${data.callId}`);
     
-    // Check if voice conversion is enabled for this call
-    if (realtimeVoiceService.isConversionEnabled(data.callId)) {
-      // Convert PCM16 to base64 for STT
-      const audioBase64 = data.audioData.toString('base64');
-      realtimeVoiceService.processIncomingAudio(data.callId, audioBase64);
-    } else {
-      // CORREÇÃO OPENAI: Pass-through quando conversão OFF - enviar áudio para navegador
-      console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para navegador (call ${data.callId})`);
-      
-      // Enviar áudio para todos os clientes WebSocket conectados
-      mediaWss.clients.forEach((client) => {
-        if (client.readyState === client.OPEN) {
-          try {
-            const audioBase64 = data.audioData.toString('base64');
-            client.send(JSON.stringify({
-              event: 'rtp-audio',
-              callId: data.callId,
-              audioData: audioBase64,
-              sampleRate: 8000,
-              format: 'pcm16'
-            }));
-          } catch (error) {
-            console.error('[TELEPHONY] ❌ Erro enviando áudio para navegador:', error);
-          }
+    // CORREÇÃO: SEMPRE enviar para navegador (pass-through)
+    // STT está desabilitado (403), então enviar direto
+    
+    // Debug: verificar se mediaWss existe e tem clientes
+    if (!mediaWss) {
+      console.log(`[TELEPHONY] ⚠️  mediaWss ainda não inicializado!`);
+      return;
+    }
+    
+    const clientCount = mediaWss.clients ? mediaWss.clients.size : 0;
+    console.log(`[TELEPHONY] 🔊 Enviando áudio RTP para ${clientCount} cliente(s) (call ${data.callId})`);
+    
+    if (clientCount === 0) {
+      console.log(`[TELEPHONY] ⚠️  Nenhum cliente WebSocket conectado!`);
+      return;
+    }
+    
+    // Enviar áudio para todos os clientes WebSocket conectados
+    let sentCount = 0;
+    mediaWss.clients.forEach((client: any) => {
+      if (client.readyState === client.OPEN) {
+        try {
+          const audioBase64 = data.audioData.toString('base64');
+          client.send(JSON.stringify({
+            event: 'rtp-audio',
+            callId: data.callId,
+            audioData: audioBase64,
+            sampleRate: 8000,
+            format: 'pcm16'
+          }));
+          sentCount++;
+        } catch (error) {
+          console.error('[TELEPHONY] ❌ Erro enviando áudio para navegador:', error);
         }
-      });
+      }
+    });
+    
+    if (sentCount > 0) {
+      console.log(`[TELEPHONY] ✅ Áudio enviado para ${sentCount} cliente(s)`);
     }
   });
 
@@ -150,30 +165,16 @@ export function setupTelephony(app: Express, httpServer: Server) {
     rtpService.sendAudio(callId, audioBuffer, 8000);
   });
   
-  // WebSocket servers - escutar nos paths que o nginx vai fazer proxy
+  // WebSocket servers - caminhos fixos SEM prefixo
   const captionsPath = buildWsPath('/captions');
   const mediaPath = buildWsPath('/media');
+  const mediaAltPath = '/ws-media';
+  console.log(`[TELEPHONY] WS paths -> captions=${captionsPath}, media=${mediaPath}, alt=${mediaAltPath}`);
 
-  const captionsWss = new WebSocketServer({ 
-    server: httpServer, 
-    path: captionsPath,
-    verifyClient: (info: any) => {
-      console.log('[CAPTIONS_WS] Connection attempt from:', info.origin);
-      return true; // Aceitar todas as conexões
-    }
-  });
-  
-  const mediaWss = new WebSocketServer({ 
-    server: httpServer, 
-    path: mediaPath,
-    verifyClient: (info: any) => {
-      console.log('[MEDIA_WS] Connection attempt from:', info.origin);
-      console.log('[MEDIA_WS] Headers:', info.req.headers);
-      return true; // Accept all connections
-    }
-  });
-
-  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
+  // Um único modelo 'noServer' para evitar conflitos de múltiplos handlers
+  const captionsWss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
+  mediaWss = new WebSocketServer({ noServer: true, perMessageDeflate: false }); // Atribuir à variável externa
+  console.log(`[TELEPHONY] WebSocket servers (noServer) preparados: ${captionsPath}, ${mediaPath}, alt=${mediaAltPath}`);
 
   // === WEBSOCKET HANDLERS ===
 
@@ -199,14 +200,14 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
   });
 
-  // Handle media WebSocket connections from Twilio
-  mediaWss.on('connection', (ws, req) => {
-    console.log('[MEDIA] Twilio media stream connected');
+  // Handle media WebSocket connections from browser
+  const onMediaConnection = (ws: any, req: any) => {
+    console.log('[MEDIA] ✅ Browser RTP media stream connected - NO TWILIO');
     
-    let callSid: string | null = null;
-    let streamSid: string | null = null;
+    let callId: string | null = null;
+    let streamId: string | null = null;
 
-    ws.on('message', (message) => {
+    ws.on('message', (message: any) => {
       try {
         const data = JSON.parse(message.toString());
         
@@ -214,59 +215,62 @@ export function setupTelephony(app: Express, httpServer: Server) {
           console.log('[MEDIA] Media stream connected');
           
         } else if (data.event === 'start') {
-          // Capture identifiers from Twilio
-          callSid = data.start?.callSid;
-          streamSid = data.start?.streamSid;
+          // Capture identifiers from browser
+          callId = data.callId || data.start?.callSid;
+          streamId = data.streamId || data.start?.streamSid;
           
-          console.log(`[MEDIA] Stream started for call: ${callSid}, stream: ${streamSid}`);
+          console.log(`[MEDIA] Stream started for call: ${callId}, stream: ${streamId}`);
           
-          if (callSid && streamSid) {
-            mediaStreams.set(callSid, { ws, streamSid });
+          if (callId && streamId) {
+            mediaStreams.set(callId, { ws, streamId });
             
+            console.log(`[MEDIA] Stream started for ${callId} - VOICE CONVERSION DISABLED (pass-through mode)`);
+            
+            // CORREÇÃO: NÃO INICIAR ElevenLabs (causa problemas 403/403)
+            // Áudio passa direto sem conversão de voz
             // Get call configuration
-            const callInfo = activeCalls.get(callSid);
-            const voiceType = (callInfo?.voiceType as 'masc' | 'fem') || 'masc';
+            // const callInfo = activeCalls.get(callId);
+            // const voiceType = (callInfo?.voiceType as 'masc' | 'fem') || 'masc';
             
-            console.log(`[MEDIA] Starting voice processing for ${callSid} with voice type: ${voiceType}`);
+            // console.log(`[MEDIA] Starting voice processing for ${callId} with voice type: ${voiceType}`);
             
-            // Start real-time voice conversion session
-            realtimeVoiceService.startRealtimeVoice(callSid, voiceType).then((success) => {
-              if (success) {
-                console.log(`[REALTIME_VOICE] Session started successfully for ${callSid}`);
-              } else {
-                console.error(`[REALTIME_VOICE] Failed to start session for ${callSid}`);
-              }
-            }).catch((error) => {
-              console.error(`[REALTIME_VOICE] Error starting session for ${callSid}:`, error);
-            });
+            // Start real-time voice conversion session - DESABILITADO
+            // realtimeVoiceService.startRealtimeVoice(callId, voiceType).then((success) => {
+            //   if (success) {
+            //     console.log(`[REALTIME_VOICE] Session started successfully for ${callId}`);
+            //   } else {
+            //     console.error(`[REALTIME_VOICE] Failed to start session for ${callId}`);
+            //   }
+            // }).catch((error) => {
+            //   console.error(`[REALTIME_VOICE] Error starting session for ${callId}:`, error);
+            // });
           }
           
         } else if (data.event === 'microphone-audio') {
           // CORREÇÃO OPENAI: Áudio do microfone para enviar via RTP
           if (data.callId && data.audioData) {
-            console.log(`[MEDIA] 🎤 Recebido áudio do microfone para call ${data.callId}`);
-            
             // Converter base64 para buffer
             const audioBuffer = Buffer.from(data.audioData, 'base64');
+            
+            // DEBUG: Log detalhado
+            console.log(`[MEDIA] 🎤 Mic audio: ${audioBuffer.length} bytes, sampleRate: ${data.sampleRate || 8000}Hz (call ${data.callId})`);
             
             // Enviar via RTP para a pessoa
             const success = rtpService.sendAudio(data.callId, audioBuffer, data.sampleRate || 8000);
             
-            if (success) {
-              console.log(`[MEDIA] ✅ Áudio do microfone enviado via RTP (call ${data.callId})`);
-            } else {
-              console.log(`[MEDIA] ❌ Falha ao enviar áudio via RTP (call ${data.callId})`);
+            if (!success) {
+              console.log(`[MEDIA] ❌ Falha RTP sendAudio para ${data.callId}`);
             }
           }
         } else if (data.event === 'media') {
-          // Process incoming audio from caller (user's voice) - Twilio legacy
-          if (data.media && data.media.payload && callSid && streamSid) {
-            console.log(`[MEDIA] Processing audio chunk for call: ${callSid}`);
-            processUserAudio(callSid, data.media.payload, streamSid, ws);
+          // Process incoming audio from caller (user's voice)
+          if (data.media && data.media.payload && callId && streamId) {
+            console.log(`[MEDIA] Processing audio chunk for call: ${callId}`);
+            processUserAudio(callId, data.media.payload, streamId, ws);
           }
           
         } else if (data.event === 'stop') {
-          console.log(`[MEDIA] Stream stopped for call: ${callSid}`);
+          console.log(`[MEDIA] Stream stopped for call: ${callId}`);
         }
         
       } catch (error) {
@@ -275,16 +279,60 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
 
     ws.on('close', () => {
-      console.log(`[MEDIA] Media stream disconnected for call: ${callSid}`);
-      if (callSid) {
-        mediaStreams.delete(callSid);
-        realtimeVoiceService.stopRealtimeVoice(callSid);
+      console.log(`[MEDIA] Media stream disconnected for call: ${callId}`);
+      if (callId) {
+        mediaStreams.delete(callId);
+        realtimeVoiceService.stopRealtimeVoice(callId);
       }
     });
 
-    ws.on('error', (error) => {
+    ws.on('error', (error: any) => {
       console.error('[MEDIA] Media stream error:', error);
     });
+  };
+  mediaWss.on('connection', onMediaConnection);
+
+  // Upgrade ÚNICO: aceita WS para /media, /ws-media e /captions
+  httpServer.on('upgrade', (req: any, socket: any, head: any) => {
+    try {
+      const url = (req?.url || '') as string;
+      const pathname = (() => {
+        try { return new URL(url, 'http://x').pathname; } catch { return url; }
+      })();
+      const origin = req.headers?.origin;
+      const ua = req.headers?.['user-agent'];
+
+      // Aceita todas as origens (Traefik já controla o host)
+      const acceptOrigin = true;
+      if (!acceptOrigin) {
+        try { socket.destroy(); } catch {}
+        return;
+      }
+
+      const isCaptions = pathname === captionsPath;
+      const isMedia = pathname === mediaPath || pathname === mediaAltPath;
+
+      if (isCaptions) {
+        captionsWss.handleUpgrade(req, socket, head, (ws) => {
+          console.log('[CAPTIONS_UPGRADE] Aceito upgrade para', pathname, 'origin=', origin, 'ua=', ua);
+          captionsWss.emit('connection', ws, req);
+        });
+        return;
+      }
+
+      if (isMedia) {
+        mediaWss.handleUpgrade(req, socket, head, (ws) => {
+          console.log('[MEDIA_UPGRADE] Aceito upgrade para', pathname, 'origin=', origin, 'ua=', ua);
+          onMediaConnection(ws, req);
+        });
+        return;
+      }
+
+      // Rejeita outros caminhos
+      try { socket.destroy(); } catch {}
+    } catch {
+      try { socket.destroy(); } catch {}
+    }
   });
 
   // Forward STT results to captions WebSocket
@@ -296,7 +344,7 @@ export function setupTelephony(app: Express, httpServer: Server) {
     });
   });
 
-  // Forward ElevenLabs TTS audio to the Twilio stream
+  // Forward ElevenLabs TTS audio to the RTP stream
   elevenLabsService.on('tts-audio', (sessionId: string, audioBuffer: Buffer) => {
     const entry = mediaStreams.get(sessionId) as any;
     if (!entry) return;
@@ -311,11 +359,11 @@ export function setupTelephony(app: Express, httpServer: Server) {
       };
       ws.send(JSON.stringify(message));
     } catch (e) {
-      console.error('[MEDIA] Failed to send TTS audio to Twilio:', e);
+      console.error('[MEDIA] Failed to send TTS audio to RTP:', e);
     }
   });
 
-  // Forward converted voice audio from real-time service to Twilio stream
+  // Forward converted voice audio from real-time service to RTP stream
   realtimeVoiceService.on('converted-voice-audio', (callSid: string, audioBuffer: Buffer) => {
     const entry = mediaStreams.get(callSid) as any;
     if (!entry) {
@@ -337,10 +385,10 @@ export function setupTelephony(app: Express, httpServer: Server) {
         media: { payload }
       };
       
-      console.log(`[MEDIA] Sending converted audio to Twilio for call: ${callSid}`);
+      console.log(`[MEDIA] Sending converted audio to RTP for call: ${callSid}`);
       ws.send(JSON.stringify(message));
     } catch (e) {
-      console.error('[MEDIA] Failed to send converted audio to Twilio:', e);
+      console.error('[MEDIA] Failed to send converted audio to RTP:', e);
     }
   });
 
@@ -582,6 +630,6 @@ export function setupTelephony(app: Express, httpServer: Server) {
     }
   });
 
-  console.log(`[TELEPHONY] WebSocket servers initialized on ${captionsPath} and ${mediaPath}`);
+  console.log(`[TELEPHONY] WebSocket servers initialized (manual upgrade) for ${captionsPath} and ${mediaPath}`);
   return { captionsWss, mediaWss };
 }

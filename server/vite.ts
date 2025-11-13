@@ -42,6 +42,11 @@ export async function setupVite(app: Express, server: Server) {
 
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
+    // IMPORTANTE: Ignora requisições de upgrade WebSocket
+    if (req.headers.upgrade === 'websocket' || req.headers.connection?.toLowerCase().includes('upgrade')) {
+      return next(); // Não processa, deixa para httpServer.on('upgrade')
+    }
+
     const url = req.originalUrl;
 
     try {
@@ -143,7 +148,12 @@ export function serveStatic(app: Express) {
   });
 
   // fall through to index.html APENAS para rotas que não são assets
-  app.use("*", (req, res) => {
+  app.use("*", (req, res, next) => {
+    // IMPORTANTE: Ignora requisições de upgrade WebSocket
+    if (req.headers.upgrade === 'websocket' || req.headers.connection?.toLowerCase().includes('upgrade')) {
+      return next(); // Não processa, deixa para httpServer.on('upgrade')
+    }
+
     // Não servir index.html para requisições de assets
     if (req.originalUrl.includes('/assets/')) {
       console.error(`[STATIC] Asset não encontrado: ${req.originalUrl}`);

@@ -2,8 +2,18 @@
 let ws: WebSocket | null = null;
 const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/captions`;
 
+function captionsEnabled(): boolean {
+  // Desabilitado por padrão se o usuário definir 'false'
+  const stored = localStorage.getItem('captions_enabled');
+  return stored === null ? false : stored === 'true';
+}
+
 export function connectCaptions() {
   if (ws) return;
+  if (!captionsEnabled()) {
+    console.log('captions: disabled by settings');
+    return;
+  }
   
   console.log('captions: connecting to', WS_URL);
   ws = new WebSocket(WS_URL);
@@ -32,9 +42,9 @@ export function connectCaptions() {
     ws = null;
     console.log('captions: closed');
     
-    // Reconnect only if call is active
+    // Reconnect only if call is active and captions are enabled
     setTimeout(() => {
-      if ((window as any).__CALL_ACTIVE__) {
+      if ((window as any).__CALL_ACTIVE__ && captionsEnabled()) {
         connectCaptions();
       }
     }, 2000);

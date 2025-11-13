@@ -20,8 +20,27 @@ const app = express();
 // Configure trust proxy for subpath deployment
 app.set('trust proxy', true);
 
+// IMPORTANTE: Middleware para ignorar requisições de upgrade WebSocket
+// Deve vir ANTES de qualquer outro middleware que possa interceptar
+app.use((req, res, next) => {
+  // Se for requisição de upgrade WebSocket, deixa passar sem processar
+  if (req.headers.upgrade === 'websocket' || req.headers.connection?.toLowerCase().includes('upgrade')) {
+    return next(); // Não processa, deixa para o handler de upgrade do httpServer
+  }
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Headers para permitir microfone em iframe e melhorar compatibilidade
+app.use((_req, res, next) => {
+  // Permite uso de microfone quando embutido (iframe com allow="microphone; autoplay")
+  res.setHeader('Permissions-Policy', 'microphone=(self)');
+  // Melhora comportamento de mídia inline em alguns navegadores
+  res.setHeader('Accept-CH', 'Sec-CH-UA-Platform');
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -54,6 +73,13 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Guard para evitar dupla inicialização
+  if ((global as any).__APP_STARTED__) {
+    console.log('[BOOTSTRAP] App already started, skipping initialization');
+    return;
+  }
+  (global as any).__APP_STARTED__ = true;
+
   // Create HTTP server
   const server = http.createServer(app);
   

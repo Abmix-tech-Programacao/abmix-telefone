@@ -140,7 +140,7 @@ export function CallManager() {
 
         <div className="mt-4 p-3 bg-dark-bg rounded-lg border border-dark-border">
           <p className="text-xs text-gray-400">
-            <strong>Funcionalidade:</strong> Consulte e controle chamadas via API Twilio.
+            <strong>Funcionalidade:</strong> Consulte e controle chamadas via provedores VoIP.
             Visualize histórico, status em tempo real e detalhes de cada chamada.
           </p>
         </div>

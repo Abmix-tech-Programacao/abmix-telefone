@@ -59,7 +59,13 @@ export function serveStatic(app: Express) {
   }));
 
   // Servir index.html para todas as rotas não-API (SPA fallback)
-  app.get("*", (_req, res) => {
+  // IMPORTANTE: Ignora requisições de upgrade WebSocket
+  app.get("*", (req, res, next) => {
+    // Se for requisição de upgrade WebSocket, não processa (deixa para httpServer.on('upgrade'))
+    if (req.headers.upgrade === 'websocket' || req.headers.connection?.toLowerCase().includes('upgrade')) {
+      return next(); // Não responde, deixa passar
+    }
+    
     const indexFile = path.resolve(staticPath, "index.html");
     if (fs.existsSync(indexFile)) {
       res.sendFile(indexFile);

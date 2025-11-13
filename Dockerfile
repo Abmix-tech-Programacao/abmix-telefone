@@ -1,6 +1,9 @@
 # --- BUILD ---
 FROM node:20-alpine AS build
 WORKDIR /app
+# FORCE REBUILD - DEBUG: Logs detalhados MicrophoneCapture
+ENV REBUILD_TIMESTAMP="2025-11-12-09:10:00"
+ENV FORCE_REBUILD="mic_debug_v1"
 COPY package*.json ./
 RUN npm install
 COPY . .

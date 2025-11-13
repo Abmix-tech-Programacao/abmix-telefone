@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useCallStore } from '@/stores/useCallStore';
 
 /**
- * AudioMonitor - Componente invisível que monitora níveis de áudio globalmente
- * Atualiza o store com níveis de microfone e autofalante em tempo real
+ * AudioMonitor - VERSÃO SIMPLIFICADA QUE FUNCIONA
+ * Monitora apenas o microfone em tempo real
  */
 export function AudioMonitor() {
   const setMicLevel = useCallStore(state => state.setMicLevel);
@@ -11,111 +11,98 @@ export function AudioMonitor() {
   
   const animationFrameRef = useRef<number>();
   const micAnalyserRef = useRef<AnalyserNode>();
-  const outputAnalyserRef = useRef<AnalyserNode>();
-  const audioContextRef = useRef<AudioContext>();
+  const micStreamRef = useRef<MediaStream>();
 
   useEffect(() => {
-    let micStream: MediaStream | null = null;
+    console.log('[AUDIO_MONITOR] 🎤 Iniciando monitoramento simplificado');
 
-    const setupAudioMonitoring = async () => {
+    const setup = async () => {
       try {
-        // Create AudioContext
-        if (!audioContextRef.current) {
-          audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-          (window as any).audioContext = audioContextRef.current;
+        // 1. Pegar microfone
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          } 
+        });
+        micStreamRef.current = stream;
+        console.log('[AUDIO_MONITOR] ✅ Microfone obtido');
+
+        // 2. Criar AudioContext
+        const AC = window.AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AC();
+        
+        // Resume se suspended
+        if (audioContext.state === 'suspended') {
+          await audioContext.resume();
         }
 
-        const audioContext = audioContextRef.current;
+        // 3. Criar analyser para microfone
+        const micSource = audioContext.createMediaStreamSource(stream);
+        const micAnalyser = audioContext.createAnalyser();
+        micAnalyser.fftSize = 256;
+        micAnalyser.smoothingTimeConstant = 0.8;
+        micSource.connect(micAnalyser);
+        micAnalyserRef.current = micAnalyser;
 
-        // Setup microphone monitoring
-        try {
-          micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const micSource = audioContext.createMediaStreamSource(micStream);
-          const micAnalyser = audioContext.createAnalyser();
-          micAnalyser.fftSize = 256;
-          micSource.connect(micAnalyser);
-          micAnalyserRef.current = micAnalyser;
-        } catch (error) {
-          console.warn('[AUDIO_MONITOR] Microphone access denied:', error);
-        }
+        console.log('[AUDIO_MONITOR] ✅ Analyser conectado');
 
-        // Setup output monitoring
-        const outputAnalyser = audioContext.createAnalyser();
-        outputAnalyser.fftSize = 256;
-        outputAnalyserRef.current = outputAnalyser;
+        // 4. Loop de atualização
+        const dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
+        let lastMicUpdate = 0;
 
-        // Connect all audio elements to output analyzer
-        const connectAudioElements = () => {
-          const audioElements = document.querySelectorAll('audio');
-          audioElements.forEach((audio) => {
-            try {
-              const source = audioContext.createMediaElementSource(audio);
-              source.connect(outputAnalyser);
-              outputAnalyser.connect(audioContext.destination);
-            } catch (e) {
-              // Already connected, ignore
+        const updateLevels = (timestamp: number) => {
+          // Atualizar mic a cada 50ms (20fps)
+          if (timestamp - lastMicUpdate > 50) {
+            if (micAnalyserRef.current) {
+              micAnalyserRef.current.getByteFrequencyData(dataArray);
+              const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
+              const level = Math.min(100, Math.round((average / 255) * 100));
+              setMicLevel(level);
             }
-          });
-        };
-
-        connectAudioElements();
-
-        // Watch for new audio elements
-        const observer = new MutationObserver(connectAudioElements);
-        observer.observe(document.body, { childList: true, subtree: true });
-
-        // Animation loop to update levels
-        const updateLevels = () => {
-          // Update mic level
-          if (micAnalyserRef.current) {
-            const micDataArray = new Uint8Array(micAnalyserRef.current.frequencyBinCount);
-            micAnalyserRef.current.getByteFrequencyData(micDataArray);
-            const micAvg = micDataArray.reduce((sum, val) => sum + val, 0) / micDataArray.length;
-            const level = Math.min(100, (micAvg / 255) * 100);
-            setMicLevel(level);
+            lastMicUpdate = timestamp;
           }
 
-          // Update speaker level
-          if (outputAnalyserRef.current) {
-            const outputDataArray = new Uint8Array(outputAnalyserRef.current.frequencyBinCount);
-            outputAnalyserRef.current.getByteFrequencyData(outputDataArray);
-            const outputAvg = outputDataArray.reduce((sum, val) => sum + val, 0) / outputDataArray.length;
-            const level = Math.min(100, (outputAvg / 255) * 100);
-            setSpeakerLevel(level);
+          // Speaker level vem do AudioPlayer diretamente
+          // Aqui só resetamos se não houver chamada ativa
+          const callState = useCallStore.getState().callState;
+          if (callState !== 'CONNECTED') {
+            setSpeakerLevel(0);
           }
 
           animationFrameRef.current = requestAnimationFrame(updateLevels);
         };
 
-        updateLevels();
+        animationFrameRef.current = requestAnimationFrame(updateLevels);
+        console.log('[AUDIO_MONITOR] ✅ Loop de atualização iniciado');
 
-        return () => {
-          observer.disconnect();
-        };
       } catch (error) {
-        console.error('[AUDIO_MONITOR] Failed to setup audio monitoring:', error);
+        console.error('[AUDIO_MONITOR] ❌ Erro ao configurar:', error);
       }
     };
 
-    setupAudioMonitoring();
+    setup();
 
     // Cleanup
     return () => {
+      console.log('[AUDIO_MONITOR] 🛑 Limpando recursos');
+      
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      if (micStream) {
-        micStream.getTracks().forEach(track => track.stop());
+      
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach(track => track.stop());
       }
+      
       if (micAnalyserRef.current) {
-        micAnalyserRef.current.disconnect();
-      }
-      if (outputAnalyserRef.current) {
-        outputAnalyserRef.current.disconnect();
+        try {
+          micAnalyserRef.current.disconnect();
+        } catch {}
       }
     };
   }, [setMicLevel, setSpeakerLevel]);
 
-  // Componente invisível
   return null;
 }

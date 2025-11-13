@@ -30,7 +30,7 @@ export class RecordingService {
         .insert(recordings)
         .values({
           callId,
-          twilioRecordingSid: callSid,
+          providerCallSid: callSid,
           filename,
           status: 'recording',
           metadata: { phoneNumber, startedAt: new Date().toISOString() }
@@ -43,7 +43,7 @@ export class RecordingService {
         .set({ recordingStatus: 'recording' })
         .where(eq(calls.id, callId));
 
-      // Start simulated recording (in production, this would handle Twilio recording)
+      // Start simulated recording (in production, this would handle VoIP recording)
       this.startSimulatedRecording(recording.id, filePath);
 
       console.log(`[RECORDING] Started recording ${recording.id}: ${filename}`);

@@ -82,7 +82,7 @@ class VoiceConversionService extends EventEmitter {
           },
           // Configurações específicas para conversão de voz
           optimize_streaming_latency: 1, // Prioriza latência baixa
-          output_format: "pcm_8000", // Formato compatível com Twilio
+          output_format: "pcm_8000", // Formato compatível com RTP
           model_id: "eleven_multilingual_sts_v2" // Modelo específico para speech-to-speech
         }));
 

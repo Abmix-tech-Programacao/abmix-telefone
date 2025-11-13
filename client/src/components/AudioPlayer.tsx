@@ -6,11 +6,16 @@ import { useCallStore } from '@/stores/useCallStore';
  */
 export function AudioPlayer() {
   const { callState, currentCallId } = useCallStore();
+  const setSpeakerLevel = useCallStore(state => state.setSpeakerLevel);
   const audioContextRef = useRef<AudioContext | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const audioElRef = useRef<HTMLAudioElement | null>(null);
+  const destNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
-    if (callState === 'CONNECTED' && currentCallId) {
+    // Conectar já em RINGING para que a mídia abra e possamos parar o ringtone na hora certa
+    if ((callState === 'RINGING' || callState === 'CONNECTED') && currentCallId) {
       connectAudioStream();
     } else {
       disconnectAudioStream();
@@ -25,32 +30,105 @@ export function AudioPlayer() {
     try {
       console.log('[AUDIO_PLAYER] 🔊 Conectando para reproduzir áudio RTP');
 
-      // Criar AudioContext
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({
-          sampleRate: 8000
-        });
+      // Feature-detect AudioContext
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        console.error('[AUDIO_PLAYER] ❌ AudioContext não disponível no navegador');
+        return;
       }
 
+      // Criar novo AudioContext se necessário
+      if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+        audioContextRef.current = new AudioContextClass({ sampleRate: 8000 });
+      }
+      
       const audioContext = audioContextRef.current;
 
-      // Ativar AudioContext
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
+      // Ativar AudioContext (autoplay policy): tenta e, se ficar suspenso, reativa no primeiro gesto do usuário
+      const resumeAudioContext = async () => {
+        try {
+          if (audioContext.state !== 'running') {
+            await audioContext.resume();
+          }
+        } catch {}
+      };
+      await resumeAudioContext();
+      if (audioContext.state !== 'running') {
+        const onUserInteract = async () => {
+          await resumeAudioContext();
+          document.removeEventListener('click', onUserInteract);
+          document.removeEventListener('touchstart', onUserInteract);
+        };
+        document.addEventListener('click', onUserInteract, { once: true });
+        document.addEventListener('touchstart', onUserInteract, { once: true });
       }
 
-      // Conectar WebSocket para receber áudio RTP
+      // Conectar WebSocket para receber áudio RTP (tenta /media, depois /ws-media)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/media`;
-      
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+      const tryPaths = ['/ws-media', '/media'];
 
-      ws.onopen = () => {
-        console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP');
+      const openWithFallback = (paths: string[]) => {
+        if (paths.length === 0) {
+          console.error('[AUDIO_PLAYER] ❌ Falha ao abrir WS em todas as rotas');
+          return;
+        }
+        const path = paths.shift()!;
+        const url = `${protocol}//${window.location.host}${path}`;
+        console.log('[AUDIO_PLAYER] 🌐 Tentando WS em', url);
+        const ws = new WebSocket(url);
+        wsRef.current = ws;
+        let opened = false;
+
+        ws.onopen = () => {
+          opened = true;
+          console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP em', path);
+          onWsOpen();
+        };
+        ws.onmessage = onWsMessage;
+        ws.onclose = () => {
+          (window as any).__mediaOpen = false;
+          if (!opened && paths.length > 0) {
+            // tentar próximo path
+            openWithFallback(paths);
+          }
+        };
+        ws.onerror = () => {
+          console.warn('[AUDIO_PLAYER] WS erro em', path);
+        };
       };
 
-      ws.onmessage = async (event) => {
+      const onWsOpen = () => {
+        console.log('[AUDIO_PLAYER] ✅ WebSocket conectado para receber áudio RTP');
+        (window as any).__mediaOpen = true;
+
+        // Preparar saída com <audio> oculto + MediaStreamDestination (melhor suporte a setSinkId)
+        if (!destNodeRef.current) {
+          destNodeRef.current = audioContext.createMediaStreamDestination();
+        }
+        if (!audioElRef.current) {
+          const el = document.createElement('audio');
+          el.style.display = 'none';
+          el.autoplay = true;
+          el.playsInline = true;
+          audioElRef.current = el;
+          document.body.appendChild(el);
+        }
+        if (audioElRef.current) {
+          audioElRef.current.srcObject = destNodeRef.current!.stream;
+        }
+
+        // Aplicar dispositivo de saída salvo, quando suportado
+        const outputDeviceId = localStorage.getItem('audioOutputDevice') || '';
+        if (outputDeviceId && (audioElRef.current as any)?.setSinkId) {
+          (audioElRef.current as any).setSinkId(outputDeviceId).then(() => {
+            console.log('[AUDIO_PLAYER] Saída aplicada via setSinkId:', outputDeviceId);
+          }).catch((e: any) => {
+            console.warn('[AUDIO_PLAYER] setSinkId falhou/não suportado:', e);
+          });
+        }
+      };
+
+      const onWsMessage = async (event: MessageEvent) => {
         try {
           const data = JSON.parse(event.data);
           
@@ -81,17 +159,27 @@ export function AudioPlayer() {
             // Reproduzir áudio nos autofalantes
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
+
+            // Conectar source diretamente ao destination
             source.connect(audioContext.destination);
             source.start();
+            
+            // Atualizar barra de speaker (valor fixo baseado no buffer)
+            try {
+              const avgVolume = Math.abs(channelData.reduce((sum, val) => sum + val, 0) / channelData.length);
+              const level = Math.min(100, Math.round(avgVolume * 300)); // Amplificar
+              setSpeakerLevel(level);
+            } catch (e) {
+              // Ignorar erro de setSpeakerLevel
+            }
           }
         } catch (error) {
           console.error('[AUDIO_PLAYER] ❌ Erro ao reproduzir áudio:', error);
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('[AUDIO_PLAYER] ❌ Erro WebSocket:', error);
-      };
+      // inicia tentativa de conexão
+      openWithFallback([...tryPaths]);
 
     } catch (error) {
       console.error('[AUDIO_PLAYER] ❌ Erro ao conectar stream:', error);
@@ -104,13 +192,31 @@ export function AudioPlayer() {
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
+      (window as any).__mediaOpen = false;
     }
 
     if (audioContextRef.current) {
-      audioContextRef.current.close();
+      try {
+        if (audioContextRef.current.state !== 'closed') {
+          audioContextRef.current.close();
+        }
+      } catch (e) {
+        // Já estava fechado, ignorar
+      }
       audioContextRef.current = null;
     }
+
+    if (audioElRef.current) {
+      try { audioElRef.current.pause(); } catch {}
+      audioElRef.current.srcObject = null;
+      if (audioElRef.current.parentNode) {
+        audioElRef.current.parentNode.removeChild(audioElRef.current);
+      }
+      audioElRef.current = null;
+    }
+
+    destNodeRef.current = null;
   };
 
-  return null; // Componente invisível
+  return null; // Invisível
 }

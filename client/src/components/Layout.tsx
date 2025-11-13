@@ -19,6 +19,9 @@ import { AudioMonitor } from './AudioMonitor';
 import { Ringtone } from './Ringtone';
 import { AudioPlayer } from './AudioPlayer';
 import { MicrophoneCapture } from './MicrophoneCapture';
+import { AudioSettings } from './AudioSettings';
+import { useEffect } from 'react';
+// unlockAudio removido - cada componente gerencia seu próprio AudioContext
 
 export function Layout() {
   const { activeView } = useCallStore();
@@ -76,7 +79,10 @@ export function Layout() {
       case 'configuracoes':
         return (
           <div className="max-w-4xl mx-auto">
-            <Settings />
+            <div className="space-y-6">
+              <Settings />
+              <AudioSettings />
+            </div>
           </div>
         );
 
@@ -111,6 +117,16 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-inter">
+      {/* Desbloqueio do áudio no primeiro gesto do usuário */}
+      {(() => {
+        // hook inline para não alterar a estrutura existente
+        // registra listeners apenas uma vez
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        useEffect(() => {
+          // unlockAudio removido
+        }, []);
+        return null;
+      })()}
       {/* Monitor de áudio global - invisível mas sempre ativo */}
       <AudioMonitor />
       

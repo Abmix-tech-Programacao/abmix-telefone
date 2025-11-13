@@ -23,6 +23,12 @@ export function VolumeMeters({ audioContext }: VolumeMeterProps) {
 
     const setupMicrophoneMonitoring = async () => {
       try {
+        // Feature-detect MediaDevices antes de capturar microfone
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          console.warn('[VOLUME_METER] MediaDevices/getUserMedia indisponível. Use HTTPS e permita microfone (se em iframe, use allow="microphone").');
+          return;
+        }
+
         // Get microphone stream
         micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         const micSource = audioContext.createMediaStreamSource(micStream);

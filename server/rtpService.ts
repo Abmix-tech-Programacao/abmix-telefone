@@ -1,6 +1,6 @@
 import dgram from 'dgram';
-import { RtpPacket } from 'rtp.js/packets';
 import { EventEmitter } from 'events';
+import { RtpPacket } from 'rtp.js/packets';
 
 /**
  * RTP Media Server
@@ -25,6 +25,9 @@ class RTPService extends EventEmitter {
   private sessions: Map<string, RTPSession> = new Map();
   private port: number = 8000;
   private isRunning: boolean = false;
+  private inRtpCount: number = 0;
+  private outRtpCount: number = 0;
+  private statsTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     super();
@@ -61,6 +64,16 @@ class RTPService extends EventEmitter {
         const address = this.socket!.address();
         console.log(`[RTP] Server listening on ${address.address}:${address.port}`);
         this.isRunning = true;
+
+        // Periodic stats
+        if (this.statsTimer) clearInterval(this.statsTimer);
+        this.statsTimer = setInterval(() => {
+          if (!this.isRunning) return;
+          const active = this.getActiveSessions().length;
+          console.log(`[RTP] Stats: in=${this.inRtpCount} out=${this.outRtpCount} active_sessions=${active}`);
+          this.inRtpCount = 0;
+          this.outRtpCount = 0;
+        }, 5000);
         resolve();
       });
 
@@ -84,6 +97,10 @@ class RTPService extends EventEmitter {
         this.isRunning = false;
         this.socket = null;
         this.sessions.clear();
+        if (this.statsTimer) {
+          clearInterval(this.statsTimer);
+          this.statsTimer = null;
+        }
         resolve();
       });
     });
@@ -133,8 +150,16 @@ class RTPService extends EventEmitter {
    */
   private handleIncomingRTP(msg: Buffer, rinfo: dgram.RemoteInfo): void {
     try {
-      // Create RtpPacket from buffer
-      const packet = new RtpPacket(msg as any);
+      // CORREÇÃO OPENAI: Converter Buffer para DataView
+      const dv = new DataView(msg.buffer, msg.byteOffset, msg.byteLength);
+      const packet = new RtpPacket(dv as any);
+      
+      // Validação básica
+      if (!msg || msg.length < 12) {
+        return; // Silently ignore invalid packets
+      }
+      
+      const payloadType = packet.getPayloadType();
       
       // Find session by remote address/port
       const session = Array.from(this.sessions.values()).find(
@@ -148,15 +173,19 @@ class RTPService extends EventEmitter {
           // Update session with actual remote address/port
           activeSession.remoteAddress = rinfo.address;
           activeSession.remotePort = rinfo.port;
-          console.log(`[RTP] Updated session ${activeSession.callId} with remote ${rinfo.address}:${rinfo.port}`);
+          console.log(`[RTP] ✅ Updated session ${activeSession.callId} with remote ${rinfo.address}:${rinfo.port}`);
           this.processAudioPacket(activeSession, packet);
+          this.inRtpCount++;
         } else {
-          console.log(`[RTP] No active session found for packet from ${rinfo.address}:${rinfo.port}`);
+          // DEBUG: mostrar todas as sessões disponíveis
+          console.log(`[RTP] ❌ No active session for ${rinfo.address}:${rinfo.port}. Sessions:`, 
+            Array.from(this.sessions.entries()).map(([id, s]) => ({id, active: s.active, remote: `${s.remoteAddress}:${s.remotePort}`})));
         }
         return;
       }
 
       this.processAudioPacket(session, packet);
+      this.inRtpCount++;
 
     } catch (err) {
       console.error('[RTP] Failed to parse RTP packet:', err);
@@ -207,50 +236,68 @@ class RTPService extends EventEmitter {
     const session = this.sessions.get(callId);
     
     if (!session || !session.active || !this.socket) {
-      console.log(`[RTP] Cannot send audio - session not active for call ${callId}`);
+      // DEBUG: Log mais detalhado
+      console.log(`[RTP] ❌ sendAudio FAILED: session=${!!session}, active=${session?.active}, socket=${!!this.socket}, callId=${callId}`);
       return false;
     }
 
     try {
-      // Encode audio to G.711
-      let encodedAudio: Buffer;
-      if (session.payloadType === 0) {
-        encodedAudio = this.encodePCMU(audioBuffer);
-      } else if (session.payloadType === 8) {
-        encodedAudio = this.encodePCMA(audioBuffer);
-      } else {
-        console.log(`[RTP] Unsupported payload type for encoding: ${session.payloadType}`);
-        return false;
-      }
-
-      // Create RTP packet using constructor
-      const packet = new RtpPacket();
+      // CORREÇÃO: Dividir buffer em chunks de 160 bytes (20ms a 8kHz)
+      // PCM16 = 2 bytes por sample, então 160 samples = 320 bytes
+      const CHUNK_SIZE = 320; // 160 samples * 2 bytes
       
-      // Set packet properties using setters
-      packet.setPayloadType(session.payloadType);
-      packet.setSequenceNumber(session.sequenceNumber++);
-      packet.setTimestamp(session.timestamp);
-      packet.setSsrc(session.ssrc);
-      packet.setMarker(false);
+      let sentPackets = 0;
       
-      // Set payload
-      packet.setPayload(encodedAudio as any);
-
-      // Update timestamp (160 samples per packet for 20ms at 8kHz)
-      session.timestamp += 160;
-
-      // Serialize packet (updates internal buffer)
-      const byteLength = packet.getByteLength();
-      const buffer = Buffer.alloc(byteLength);
-      packet.serialize(buffer.buffer);
-      
-      this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
-        if (err) {
-          console.error('[RTP] Error sending packet:', err);
+      for (let offset = 0; offset < audioBuffer.length; offset += CHUNK_SIZE) {
+        const chunk = audioBuffer.slice(offset, Math.min(offset + CHUNK_SIZE, audioBuffer.length));
+        
+        // Se chunk muito pequeno, pular (evitar ruído no final)
+        if (chunk.length < 160) {
+          continue;
         }
-      });
+        
+        // Encode audio to G.711
+        let encodedAudio: Buffer;
+        if (session.payloadType === 0) {
+          encodedAudio = this.encodePCMU(chunk);
+        } else if (session.payloadType === 8) {
+          encodedAudio = this.encodePCMA(chunk);
+        } else {
+          console.log(`[RTP] Unsupported payload type for encoding: ${session.payloadType}`);
+          return false;
+        }
 
-      return true;
+        // Create RTP packet
+        const packet = new RtpPacket();
+        
+        // Set packet properties
+        packet.setPayloadType(session.payloadType);
+        packet.setSequenceNumber(session.sequenceNumber++);
+        packet.setTimestamp(session.timestamp);
+        packet.setSsrc(session.ssrc);
+        packet.setMarker(false);
+        packet.setPayload(encodedAudio as any);
+
+        // Update timestamp (160 samples per packet for 20ms at 8kHz)
+        session.timestamp += 160;
+
+        // Serialize packet
+        const byteLength = packet.getByteLength();
+        const buffer = Buffer.alloc(byteLength);
+        packet.serialize(buffer.buffer);
+        
+        // Send packet
+        this.socket.send(buffer, session.remotePort, session.remoteAddress, (err) => {
+          if (err) {
+            console.error('[RTP] Error sending packet:', err);
+          }
+        });
+
+        this.outRtpCount++;
+        sentPackets++;
+      }
+      
+      return sentPackets > 0;
 
     } catch (err) {
       console.error('[RTP] Error encoding/sending audio:', err);
